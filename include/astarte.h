@@ -13,4 +13,6 @@ enum astarte_err_t
     ASTARTE_ERR = 1
 };
 
+typedef enum astarte_err_t astarte_err_t;
+
 #endif
