@@ -73,7 +73,7 @@ void astarte_hwid_encode(char *encoded, int dest_size, const uint8_t *hardware_i
         }
     }
 
-    if (encoded[out_len - 1] == '=') {
-        encoded[out_len - 1] = 0;
+    if (encoded[out_len - 2] == '=') {
+        encoded[out_len - 2] = 0;
     }
 }
