@@ -33,7 +33,7 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
     int ble = (chip_info.features & CHIP_FEATURE_BLE) != 0;
 
     snprintf(info_string, 160,
-            "ESP_MAC_WIFI_STA: %x:%x:%x:%x:%x:%x, model: %i, cores: %i, revision: %i "
+            "ESP_MAC_WIFI_STA: %02x:%02x:%02x:%02x:%02x:%02x, model: %i, cores: %i, revision: %i "
             "embedded flash: %i, bluetooth: %i, BLE: %i.",
             (unsigned int) mac_addr[0], (unsigned int) mac_addr[1], (unsigned int) mac_addr[2],
             (unsigned int) mac_addr[3], (unsigned int) mac_addr[4], (unsigned int) mac_addr[5],
