@@ -1,0 +1,8 @@
+# Astarte LED Toggle example
+
+To configure and flash the example:
+```
+make menuconfig
+make -j5
+make flash
+```
