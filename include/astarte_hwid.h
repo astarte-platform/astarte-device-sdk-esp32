@@ -29,6 +29,16 @@ extern "C" {
  */
 astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id);
 
+/**
+ * @brief encode a binary hardware ID to a C string.
+ *
+ * @details base64url encode a 128 bits hardware id to an output string.
+ * @param encoded the destination buffer where encoded string will be written.
+ * @param dest_size the destination buffer size.
+ * @param hardware_id 16 bytes hardware id.
+ */
+void astarte_hwid_encode(char *encoded, int dest_size, const uint8_t *hardware_id);
+
 #ifdef __cplusplus
 }
 #endif

@@ -11,6 +11,7 @@
 #include <esp_log.h>
 #include <esp_system.h>
 
+#include <mbedtls/base64.h>
 #include <mbedtls/md.h>
 
 #define HWID_TAG "ASTARTE_HWID"
@@ -56,4 +57,23 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
     memcpy(hardware_id, sha_result, 16);
 
     return ASTARTE_OK;
+}
+
+void astarte_hwid_encode(char *encoded, int dest_size, const uint8_t *hardware_id)
+{
+    size_t out_len;
+    mbedtls_base64_encode((unsigned char *) encoded, dest_size, &out_len, hardware_id, 16);
+
+    for (int i = 0; i < out_len; i++) {
+        if (encoded[i] == '+') {
+            encoded[i] = '-';
+
+        } else if (encoded[i] == '/') {
+            encoded[i] = '_';
+        }
+    }
+
+    if (encoded[out_len - 1] == '=') {
+        encoded[out_len - 1] = 0;
+    }
 }
