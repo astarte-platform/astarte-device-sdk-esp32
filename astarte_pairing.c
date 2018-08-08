@@ -57,13 +57,13 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
-astarte_err_t astarte_pairing_register_device(const char *base_url, const char *jwt, const char *realm, const char *hw_id)
+astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_config *config)
 {
     char url[MAX_URL_LENGTH];
-    snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/agent/devices", base_url, realm);
+    snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/agent/devices", config->base_url, config->realm);
 
     cJSON *resp = NULL;
-    esp_http_client_config_t config = {
+    esp_http_client_config_t http_config = {
         .url = url,
         .event_handler = http_event_handler,
         .method = HTTP_METHOD_POST,
@@ -71,19 +71,19 @@ astarte_err_t astarte_pairing_register_device(const char *base_url, const char *
         .user_data = &resp,
     };
 
-    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_http_client_handle_t client = esp_http_client_init(&http_config);
 
     cJSON *root = cJSON_CreateObject();
     cJSON *data = cJSON_CreateObject();
     cJSON_AddItemToObject(root, "data", data);
-    cJSON_AddStringToObject(data, "hw_id", hw_id);
+    cJSON_AddStringToObject(data, "hw_id", config->hw_id);
     char *payload = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
     ESP_ERROR_CHECK(esp_http_client_set_post_field(client, payload, strlen(payload)));
 
     char auth_header[MAX_HEADER_LENGTH];
-    snprintf(auth_header, MAX_HEADER_LENGTH, "Bearer %s", jwt);
+    snprintf(auth_header, MAX_HEADER_LENGTH, "Bearer %s", config->jwt);
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Authorization", auth_header));
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Content-Type", "application/json"));
 
