@@ -8,6 +8,7 @@
 
 #include <esp_http_client.h>
 #include <esp_log.h>
+#include <nvs.h>
 
 #include <cJSON.h>
 
@@ -17,9 +18,12 @@
 #define MAX_HEADER_LENGTH 1024
 
 #define TAG "ASTARTE_PAIRING"
+#define PAIRING_NAMESPACE "astarte_pairing"
+#define CRED_SECRET_KEY "cred_secret"
 
 static esp_err_t http_event_handler(esp_http_client_event_t *evt);
 static const char *extract_credentials_secret(cJSON *response);
+static esp_err_t save_credentials_secret(const char *credentials_secret);
 
 static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 {
@@ -121,4 +125,21 @@ static const char *extract_credentials_secret(cJSON *response)
         ESP_LOGE(TAG, "Error parsing credentials_secret");
         return NULL;
     }
+}
+
+static esp_err_t save_credentials_secret(const char *credentials_secret)
+{
+    nvs_handle nvs;
+    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "nvs_open error while saving credentials_secret: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    err = nvs_set_str(nvs, CRED_SECRET_KEY, credentials_secret);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "nvs_set_str error while saving credentials_secret: %s", esp_err_to_name(err));
+    }
+
+    return err;
 }
