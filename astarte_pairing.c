@@ -102,6 +102,8 @@ astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairin
         return ast_err;
     }
 
+    // Open the handle again since it could have been invalid from above
+    nvs_open(PAIRING_NAMESPACE, NVS_READONLY, &nvs);
     // Now we should have credentials_secret in NVS
     err = nvs_get_str(nvs, CRED_SECRET_KEY, out, &length);
     if (err != ESP_OK) {
