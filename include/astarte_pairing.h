@@ -14,6 +14,14 @@
 
 #include "astarte.h"
 
+struct astarte_pairing_config
+{
+    const char* base_url;
+    const char* jwt;
+    const char* realm;
+    const char* hw_id;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
