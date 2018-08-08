@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: LGPL-2.1+ OR Apache-2.0
  */
 
+/**
+ * @file astarte_hwid.h
+ * @brief Astarte hardware ID functions.
+ */
+
 #ifndef _ASTARTE_HWID_H_
 #define _ASTARTE_HWID_H_
 
@@ -16,9 +21,9 @@ extern "C" {
 #endif
 
 /**
- * @brief get an unique hardware ID.
+ * @brief get a unique hardware ID.
  *
- * @detail Generate an unique hardware ID using device MAC address and other identification bits.
+ * @details Generate an unique hardware ID using device MAC address and other identification bits.
  * @param hardware_id a 16 bytes buffer where device ID will be written.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned
  */
