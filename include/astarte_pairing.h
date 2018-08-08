@@ -14,21 +14,37 @@
 
 #include "astarte.h"
 
+struct astarte_pairing_config
+{
+    const char* base_url;
+    const char* jwt;
+    const char* realm;
+    const char* hw_id;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
+ * @brief get the credentials secret.
+ *
+ * @details Get the credentials secret from NVS. If it isn't present, register the device to obtain it, save it and return it.
+ * @param config A struct containing the pairing configuration.
+ * @param out A pointer to an allocated string which the credentials secret will be written to.
+ * @param length The length of the out buffer.
+ * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
+ */
+astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairing_config *config, char *out, unsigned int length);
+
+/**
  * @brief register a device.
  *
  * @details Perform a device registration as agent.
- * @param base_url base_url for Pairing API.
- * @param jwt JWT token providing authentication to Pairing API.
- * @param realm the target realm for the registration.
- * @param hw_id the hardware id of the device to be registered.
+ * @param config A struct containing the pairing configuration.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
  */
-astarte_err_t astarte_pairing_register_device(const char *base_url, const char *jwt, const char *realm, const char *hw_id);
+astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_config *config);
 
 #ifdef __cplusplus
 }
