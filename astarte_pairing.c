@@ -98,9 +98,18 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
         int status_code = esp_http_client_get_status_code(client);
         ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d",
                  status_code, esp_http_client_get_content_length(client));
+
+        const char *credentials_secret = NULL;
         if (status_code == 201) {
-            const char *credentials_secret = extract_credentials_secret(resp);
-            ESP_LOGI(TAG, "credentials_secret is %s", credentials_secret);
+            credentials_secret = extract_credentials_secret(resp);
+            ESP_LOGI(TAG, "Device registered, credentials_secret is %s", credentials_secret);
+        } else {
+            char *json_error = cJSON_Print(resp);
+            ESP_LOGE(TAG, "Device registration failed with code %d: %s", status_code, json_error);
+            free(json_error);
+        }
+
+        if (credentials_secret && save_credentials_secret(credentials_secret) == ESP_OK) {
             ret = ASTARTE_OK;
         }
     } else {
