@@ -27,6 +27,17 @@ extern "C" {
 #endif
 
 /**
+ * @brief get the credentials secret.
+ *
+ * @details Get the credentials secret from NVS. If it isn't present, register the device to obtain it, save it and return it.
+ * @param config A struct containing the pairing configuration.
+ * @param out A pointer to an allocated string which the credentials secret will be written to.
+ * @param length The length of the out buffer.
+ * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
+ */
+astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairing_config *config, char *out, unsigned int length);
+
+/**
  * @brief register a device.
  *
  * @details Perform a device registration as agent.

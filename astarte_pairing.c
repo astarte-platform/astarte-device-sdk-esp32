@@ -61,6 +61,57 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
+astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairing_config *config, char *out, unsigned int length)
+{
+    nvs_handle nvs;
+    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READONLY, &nvs);
+    switch (err) {
+        // NVS_NOT_FOUND is ok if we don't have credentials_secret yet
+        case ESP_ERR_NVS_NOT_FOUND:
+        case ESP_OK:
+            break;
+        case ESP_ERR_NVS_NOT_INITIALIZED:
+            ESP_LOGE(TAG, "Non-volatile storage not initialized");
+            ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
+            return ASTARTE_ERR;
+        default:
+            ESP_LOGE(TAG, "nvs_open error while reading credentials_secret: %s", esp_err_to_name(err));
+            return ASTARTE_ERR;
+    }
+
+    err = nvs_get_str(nvs, CRED_SECRET_KEY, out, &length);
+    switch (err) {
+        case ESP_OK:
+            // Got it
+            return ASTARTE_OK;
+
+        // Here we come from NVS_NOT_FOUND above
+        case ESP_ERR_NVS_INVALID_HANDLE:
+        case ESP_ERR_NVS_NOT_FOUND:
+            ESP_LOGI(TAG, "credentials_secret not found, registering device");
+            break;
+
+        default:
+            ESP_LOGE(TAG, "nvs_get_str error: %s", esp_err_to_name(err));
+            return ASTARTE_ERR;
+    }
+
+    astarte_err_t ast_err = astarte_pairing_register_device(config);
+    if (ast_err != ASTARTE_OK) {
+        ESP_LOGE(TAG, "Device registration failed: %d", ast_err);
+        return ast_err;
+    }
+
+    // Now we should have credentials_secret in NVS
+    err = nvs_get_str(nvs, CRED_SECRET_KEY, out, &length);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Can't retrieve credentials_secret after registration: %s", esp_err_to_name(err));
+        return ASTARTE_ERR;
+    }
+
+    return ASTARTE_OK;
+}
+
 astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_config *config)
 {
     char url[MAX_URL_LENGTH];
