@@ -14,6 +14,7 @@
 #include "esp_vfs.h"
 #include "esp_vfs_fat.h"
 
+#include "astarte_credentials.h"
 #include "astarte_hwid.h"
 #include "astarte_pairing.h"
 
@@ -88,6 +89,7 @@ static void led_toggle_task(void *ctx)
     char encoded_hwid[256];
     astarte_hwid_encode(encoded_hwid, 256, hwid);
     ESP_LOGI(TAG, "hwid is: %s", encoded_hwid);
+    astarte_credentials_init(encoded_hwid);
     struct astarte_pairing_config pairing_config = {
         .base_url = CONFIG_ASTARTE_PAIRING_BASE_URL,
         .jwt = CONFIG_ASTARTE_PAIRING_JWT,
