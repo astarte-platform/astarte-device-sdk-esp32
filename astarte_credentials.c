@@ -25,6 +25,7 @@
 #define CREDENTIALS_DIR_PATH "/spiflash/ast_cred"
 #define PRIVKEY_PATH (CREDENTIALS_DIR_PATH "/device.key")
 #define CSR_PATH (CREDENTIALS_DIR_PATH "/device.csr")
+#define CRT_PATH (CREDENTIALS_DIR_PATH "/device.crt")
 
 #define KEY_SIZE 2048
 #define EXPONENT 65537
@@ -271,5 +272,24 @@ astarte_err_t astarte_credentials_get_csr(char *out, unsigned int length)
     }
 
     fclose(fcsr);
+    return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_get_certificate(char *out, unsigned int length)
+{
+    FILE *fcert = fopen(CRT_PATH, "rb");
+    if (!fcert) {
+        ESP_LOGE(TAG, "Cannot open %s", CRT_PATH);
+        return ASTARTE_ERR_NOT_FOUND;
+    }
+
+    int ret;
+    if ((ret = fread(out, 1, length, fcert)) < 0) {
+        ESP_LOGE(TAG, "fread returned %d", ret);
+        fclose(fcert);
+        return ASTARTE_ERR;
+    }
+
+    fclose(fcert);
     return ASTARTE_OK;
 }
