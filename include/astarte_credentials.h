@@ -46,6 +46,16 @@ astarte_err_t astarte_credentials_create_key();
  */
 astarte_err_t astarte_credentials_create_csr();
 
+/**
+ * @brief get the saved CSR
+ *
+ * @details Get the CSR, writing it to the out buffer, if it is present.
+ * @param out A pointer to an allocated buffer where the CSR will be written.
+ * @param length The length of the out buffer.
+ * @return The status code, ASTARTE_OK if the certificate was correctly written, otherwise an error code is returned.
+ */
+astarte_err_t astarte_credentials_get_csr(char *out, unsigned int length);
+
 #ifdef __cplusplus
 }
 #endif

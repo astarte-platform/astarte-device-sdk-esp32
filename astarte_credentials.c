@@ -254,3 +254,22 @@ exit:
 
     return exit_code;
 }
+
+astarte_err_t astarte_credentials_get_csr(char *out, unsigned int length)
+{
+    FILE *fcsr = fopen(CSR_PATH, "rb");
+    if (!fcsr) {
+        ESP_LOGE(TAG, "Cannot open %s", CSR_PATH);
+        return ASTARTE_ERR_NOT_FOUND;
+    }
+
+    int ret;
+    if ((ret = fread(out, 1, length, fcsr)) < 0) {
+        ESP_LOGE(TAG, "fread returned %d", ret);
+        fclose(fcsr);
+        return ASTARTE_ERR;
+    }
+
+    fclose(fcsr);
+    return ASTARTE_OK;
+}
