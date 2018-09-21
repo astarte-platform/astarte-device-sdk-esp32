@@ -226,6 +226,18 @@ astarte_err_t astarte_credentials_create_csr(const char *encoded_hwid)
     }
     size_t len = strlen((char *) csr_buffer);
 
+    ESP_LOGI(TAG, "Saving the CSR in %s", CSR_PATH);
+    fcsr = fopen(CSR_PATH, "wb+");
+    if (!fcsr) {
+        ESP_LOGE(TAG, "Cannot open %s for writing", CSR_PATH);
+        goto exit;
+    }
+
+    if (fwrite(csr_buffer, sizeof(unsigned char), len, fcsr) != len) {
+        ESP_LOGE(TAG, "Cannot write CSR to %s", CSR_PATH);
+        goto exit;
+    }
+
     ESP_LOGI(TAG, "CSR succesfully created.");
     // TODO: this is useful in this phase, remove it later
     ESP_LOGI(TAG, "%.*s", len, csr_buffer);
