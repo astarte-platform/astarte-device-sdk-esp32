@@ -256,6 +256,31 @@ exit:
     return exit_code;
 }
 
+astarte_err_t astarte_credentials_save_certificate(const char *cert_pem)
+{
+    if (!cert_pem) {
+        ESP_LOGE(TAG, "cert_pem is NULL");
+        return ASTARTE_ERR;
+    }
+
+    FILE *fcert = fopen(CRT_PATH, "wb+");
+    if (!fcert) {
+        ESP_LOGE(TAG, "Cannot open %s", CRT_PATH);
+        return ASTARTE_ERR;
+    }
+
+    size_t len = strlen(cert_pem);
+    int ret;
+    if ((ret = fwrite(cert_pem, 1, len, fcert)) != len) {
+        ESP_LOGE(TAG, "fwrite returned %d", ret);
+        fclose(fcert);
+        return ASTARTE_ERR;
+    }
+
+    fclose(fcert);
+    return ASTARTE_OK;
+}
+
 astarte_err_t astarte_credentials_get_csr(char *out, unsigned int length)
 {
     FILE *fcsr = fopen(CSR_PATH, "rb");

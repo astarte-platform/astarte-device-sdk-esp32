@@ -47,6 +47,15 @@ astarte_err_t astarte_credentials_create_key();
 astarte_err_t astarte_credentials_create_csr();
 
 /**
+ * @brief save the certificate to connect with the Astarte MQTT v1 protocol
+ *
+ * @details Save the certificate in the credentials folder. This requires a mounted FAT on the /spiflash mountpoint
+ * @param cert_pem The buffer containing a NULL-terminated certificate in PEM form.
+ * @return The status code, ASTARTE_OK if the certificate was correctly saved, otherwise an error code is returned.
+ */
+astarte_err_t astarte_credentials_save_certificate(const char *cert_pem);
+
+/**
  * @brief get the saved CSR
  *
  * @details Get the CSR, writing it to the out buffer, if it is present.
