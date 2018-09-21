@@ -117,5 +117,5 @@ void app_main()
     nvs_flash_init();
     spiflash_mount();
     wifi_init();
-    xTaskCreate(led_toggle_task, "led_toggle_task", 8192, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(led_toggle_task, "led_toggle_task", 16384, NULL, tskIDLE_PRIORITY, NULL);
 }
