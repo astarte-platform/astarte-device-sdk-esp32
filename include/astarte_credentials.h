@@ -22,9 +22,10 @@ extern "C" {
  * @brief initialize Astarte credentials.
  *
  * @details This function has to be called to initialize the private key and CSR needed for the MQTT transport.
+ * @param encoded_hwid the encoded hwid, used to generate the CSR.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
  */
-astarte_err_t astarte_credentials_init();
+astarte_err_t astarte_credentials_init(const char *encoded_hwid);
 
 /**
  * @brief create Astarte private key.
@@ -35,6 +36,18 @@ astarte_err_t astarte_credentials_init();
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
  */
 astarte_err_t astarte_credentials_create_key();
+
+/**
+ * @brief create Astarte CSR to be sent to Pairing API.
+ *
+ * @details This function creates the CSR to be signed by Pairing API and saves it on the FAT filesystem on the
+ * SPI flash. It requires a mounted FAT on the /spiflash mountpoint. This function is called from
+ * astarte_credentials_init() if the CSR doesn't exist, but can also be called manually to generate a new CSR.
+ * @param encoded_hwid the encoded hwid, used as temporary CN in the CSR. The actual CN will be replaced by
+ * Pairing API.
+ * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
+ */
+astarte_err_t astarte_credentials_create_csr(const char *encoded_hwid);
 
 #ifdef __cplusplus
 }

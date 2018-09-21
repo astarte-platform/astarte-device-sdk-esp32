@@ -12,6 +12,7 @@
 #include <mbedtls/entropy.h>
 #include <mbedtls/pk.h>
 #include <mbedtls/rsa.h>
+#include <mbedtls/x509_csr.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +30,9 @@
 #define EXPONENT 65537
 #define PRIVKEY_BUFFER_LENGTH 16000
 
-astarte_err_t astarte_credentials_init()
+#define CSR_BUFFER_LENGTH 4096
+
+astarte_err_t astarte_credentials_init(const char *encoded_hwid)
 {
     struct stat st;
     if (stat(CREDENTIALS_DIR_PATH, &st) < 0) {
@@ -50,6 +53,9 @@ astarte_err_t astarte_credentials_init()
 
     if (access(CSR_PATH, R_OK) < 0) {
         ESP_LOGI(TAG, "CSR not found, creating it.");
+        if (astarte_credentials_create_csr(encoded_hwid) != ASTARTE_OK) {
+            return ASTARTE_ERR;
+        }
     }
 
     return ASTARTE_OK;
@@ -160,6 +166,82 @@ exit:
     mbedtls_pk_free(&key);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+
+    return exit_code;
+}
+
+astarte_err_t astarte_credentials_create_csr(const char *encoded_hwid)
+{
+    astarte_err_t exit_code = ASTARTE_ERR;
+
+    mbedtls_pk_context key;
+    mbedtls_x509write_csr req;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    FILE *fcsr = NULL;
+    unsigned char *csr_buffer = NULL;
+    const char *pers = "astarte_credentials_create_csr";
+
+    mbedtls_x509write_csr_init(&req);
+    mbedtls_pk_init(&key);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    mbedtls_entropy_init(&entropy);
+
+    mbedtls_x509write_csr_set_md_alg(&req, MBEDTLS_MD_SHA256);
+    mbedtls_x509write_csr_set_ns_cert_type(&req, MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT);
+
+    char subject_name[512];
+    // We set the CN to the encoded_hwid, it's just a placeholder since Pairing API will change it
+    snprintf(subject_name, 512, "CN=%s", encoded_hwid);
+
+    int ret = 0;
+    if ((ret = mbedtls_x509write_csr_set_subject_name(&req, subject_name)) != 0) {
+        ESP_LOGE(TAG, "mbedtls_x509write_csr_set_subject_name returned %d", ret);
+        goto exit;
+    }
+
+    ESP_LOGI(TAG, "Initializing entropy");
+    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers, strlen(pers))) != 0) {
+        ESP_LOGE(TAG, "mbedtls_ctr_drbg_seed returned %d", ret);
+        goto exit;
+    }
+
+    ESP_LOGI(TAG, "Loading the private key");
+    if ((ret = mbedtls_pk_parse_keyfile(&key, PRIVKEY_PATH, NULL)) != 0) {
+        ESP_LOGE(TAG, "mbedtls_pk_parse_key returned %d", ret);
+        goto exit;
+    }
+
+    mbedtls_x509write_csr_set_key(&req, &key);
+
+    csr_buffer = calloc(sizeof(unsigned char), CSR_BUFFER_LENGTH);
+    if (!csr_buffer) {
+        ESP_LOGE(TAG, "Cannot allocate CSR buffer");
+        goto exit;
+    }
+
+    if ((ret = mbedtls_x509write_csr_pem(&req, csr_buffer, CSR_BUFFER_LENGTH, mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+        ESP_LOGE(TAG, "mbedtls_x509write_csr_pem returned %d", ret);
+        goto exit;
+    }
+    size_t len = strlen((char *) csr_buffer);
+
+    ESP_LOGI(TAG, "CSR succesfully created.");
+    // TODO: this is useful in this phase, remove it later
+    ESP_LOGI(TAG, "%.*s", len, csr_buffer);
+    exit_code = ASTARTE_OK;
+
+exit:
+    free(csr_buffer);
+
+    if (fcsr) {
+        fclose(fcsr);
+    }
+
+    mbedtls_x509write_csr_free( &req );
+    mbedtls_pk_free( &key );
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
 
     return exit_code;
 }
