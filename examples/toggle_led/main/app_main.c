@@ -11,12 +11,17 @@
 #include "freertos/event_groups.h"
 
 #include "esp_log.h"
+#include "esp_vfs.h"
+#include "esp_vfs_fat.h"
 
 #include "astarte_hwid.h"
 #include "astarte_pairing.h"
 
 #define TAG "ASTARTE_TOGGLE_LED"
 
+#define BASE_PATH "/spiflash"
+
+static wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
 static EventGroupHandle_t wifi_event_group;
 const static int CONNECTED_BIT = BIT0;
 
@@ -62,6 +67,20 @@ static void wifi_init(void)
     xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
 }
 
+static void spiflash_mount()
+{
+    ESP_LOGI(TAG, "Mounting FAT filesystem");
+    const esp_vfs_fat_mount_config_t mount_config = {
+            .max_files = 4,
+            .format_if_mount_failed = true,
+            .allocation_unit_size = CONFIG_WL_SECTOR_SIZE
+    };
+    esp_err_t err = esp_vfs_fat_spiflash_mount(BASE_PATH, "storage", &mount_config, &s_wl_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to mount FATFS (%s)", esp_err_to_name(err));
+    }
+}
+
 static void led_toggle_task(void *ctx)
 {
     uint8_t hwid[16];
@@ -96,6 +115,7 @@ void app_main()
     esp_log_level_set("ASTARTE_PAIRING", ESP_LOG_VERBOSE);
 
     nvs_flash_init();
+    spiflash_mount();
     wifi_init();
     xTaskCreate(led_toggle_task, "led_toggle_task", 8192, NULL, tskIDLE_PRIORITY, NULL);
 }
