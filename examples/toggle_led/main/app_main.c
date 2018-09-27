@@ -91,13 +91,6 @@ static void led_toggle_task(void *ctx)
     ESP_LOGI(TAG, "hwid is: %s", encoded_hwid);
 
     astarte_credentials_init();
-    char *csr = calloc(1, 4096);
-    astarte_err_t err = astarte_credentials_get_csr(csr, 4096);
-    if (err != ASTARTE_OK) {
-        ESP_LOGE(TAG, "Error in get_csr");
-    } else {
-        ESP_LOGI(TAG, "CSR is: %s", csr);
-    }
 
     struct astarte_pairing_config pairing_config = {
         .base_url = CONFIG_ASTARTE_PAIRING_BASE_URL,
@@ -106,30 +99,47 @@ static void led_toggle_task(void *ctx)
         .hw_id = encoded_hwid,
     };
     char credentials_secret[512];
-    err = astarte_pairing_get_credentials_secret(&pairing_config, credentials_secret, 512);
+    astarte_err_t err = astarte_pairing_get_credentials_secret(&pairing_config, credentials_secret, 512);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_credentials_secret");
     } else {
         ESP_LOGI(TAG, "credentials_secret is: %s", credentials_secret);
     }
 
-    char *cert_pem = calloc(1, 4096);
-    err = astarte_pairing_get_mqtt_v1_credentials(&pairing_config, csr, cert_pem, 4096);
-    if (err != ASTARTE_OK) {
-        ESP_LOGE(TAG, "Error in get_mqtt_v1_credentials");
-    } else {
-        ESP_LOGI(TAG, "Certificate is: %s", cert_pem);
+    if (!astarte_credentials_has_certificate()) {
+        char *csr = calloc(1, 4096);
+        err = astarte_credentials_get_csr(csr, 4096);
+        if (err != ASTARTE_OK) {
+            ESP_LOGE(TAG, "Error in get_csr");
+        }
+
+        char *cert_pem = calloc(1, 4096);
+        err = astarte_pairing_get_mqtt_v1_credentials(&pairing_config, csr, cert_pem, 4096);
+        if (err != ASTARTE_OK) {
+            ESP_LOGE(TAG, "Error in get_mqtt_v1_credentials");
+        } else {
+            ESP_LOGI(TAG, "Got credentials");
+        }
+        free(csr);
+
+        err = astarte_credentials_save_certificate(cert_pem);
+        if (err != ASTARTE_OK) {
+            ESP_LOGE(TAG, "Error in get_mqtt_v1_credentials");
+        } else {
+            ESP_LOGI(TAG, "Certificate saved");
+        }
+        free(cert_pem);
     }
 
+    char *cert_pem = calloc(1, 4096);
     err = astarte_credentials_get_certificate(cert_pem, 4096);
     if (err != ASTARTE_OK) {
-        ESP_LOGE(TAG, "Error in get_csr");
+        ESP_LOGE(TAG, "Error in get_certificate");
     } else {
         ESP_LOGI(TAG, "Certificate is: %s", cert_pem);
     }
-
     free(cert_pem);
-    free(csr);
+
     while (1) {
     }
 }
