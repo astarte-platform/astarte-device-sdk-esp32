@@ -20,7 +20,8 @@
 enum astarte_err_t
 {
     ASTARTE_OK = 0, /**< No errors. */
-    ASTARTE_ERR = 1 /**< A generic error occurred. */
+    ASTARTE_ERR = 1, /**< A generic error occurred. */
+    ASTARTE_ERR_NOT_FOUND = 2, /**< The resource was not found. */
 };
 
 typedef enum astarte_err_t astarte_err_t;
