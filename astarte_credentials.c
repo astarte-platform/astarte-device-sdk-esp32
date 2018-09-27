@@ -114,7 +114,7 @@ astarte_err_t astarte_credentials_create_key()
 
     ESP_LOGI(TAG, "Key succesfully generated");
 
-    privkey_buffer = calloc(sizeof(unsigned char), PRIVKEY_BUFFER_LENGTH);
+    privkey_buffer = calloc(PRIVKEY_BUFFER_LENGTH, sizeof(unsigned char));
     if (!privkey_buffer) {
         ESP_LOGE(TAG, "Cannot allocate private key buffer");
         goto exit;
@@ -212,7 +212,7 @@ astarte_err_t astarte_credentials_create_csr()
 
     mbedtls_x509write_csr_set_key(&req, &key);
 
-    csr_buffer = calloc(sizeof(unsigned char), CSR_BUFFER_LENGTH);
+    csr_buffer = calloc(CSR_BUFFER_LENGTH, sizeof(unsigned char));
     if (!csr_buffer) {
         ESP_LOGE(TAG, "Cannot allocate CSR buffer");
         goto exit;

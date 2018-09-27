@@ -107,13 +107,13 @@ static void led_toggle_task(void *ctx)
     }
 
     if (!astarte_credentials_has_certificate()) {
-        char *csr = calloc(1, 4096);
+        char *csr = calloc(4096, sizeof(char));
         err = astarte_credentials_get_csr(csr, 4096);
         if (err != ASTARTE_OK) {
             ESP_LOGE(TAG, "Error in get_csr");
         }
 
-        char *cert_pem = calloc(1, 4096);
+        char *cert_pem = calloc(4096, sizeof(char));
         err = astarte_pairing_get_mqtt_v1_credentials(&pairing_config, csr, cert_pem, 4096);
         if (err != ASTARTE_OK) {
             ESP_LOGE(TAG, "Error in get_mqtt_v1_credentials");
@@ -131,7 +131,7 @@ static void led_toggle_task(void *ctx)
         free(cert_pem);
     }
 
-    char *cert_pem = calloc(1, 4096);
+    char *cert_pem = calloc(4096, sizeof(char));
     err = astarte_credentials_get_certificate(cert_pem, 4096);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_certificate");
