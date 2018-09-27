@@ -190,12 +190,9 @@ astarte_err_t astarte_credentials_create_csr(const char *encoded_hwid)
     mbedtls_x509write_csr_set_md_alg(&req, MBEDTLS_MD_SHA256);
     mbedtls_x509write_csr_set_ns_cert_type(&req, MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT);
 
-    char subject_name[512];
-    // We set the CN to the encoded_hwid, it's just a placeholder since Pairing API will change it
-    snprintf(subject_name, 512, "CN=%s", encoded_hwid);
-
     int ret = 0;
-    if ((ret = mbedtls_x509write_csr_set_subject_name(&req, subject_name)) != 0) {
+    // We set the CN to a temporary value, it's just a placeholder since Pairing API will change it
+    if ((ret = mbedtls_x509write_csr_set_subject_name(&req, "CN=temporary")) != 0) {
         ESP_LOGE(TAG, "mbedtls_x509write_csr_set_subject_name returned %d", ret);
         goto exit;
     }
