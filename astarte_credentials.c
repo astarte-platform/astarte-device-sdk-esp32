@@ -25,6 +25,7 @@
 #define CREDENTIALS_DIR_PATH "/spiflash/ast_cred"
 #define PRIVKEY_PATH (CREDENTIALS_DIR_PATH "/device.key")
 #define CSR_PATH (CREDENTIALS_DIR_PATH "/device.csr")
+#define CRT_PATH (CREDENTIALS_DIR_PATH "/device.crt")
 
 #define KEY_SIZE 2048
 #define EXPONENT 65537
@@ -44,14 +45,14 @@ astarte_err_t astarte_credentials_init()
         }
     }
 
-    if (access(PRIVKEY_PATH, R_OK) < 0) {
+    if (!astarte_credentials_has_key()) {
         ESP_LOGI(TAG, "Private key not found, creating it.");
         if (astarte_credentials_create_key() != ASTARTE_OK) {
             return ASTARTE_ERR;
         }
     }
 
-    if (access(CSR_PATH, R_OK) < 0) {
+    if (!astarte_credentials_has_csr()) {
         ESP_LOGI(TAG, "CSR not found, creating it.");
         if (astarte_credentials_create_csr() != ASTARTE_OK) {
             return ASTARTE_ERR;
@@ -113,7 +114,7 @@ astarte_err_t astarte_credentials_create_key()
 
     ESP_LOGI(TAG, "Key succesfully generated");
 
-    privkey_buffer = calloc(sizeof(unsigned char), PRIVKEY_BUFFER_LENGTH);
+    privkey_buffer = calloc(PRIVKEY_BUFFER_LENGTH, sizeof(unsigned char));
     if (!privkey_buffer) {
         ESP_LOGE(TAG, "Cannot allocate private key buffer");
         goto exit;
@@ -211,7 +212,7 @@ astarte_err_t astarte_credentials_create_csr()
 
     mbedtls_x509write_csr_set_key(&req, &key);
 
-    csr_buffer = calloc(sizeof(unsigned char), CSR_BUFFER_LENGTH);
+    csr_buffer = calloc(CSR_BUFFER_LENGTH, sizeof(unsigned char));
     if (!csr_buffer) {
         ESP_LOGE(TAG, "Cannot allocate CSR buffer");
         goto exit;
@@ -253,4 +254,101 @@ exit:
     mbedtls_entropy_free( &entropy );
 
     return exit_code;
+}
+
+astarte_err_t astarte_credentials_save_certificate(const char *cert_pem)
+{
+    if (!cert_pem) {
+        ESP_LOGE(TAG, "cert_pem is NULL");
+        return ASTARTE_ERR;
+    }
+
+    FILE *fcert = fopen(CRT_PATH, "wb+");
+    if (!fcert) {
+        ESP_LOGE(TAG, "Cannot open %s", CRT_PATH);
+        return ASTARTE_ERR;
+    }
+
+    size_t len = strlen(cert_pem);
+    int ret;
+    if ((ret = fwrite(cert_pem, 1, len, fcert)) != len) {
+        ESP_LOGE(TAG, "fwrite returned %d", ret);
+        fclose(fcert);
+        return ASTARTE_ERR;
+    }
+
+    fclose(fcert);
+    return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_get_csr(char *out, size_t length)
+{
+    FILE *fcsr = fopen(CSR_PATH, "rb");
+    if (!fcsr) {
+        ESP_LOGE(TAG, "Cannot open %s", CSR_PATH);
+        return ASTARTE_ERR_NOT_FOUND;
+    }
+
+    int ret;
+    if ((ret = fread(out, 1, length, fcsr)) < 0) {
+        ESP_LOGE(TAG, "fread returned %d", ret);
+        fclose(fcsr);
+        return ASTARTE_ERR;
+    }
+
+    fclose(fcsr);
+    return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_get_certificate(char *out, size_t length)
+{
+    FILE *fcert = fopen(CRT_PATH, "rb");
+    if (!fcert) {
+        ESP_LOGE(TAG, "Cannot open %s", CRT_PATH);
+        return ASTARTE_ERR_NOT_FOUND;
+    }
+
+    int ret;
+    if ((ret = fread(out, 1, length, fcert)) < 0) {
+        ESP_LOGE(TAG, "fread returned %d", ret);
+        fclose(fcert);
+        return ASTARTE_ERR;
+    }
+
+    fclose(fcert);
+    return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_get_key(char *out, size_t length)
+{
+    FILE *fpriv = fopen(PRIVKEY_PATH, "rb");
+    if (!fpriv) {
+        ESP_LOGE(TAG, "Cannot open %s", CSR_PATH);
+        return ASTARTE_ERR_NOT_FOUND;
+    }
+
+    int ret;
+    if ((ret = fread(out, 1, length, fpriv)) < 0) {
+        ESP_LOGE(TAG, "fread returned %d", ret);
+        fclose(fpriv);
+        return ASTARTE_ERR;
+    }
+
+    fclose(fpriv);
+    return ASTARTE_OK;
+}
+
+int astarte_credentials_has_certificate()
+{
+    return access(CRT_PATH, R_OK) == 0;
+}
+
+int astarte_credentials_has_csr()
+{
+    return access(CSR_PATH, R_OK) == 0;
+}
+
+int astarte_credentials_has_key()
+{
+    return access(PRIVKEY_PATH, R_OK) == 0;
 }
