@@ -293,3 +293,22 @@ astarte_err_t astarte_credentials_get_certificate(char *out, unsigned int length
     fclose(fcert);
     return ASTARTE_OK;
 }
+
+astarte_err_t astarte_credentials_get_key(char *out, unsigned int length)
+{
+    FILE *fpriv = fopen(PRIVKEY_PATH, "rb");
+    if (!fpriv) {
+        ESP_LOGE(TAG, "Cannot open %s", CSR_PATH);
+        return ASTARTE_ERR_NOT_FOUND;
+    }
+
+    int ret;
+    if ((ret = fread(out, 1, length, fpriv)) < 0) {
+        ESP_LOGE(TAG, "fread returned %d", ret);
+        fclose(fpriv);
+        return ASTARTE_ERR;
+    }
+
+    fclose(fpriv);
+    return ASTARTE_OK;
+}
