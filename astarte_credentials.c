@@ -45,14 +45,14 @@ astarte_err_t astarte_credentials_init()
         }
     }
 
-    if (access(PRIVKEY_PATH, R_OK) < 0) {
+    if (!astarte_credentials_has_key()) {
         ESP_LOGI(TAG, "Private key not found, creating it.");
         if (astarte_credentials_create_key() != ASTARTE_OK) {
             return ASTARTE_ERR;
         }
     }
 
-    if (access(CSR_PATH, R_OK) < 0) {
+    if (!astarte_credentials_has_csr()) {
         ESP_LOGI(TAG, "CSR not found, creating it.");
         if (astarte_credentials_create_csr() != ASTARTE_OK) {
             return ASTARTE_ERR;
@@ -336,4 +336,19 @@ astarte_err_t astarte_credentials_get_key(char *out, unsigned int length)
 
     fclose(fpriv);
     return ASTARTE_OK;
+}
+
+int astarte_credentials_has_certificate()
+{
+    return access(CRT_PATH, R_OK) == 0;
+}
+
+int astarte_credentials_has_csr()
+{
+    return access(CSR_PATH, R_OK) == 0;
+}
+
+int astarte_credentials_has_key()
+{
+    return access(PRIVKEY_PATH, R_OK) == 0;
 }

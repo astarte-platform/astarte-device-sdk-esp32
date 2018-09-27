@@ -85,6 +85,30 @@ astarte_err_t astarte_credentials_get_certificate(char *out, unsigned int length
  */
 astarte_err_t astarte_credentials_get_key(char *out, unsigned int length);
 
+/**
+ * @brief check if the certificate exists
+ *
+ * @details Check if the file containing the certificate exists and is readable.
+ * @return 1 if the file exists and is readable, 0 otherwise.
+ */
+int astarte_credentials_has_certificate();
+
+/**
+ * @brief check if the CSR exists
+ *
+ * @details Check if the file containing the CSR exists and is readable.
+ * @return 1 if the file exists and is readable, 0 otherwise.
+ */
+int astarte_credentials_has_csr();
+
+/**
+ * @brief check if the private key exists
+ *
+ * @details Check if the file containing the private key exists and is readable.
+ * @return 1 if the file exists and is readable, 0 otherwise.
+ */
+int astarte_credentials_has_key();
+
 #ifdef __cplusplus
 }
 #endif
