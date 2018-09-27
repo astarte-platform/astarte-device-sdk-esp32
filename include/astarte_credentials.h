@@ -14,6 +14,8 @@
 
 #include "astarte.h"
 
+#include <string.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -63,7 +65,7 @@ astarte_err_t astarte_credentials_save_certificate(const char *cert_pem);
  * @param length The length of the out buffer.
  * @return The status code, ASTARTE_OK if the certificate was correctly written, otherwise an error code is returned.
  */
-astarte_err_t astarte_credentials_get_csr(char *out, unsigned int length);
+astarte_err_t astarte_credentials_get_csr(char *out, size_t length);
 
 /**
  * @brief get the certificate to connect with the Astarte MQTT v1 protocol
@@ -73,7 +75,7 @@ astarte_err_t astarte_credentials_get_csr(char *out, unsigned int length);
  * @param length The length of the out buffer.
  * @return The status code, ASTARTE_OK if the certificate was correctly written, otherwise an error code is returned.
  */
-astarte_err_t astarte_credentials_get_certificate(char *out, unsigned int length);
+astarte_err_t astarte_credentials_get_certificate(char *out, size_t length);
 
 /**
  * @brief get the private key to connect with the Astarte MQTT v1 protocol
@@ -83,7 +85,7 @@ astarte_err_t astarte_credentials_get_certificate(char *out, unsigned int length
  * @param length The length of the out buffer.
  * @return The status code, ASTARTE_OK if the certificate was correctly written, otherwise an error code is returned.
  */
-astarte_err_t astarte_credentials_get_key(char *out, unsigned int length);
+astarte_err_t astarte_credentials_get_key(char *out, size_t length);
 
 /**
  * @brief check if the certificate exists

@@ -281,7 +281,7 @@ astarte_err_t astarte_credentials_save_certificate(const char *cert_pem)
     return ASTARTE_OK;
 }
 
-astarte_err_t astarte_credentials_get_csr(char *out, unsigned int length)
+astarte_err_t astarte_credentials_get_csr(char *out, size_t length)
 {
     FILE *fcsr = fopen(CSR_PATH, "rb");
     if (!fcsr) {
@@ -300,7 +300,7 @@ astarte_err_t astarte_credentials_get_csr(char *out, unsigned int length)
     return ASTARTE_OK;
 }
 
-astarte_err_t astarte_credentials_get_certificate(char *out, unsigned int length)
+astarte_err_t astarte_credentials_get_certificate(char *out, size_t length)
 {
     FILE *fcert = fopen(CRT_PATH, "rb");
     if (!fcert) {
@@ -319,7 +319,7 @@ astarte_err_t astarte_credentials_get_certificate(char *out, unsigned int length
     return ASTARTE_OK;
 }
 
-astarte_err_t astarte_credentials_get_key(char *out, unsigned int length)
+astarte_err_t astarte_credentials_get_key(char *out, size_t length)
 {
     FILE *fpriv = fopen(PRIVKEY_PATH, "rb");
     if (!fpriv) {

@@ -62,7 +62,7 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
-astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairing_config *config, char *out, unsigned int length)
+astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairing_config *config, char *out, size_t length)
 {
     nvs_handle nvs;
     esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READONLY, &nvs);
@@ -115,7 +115,7 @@ astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairin
     return ASTARTE_OK;
 }
 
-astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairing_config *config, const char *csr, char *out, unsigned int length)
+astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairing_config *config, const char *csr, char *out, size_t length)
 {
     char cred_secret[256];
     astarte_err_t err = astarte_pairing_get_credentials_secret(config, cred_secret, 256);
