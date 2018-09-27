@@ -32,7 +32,7 @@
 
 #define CSR_BUFFER_LENGTH 4096
 
-astarte_err_t astarte_credentials_init(const char *encoded_hwid)
+astarte_err_t astarte_credentials_init()
 {
     struct stat st;
     if (stat(CREDENTIALS_DIR_PATH, &st) < 0) {
@@ -53,7 +53,7 @@ astarte_err_t astarte_credentials_init(const char *encoded_hwid)
 
     if (access(CSR_PATH, R_OK) < 0) {
         ESP_LOGI(TAG, "CSR not found, creating it.");
-        if (astarte_credentials_create_csr(encoded_hwid) != ASTARTE_OK) {
+        if (astarte_credentials_create_csr() != ASTARTE_OK) {
             return ASTARTE_ERR;
         }
     }
@@ -170,7 +170,7 @@ exit:
     return exit_code;
 }
 
-astarte_err_t astarte_credentials_create_csr(const char *encoded_hwid)
+astarte_err_t astarte_credentials_create_csr()
 {
     astarte_err_t exit_code = ASTARTE_ERR;
 
@@ -190,12 +190,9 @@ astarte_err_t astarte_credentials_create_csr(const char *encoded_hwid)
     mbedtls_x509write_csr_set_md_alg(&req, MBEDTLS_MD_SHA256);
     mbedtls_x509write_csr_set_ns_cert_type(&req, MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT);
 
-    char subject_name[512];
-    // We set the CN to the encoded_hwid, it's just a placeholder since Pairing API will change it
-    snprintf(subject_name, 512, "CN=%s", encoded_hwid);
-
     int ret = 0;
-    if ((ret = mbedtls_x509write_csr_set_subject_name(&req, subject_name)) != 0) {
+    // We set the CN to a temporary value, it's just a placeholder since Pairing API will change it
+    if ((ret = mbedtls_x509write_csr_set_subject_name(&req, "CN=temporary")) != 0) {
         ESP_LOGE(TAG, "mbedtls_x509write_csr_set_subject_name returned %d", ret);
         goto exit;
     }
