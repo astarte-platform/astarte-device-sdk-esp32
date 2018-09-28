@@ -22,6 +22,7 @@
 #define CRED_SECRET_KEY "cred_secret"
 
 static esp_err_t http_event_handler(esp_http_client_event_t *evt);
+static const char *extract_broker_url(cJSON *response);
 static const char *extract_credentials_secret(cJSON *response);
 static const char *extract_client_crt(cJSON *response);
 static esp_err_t save_credentials_secret(const char *credentials_secret);
@@ -185,6 +186,66 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
     return ret;
 }
 
+astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairing_config *config, char *out, size_t length)
+{
+    char cred_secret[256];
+    astarte_err_t err = astarte_pairing_get_credentials_secret(config, cred_secret, 256);
+    if (err != ASTARTE_OK) {
+        ESP_LOGE(TAG, "Can't retrieve credentials_secret");
+        return err;
+    }
+
+    char url[MAX_URL_LENGTH];
+    snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s", config->base_url, config->realm, config->hw_id);
+
+    cJSON *resp = NULL;
+    esp_http_client_config_t http_config = {
+        .url = url,
+        .event_handler = http_event_handler,
+        .method = HTTP_METHOD_GET,
+        .buffer_size = 2048,
+        .user_data = &resp,
+    };
+
+    esp_http_client_handle_t client = esp_http_client_init(&http_config);
+
+    char auth_header[MAX_HEADER_LENGTH];
+    snprintf(auth_header, MAX_HEADER_LENGTH, "Bearer %s", cred_secret);
+    ESP_ERROR_CHECK(esp_http_client_set_header(client, "Authorization", auth_header));
+    ESP_ERROR_CHECK(esp_http_client_set_header(client, "Content-Type", "application/json"));
+
+    err = esp_http_client_perform(client);
+
+    astarte_err_t ret = ASTARTE_ERR;
+    if (err == ESP_OK) {
+        int status_code = esp_http_client_get_status_code(client);
+        ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %d",
+                 status_code, esp_http_client_get_content_length(client));
+
+        const char *broker_url = NULL;
+        if (status_code == 200) {
+            broker_url = extract_broker_url(resp);
+            ESP_LOGI(TAG, "Got info, broker_url is %s", broker_url);
+        } else {
+            char *json_error = cJSON_Print(resp);
+            ESP_LOGE(TAG, "Device info failed with code %d: %s", status_code, json_error);
+            free(json_error);
+        }
+
+        if (broker_url) {
+            strncpy(out, broker_url, length);
+            ret = ASTARTE_OK;
+        }
+    } else {
+        ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
+    }
+
+    cJSON_Delete(resp);
+    esp_http_client_cleanup(client);
+
+    return ret;
+}
+
 astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_config *config)
 {
     char url[MAX_URL_LENGTH];
@@ -245,6 +306,21 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
     esp_http_client_cleanup(client);
 
     return ret;
+}
+
+static const char *extract_broker_url(cJSON *response)
+{
+    const cJSON *data = cJSON_GetObjectItemCaseSensitive(response, "data");
+    const cJSON *protocols = cJSON_GetObjectItemCaseSensitive(data, "protocols");
+    const cJSON *astarte_mqtt_v1 = cJSON_GetObjectItemCaseSensitive(protocols, "astarte_mqtt_v1");
+    const cJSON *broker_url = cJSON_GetObjectItemCaseSensitive(astarte_mqtt_v1, "broker_url");
+
+    if (cJSON_IsString(broker_url)) {
+        return broker_url->valuestring;
+    } else {
+        ESP_LOGE(TAG, "Error parsing broker_url");
+        return NULL;
+    }
 }
 
 static const char *extract_credentials_secret(cJSON *response)
