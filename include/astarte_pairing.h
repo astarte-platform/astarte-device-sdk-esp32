@@ -60,6 +60,17 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
  */
 astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairing_config *config, const char *csr, char *out, size_t length);
 
+/**
+ * @brief get the Astarte MQTT v1 broker URL.
+ *
+ * @details Get the URL of the broker which the device will connect to.
+ * @param config A struct containing the pairing configuration.
+ * @param out A pointer to an allocated string where the URL will be written.
+ * @param length The length of the out buffer.
+ * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
+ */
+astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairing_config *config, char *out, size_t length);
+
 #ifdef __cplusplus
 }
 #endif
