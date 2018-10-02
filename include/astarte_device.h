@@ -28,6 +28,14 @@ extern "C" {
  */
 astarte_device_handle_t astarte_device_init();
 
+/**
+ * @brief start Astarte device.
+ *
+ * @details This function starts the device, making it connect to the broker and perform its work.
+ * @param device A valid Astarte device handle.
+ */
+void astarte_device_start(astarte_device_handle_t device);
+
 #ifdef __cplusplus
 }
 #endif

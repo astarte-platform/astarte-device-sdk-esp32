@@ -147,6 +147,11 @@ init_failed:
     return NULL;
 }
 
+void astarte_device_start(astarte_device_handle_t device)
+{
+    esp_mqtt_client_start(device->mqtt_client);
+}
+
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config)
 {
     astarte_err_t ret = ASTARTE_ERR;
