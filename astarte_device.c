@@ -147,6 +147,17 @@ init_failed:
     return NULL;
 }
 
+void astarte_device_destroy(astarte_device_handle_t device)
+{
+    if (!device) {
+        return;
+    }
+
+    esp_mqtt_client_destroy(device->mqtt_client);
+    free(device->encoded_hwid);
+    free(device);
+}
+
 void astarte_device_start(astarte_device_handle_t device)
 {
     esp_mqtt_client_start(device->mqtt_client);
