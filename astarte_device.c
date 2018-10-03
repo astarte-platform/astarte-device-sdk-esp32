@@ -24,6 +24,7 @@
 #define CN_LENGTH 512
 #define PRIVKEY_LENGTH 8196
 #define URL_LENGTH 512
+#define INTROSPECTION_INTERFACE_LENGTH 512
 
 struct astarte_device_t
 {
@@ -177,6 +178,34 @@ void astarte_device_destroy(astarte_device_handle_t device)
     esp_mqtt_client_destroy(device->mqtt_client);
     free(device->encoded_hwid);
     free(device);
+}
+
+astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const char *interface_name, int major_version, int minor_version)
+{
+    char new_interface[INTROSPECTION_INTERFACE_LENGTH];
+    snprintf(new_interface, INTROSPECTION_INTERFACE_LENGTH, "%s:%d:%d", interface_name, major_version, minor_version);
+
+    if (!device->introspection_string) {
+        device->introspection_string = strdup(new_interface);
+        if (!device->introspection_string) {
+            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            return ASTARTE_ERR;
+        }
+    } else {
+        // + 2 for ; and terminator
+        int len = strlen(device->introspection_string) + strlen(new_interface) + 2;
+        char *new_introspection_string = calloc(1, len);
+        if (!new_introspection_string) {
+            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            return ASTARTE_ERR;
+        }
+
+        snprintf(new_introspection_string, len, "%s;%s", device->introspection_string, new_interface);
+        free(device->introspection_string);
+        device->introspection_string = new_introspection_string;
+    }
+
+    return ASTARTE_OK;
 }
 
 void astarte_device_start(astarte_device_handle_t device)
