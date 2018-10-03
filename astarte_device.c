@@ -29,6 +29,7 @@ struct astarte_device_t
 {
     char *encoded_hwid;
     char *device_topic;
+    char *introspection_string;
     esp_mqtt_client_handle_t mqtt_client;
 };
 
@@ -153,6 +154,7 @@ astarte_device_handle_t astarte_device_init()
     }
 
     ret->device_topic = client_cert_cn;
+    ret->introspection_string = NULL;
 
     return ret;
 
