@@ -35,6 +35,8 @@ struct astarte_device_t
 };
 
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config);
+static void send_introspection(astarte_device_handle_t device);
+static void on_connected(astarte_device_handle_t device, int session_present);
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
 
 astarte_device_handle_t astarte_device_init()
@@ -128,22 +130,22 @@ astarte_device_handle_t astarte_device_init()
         ESP_LOGI(TAG, "Broker URL is: %s", broker_url);
     }
 
+    ret = calloc(1, sizeof(struct astarte_device_t));
+    if (!ret) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto init_failed;
+    }
+
     const esp_mqtt_client_config_t mqtt_cfg = {
         .uri = broker_url,
         .event_handle = mqtt_event_handler,
         .client_cert_pem = client_cert_pem,
         .client_key_pem = key_pem,
+        .user_context = ret,
     };
-
     esp_mqtt_client_handle_t mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
     if (!mqtt_client) {
         ESP_LOGE(TAG, "Error in esp_mqtt_client_init");
-        goto init_failed;
-    }
-
-    ret = calloc(1, sizeof(struct astarte_device_t));
-    if (!ret) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto init_failed;
     }
     ret->mqtt_client = mqtt_client;
@@ -257,11 +259,46 @@ exit:
     return ret;
 }
 
+static void send_introspection(astarte_device_handle_t device)
+{
+    if (!device->introspection_string) {
+        ESP_LOGE(TAG, "NULL introspection_string in send_introspection");
+        return;
+    }
+
+    if (!device->mqtt_client) {
+        ESP_LOGE(TAG, "NULL mqtt_client in send_introspection");
+        return;
+    }
+
+    if (!device->device_topic) {
+        ESP_LOGE(TAG, "NULL device_topic in send_introspection");
+        return;
+    }
+
+    esp_mqtt_client_handle_t mqtt = device->mqtt_client;
+    int len = strlen(device->introspection_string);
+    esp_mqtt_client_publish(mqtt, device->device_topic, device->introspection_string, len, 2, 0);
+}
+
+static void on_connected(astarte_device_handle_t device, int session_present)
+{
+    if (session_present) {
+        return;
+    }
+
+    send_introspection(device);
+}
+
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
+    astarte_device_handle_t device = (astarte_device_handle_t) event->user_context;
     switch (event->event_id) {
         case MQTT_EVENT_CONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+            // Session present is always false for now
+            int session_present = 0;
+            on_connected(device, session_present);
             break;
 
         case MQTT_EVENT_DISCONNECTED:
