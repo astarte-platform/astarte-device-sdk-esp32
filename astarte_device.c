@@ -21,12 +21,14 @@
 #define CREDENTIALS_SECRET_LENGTH 512
 #define CSR_LENGTH 4096
 #define CERT_LENGTH 4096
+#define CN_LENGTH 512
 #define PRIVKEY_LENGTH 8196
 #define URL_LENGTH 512
 
 struct astarte_device_t
 {
     char *encoded_hwid;
+    char *device_topic;
     esp_mqtt_client_handle_t mqtt_client;
 };
 
@@ -64,6 +66,7 @@ astarte_device_handle_t astarte_device_init()
 
     astarte_device_handle_t ret = NULL;
     char *client_cert_pem = NULL;
+    char *client_cert_cn = NULL;
     char *broker_url = NULL;
     char *key_pem = NULL;
 
@@ -95,6 +98,19 @@ astarte_device_handle_t astarte_device_init()
         goto init_failed;
     } else {
         ESP_LOGI(TAG, "Certificate is: %s", client_cert_pem);
+    }
+
+    client_cert_cn = calloc(CN_LENGTH, sizeof(char));
+    if (!client_cert_cn) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto init_failed;
+    }
+    err = astarte_credentials_get_certificate_common_name(client_cert_cn, CN_LENGTH);
+    if (err != ASTARTE_OK) {
+        ESP_LOGE(TAG, "Error in get_certificate_common_name");
+        goto init_failed;
+    } else {
+        ESP_LOGI(TAG, "Device topic is: %s", client_cert_cn);
     }
 
     broker_url = calloc(URL_LENGTH, sizeof(char));
@@ -136,12 +152,15 @@ astarte_device_handle_t astarte_device_init()
         goto init_failed;
     }
 
+    ret->device_topic = client_cert_cn;
+
     return ret;
 
 init_failed:
     free(ret);
     free(key_pem);
     free(client_cert_pem);
+    free(client_cert_cn);
     free(broker_url);
 
     return NULL;
