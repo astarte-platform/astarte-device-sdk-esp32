@@ -10,8 +10,10 @@
 
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
+#include <mbedtls/oid.h>
 #include <mbedtls/pk.h>
 #include <mbedtls/rsa.h>
+#include <mbedtls/x509_crt.h>
 #include <mbedtls/x509_csr.h>
 
 #include <stdio.h>
@@ -317,6 +319,42 @@ astarte_err_t astarte_credentials_get_certificate(char *out, size_t length)
 
     fclose(fcert);
     return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_get_certificate_common_name(char *out, size_t length)
+{
+    if (!astarte_credentials_has_certificate()) {
+        return ASTARTE_ERR_NOT_FOUND;
+    }
+
+    astarte_err_t exit_code = ASTARTE_ERR;
+    mbedtls_x509_crt crt;
+    mbedtls_x509_crt_init(&crt);
+
+    int ret;
+    if ((ret = mbedtls_x509_crt_parse_file(&crt, CRT_PATH)) < 0) {
+        ESP_LOGE(TAG, "mbedtls_x509_crt_parse_file returned %d", ret);
+        goto exit;
+    }
+
+    mbedtls_x509_name *subj_it = &crt.subject;
+    while (subj_it && (MBEDTLS_OID_CMP(MBEDTLS_OID_AT_CN, &subj_it->oid) != 0)) {
+        subj_it = subj_it->next;
+    }
+
+    if (!subj_it) {
+        ESP_LOGE(TAG, "CN not found in certificate");
+        exit_code = ASTARTE_ERR_NOT_FOUND;
+        goto exit;
+    }
+
+    snprintf(out, length, "%.*s", subj_it->val.len, subj_it->val.p);
+    exit_code = ASTARTE_OK;
+
+exit:
+    mbedtls_x509_crt_free(&crt);
+
+    return exit_code;
 }
 
 astarte_err_t astarte_credentials_get_key(char *out, size_t length)

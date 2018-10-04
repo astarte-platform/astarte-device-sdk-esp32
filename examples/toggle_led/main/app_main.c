@@ -88,6 +88,8 @@ static void led_toggle_task(void *ctx)
         return;
     }
 
+    astarte_device_add_interface(device, "org.astarteplatform.esp32.DeviceDatastream", 0, 1);
+    astarte_device_add_interface(device, "org.astarteplatform.esp32.ServerDatastream", 0, 1);
     astarte_device_start(device);
 
     while (1) {
