@@ -6,10 +6,14 @@
 
 #include <astarte_bson_serializer.h>
 
+#include <esp_log.h>
+
 #include <endian.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define TAG "ASTARTE_CREDENTIALS"
 
 #define BSON_TYPE_DOUBLE    '\x01'
 #define BSON_TYPE_STRING    '\x02'
@@ -60,6 +64,12 @@ static void astarte_byte_array_init(struct astarte_byte_array_t *ba, void *bytes
     ba->capacity = size;
     ba->size = size;
     ba->buf = malloc(size);
+
+    if (!ba->buf) {
+        ESP_LOGE(TAG, "Cannot allocate memory for BSON payload (size: %i)!", size);
+        abort();
+    }
+
     memcpy(ba->buf, bytes, size);
 }
 
