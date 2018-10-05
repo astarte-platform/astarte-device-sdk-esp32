@@ -341,6 +341,7 @@ static void on_connected(astarte_device_handle_t device, int session_present)
         return;
     }
 
+    setup_subscriptions(device);
     send_introspection(device);
 }
 
