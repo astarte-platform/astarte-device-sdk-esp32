@@ -35,6 +35,7 @@ struct astarte_device_t
 };
 
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config);
+static astarte_err_t check_device(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void on_connected(astarte_device_handle_t device, int session_present);
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
@@ -259,20 +260,29 @@ exit:
     return ret;
 }
 
-static void send_introspection(astarte_device_handle_t device)
+static astarte_err_t check_device(astarte_device_handle_t device)
 {
     if (!device->introspection_string) {
         ESP_LOGE(TAG, "NULL introspection_string in send_introspection");
-        return;
+        return ASTARTE_ERR;
     }
 
     if (!device->mqtt_client) {
         ESP_LOGE(TAG, "NULL mqtt_client in send_introspection");
-        return;
+        return ASTARTE_ERR;
     }
 
     if (!device->device_topic) {
         ESP_LOGE(TAG, "NULL device_topic in send_introspection");
+        return ASTARTE_ERR;
+    }
+
+    return ASTARTE_OK;
+}
+
+static void send_introspection(astarte_device_handle_t device)
+{
+    if (check_device(device) != ASTARTE_OK) {
         return;
     }
 
