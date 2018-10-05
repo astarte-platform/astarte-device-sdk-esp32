@@ -25,6 +25,7 @@
 #define PRIVKEY_LENGTH 8196
 #define URL_LENGTH 512
 #define INTROSPECTION_INTERFACE_LENGTH 512
+#define TOPIC_LENGTH 512
 
 struct astarte_device_t
 {
@@ -35,6 +36,8 @@ struct astarte_device_t
 };
 
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config);
+static astarte_err_t check_device(astarte_device_handle_t device);
+static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void on_connected(astarte_device_handle_t device, int session_present);
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
@@ -259,26 +262,77 @@ exit:
     return ret;
 }
 
-static void send_introspection(astarte_device_handle_t device)
+static astarte_err_t check_device(astarte_device_handle_t device)
 {
     if (!device->introspection_string) {
         ESP_LOGE(TAG, "NULL introspection_string in send_introspection");
-        return;
+        return ASTARTE_ERR;
     }
 
     if (!device->mqtt_client) {
         ESP_LOGE(TAG, "NULL mqtt_client in send_introspection");
-        return;
+        return ASTARTE_ERR;
     }
 
     if (!device->device_topic) {
         ESP_LOGE(TAG, "NULL device_topic in send_introspection");
+        return ASTARTE_ERR;
+    }
+
+    return ASTARTE_OK;
+}
+
+static void send_introspection(astarte_device_handle_t device)
+{
+    if (check_device(device) != ASTARTE_OK) {
         return;
     }
 
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
     int len = strlen(device->introspection_string);
+    ESP_LOGI(TAG, "Publishing introspection: %s", device->introspection_string);
     esp_mqtt_client_publish(mqtt, device->device_topic, device->introspection_string, len, 2, 0);
+}
+
+static void setup_subscriptions(astarte_device_handle_t device)
+{
+    if (check_device(device) != ASTARTE_OK) {
+        return;
+    }
+
+    char topic[TOPIC_LENGTH];
+
+    esp_mqtt_client_handle_t mqtt = device->mqtt_client;
+
+    // TODO: should we just subscribe to device_topic/#?
+    // Subscribe to control messages
+    snprintf(topic, TOPIC_LENGTH, "%s/control/#", device->device_topic);
+    ESP_LOGI(TAG, "Subscribing to %s", topic);
+    esp_mqtt_client_subscribe(mqtt, topic, 2);
+
+    char *interface_name_begin = device->introspection_string;
+    char *interface_name_end = strchr(device->introspection_string, ':');
+    int interface_name_len = interface_name_end - interface_name_begin;
+    while (interface_name_begin != NULL) {
+        // Subscribe to interface root topic
+        snprintf(topic, TOPIC_LENGTH, "%s/%.*s", device->device_topic, interface_name_len, interface_name_begin);
+        ESP_LOGI(TAG, "Subscribing to %s", topic);
+        esp_mqtt_client_subscribe(mqtt, topic, 2);
+
+        // Subscribe to all interface subtopics
+        snprintf(topic, TOPIC_LENGTH, "%s/%.*s/#", device->device_topic, interface_name_len, interface_name_begin);
+        ESP_LOGI(TAG, "Subscribing to %s", topic);
+        esp_mqtt_client_subscribe(mqtt, topic, 2);
+
+        interface_name_begin = strchr(interface_name_begin, ';');
+        if (!interface_name_begin) {
+            break;
+        }
+        // interface_name begins the character after ;
+        ++interface_name_begin;
+        interface_name_end = strchr(interface_name_begin, ':');
+        interface_name_len = interface_name_end - interface_name_begin;
+    }
 }
 
 static void on_connected(astarte_device_handle_t device, int session_present)
@@ -287,6 +341,7 @@ static void on_connected(astarte_device_handle_t device, int session_present)
         return;
     }
 
+    setup_subscriptions(device);
     send_introspection(device);
 }
 
