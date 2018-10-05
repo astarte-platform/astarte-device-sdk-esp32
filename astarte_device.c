@@ -278,6 +278,7 @@ static void send_introspection(astarte_device_handle_t device)
 
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
     int len = strlen(device->introspection_string);
+    ESP_LOGI(TAG, "Publishing introspection: %s", device->introspection_string);
     esp_mqtt_client_publish(mqtt, device->device_topic, device->introspection_string, len, 2, 0);
 }
 
