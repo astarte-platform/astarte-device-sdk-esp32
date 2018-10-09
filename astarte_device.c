@@ -33,6 +33,7 @@ struct astarte_device_t
     char *device_topic;
     int device_topic_len;
     char *introspection_string;
+    astarte_device_data_event_callback_t data_event_callback;
     esp_mqtt_client_handle_t mqtt_client;
 };
 
@@ -43,7 +44,7 @@ static void send_introspection(astarte_device_handle_t device);
 static void on_connected(astarte_device_handle_t device, int session_present);
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
 
-astarte_device_handle_t astarte_device_init()
+astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 {
     uint8_t hwid[HWID_LENGTH];
     astarte_hwid_get_id(hwid);
@@ -163,6 +164,7 @@ astarte_device_handle_t astarte_device_init()
     ret->device_topic = client_cert_cn;
     ret->device_topic_len = strlen(client_cert_cn);
     ret->introspection_string = NULL;
+    ret->data_event_callback = cfg->data_event_callback;
 
     return ret;
 

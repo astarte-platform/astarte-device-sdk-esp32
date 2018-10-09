@@ -40,7 +40,7 @@ extern "C" {
  * @details This function has to be called to initialize the device SDK before doing anything else.
  * @return The handle to the device, NULL if an error occurred.
  */
-astarte_device_handle_t astarte_device_init();
+astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg);
 
 /**
  * @brief destroy Astarte device.
