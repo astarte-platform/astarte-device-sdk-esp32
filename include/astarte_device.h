@@ -16,6 +16,14 @@
 
 typedef struct astarte_device_t *astarte_device_handle_t;
 
+typedef struct {
+    astarte_device_handle_t device;
+    const char *interface_name;
+    const char *path;
+    const void *bson_value;
+    int bson_value_type;
+} astarte_device_data_event_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
