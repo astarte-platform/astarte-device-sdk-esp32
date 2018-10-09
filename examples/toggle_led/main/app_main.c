@@ -15,6 +15,7 @@
 #include "esp_vfs_fat.h"
 
 #include "astarte_device.h"
+#include "astarte_bson.h"
 
 #define TAG "ASTARTE_TOGGLE_LED"
 
@@ -80,9 +81,29 @@ static void spiflash_mount()
     }
 }
 
+static void astarte_data_events_handler(astarte_device_data_event_t *event)
+{
+    ESP_LOGI(TAG, "Got Astarte data event, interface_name: %s, path: %s, bson_type: %d",
+        event->interface_name, event->path, event->bson_value_type);
+
+    if (strcmp(event->interface_name, "org.astarteplatform.esp32.ServerDatastream") == 0 &&
+            strcmp(event->path, "/led") == 0 &&
+            event->bson_value_type == 8) { // TODO: expose BSON types somewhere
+        int led_state = astarte_bson_value_to_int8(event->bson_value);
+        if (led_state) {
+            ESP_LOGI(TAG, "Turning led on");
+        } else {
+            ESP_LOGI(TAG, "Turning led off");
+        }
+    }
+}
+
 static void led_toggle_task(void *ctx)
 {
-    astarte_device_handle_t device = astarte_device_init();
+    astarte_device_config_t cfg = {
+        .data_event_callback = astarte_data_events_handler,
+    };
+    astarte_device_handle_t device = astarte_device_init(&cfg);
     if (!device) {
         ESP_LOGE(TAG, "Failed to init astarte device");
         return;
