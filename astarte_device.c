@@ -6,6 +6,7 @@
 
 #include <astarte_device.h>
 
+#include <astarte_bson.h>
 #include <astarte_credentials.h>
 #include <astarte_hwid.h>
 #include <astarte_pairing.h>
@@ -42,6 +43,7 @@ static astarte_err_t check_device(astarte_device_handle_t device);
 static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void on_connected(astarte_device_handle_t device, int session_present);
+static void on_incoming(astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len);
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
 
 astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
@@ -349,6 +351,72 @@ static void on_connected(astarte_device_handle_t device, int session_present)
     send_introspection(device);
 }
 
+static void on_incoming(astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len)
+{
+    if (check_device(device) != ASTARTE_OK) {
+        return;
+    }
+
+    if (!device->data_event_callback) {
+        ESP_LOGE(TAG, "data_event_callback not set");
+        return;
+    }
+
+    if (strstr(topic, device->device_topic) != topic) {
+        ESP_LOGE(TAG, "Incoming message topic doesn't begin with device_topic: %s", topic);
+        return;
+    }
+
+    char control_prefix[512];
+    snprintf(control_prefix, 512, "%s/control", device->device_topic);
+    int control_prefix_len = strlen(control_prefix);
+    if (strstr(topic, control_prefix)) {
+        // Control message
+        char *control_topic = topic + control_prefix_len;
+        ESP_LOGI(TAG, "Received control message on control topic %s", control_topic);
+        // TODO: on_control_message(device, control_topic, data, data_len);
+        return;
+    }
+
+    // Data message
+    if (topic_len < device->device_topic_len + strlen("/") || topic[device->device_topic_len] != '/') {
+        ESP_LOGE(TAG, "No / after device_topic, can't find interface: %s", topic);
+        return;
+    }
+
+    char *interface_name_begin = topic + device->device_topic_len + strlen("/");
+    char *path_begin = strchr(interface_name_begin, '/');
+    if (!path_begin) {
+        ESP_LOGE(TAG, "No / after interface_name, can't find path: %s", topic);
+        return;
+    }
+
+    int interface_name_len = path_begin - interface_name_begin;
+    char interface_name[512];
+    snprintf(interface_name, 512, "%.*s", interface_name_len, interface_name_begin);
+
+    int path_len = topic_len - device->device_topic_len - strlen("/") - interface_name_len;
+    char path[512];
+    snprintf(path, 512, "%.*s", path_len, path_begin);
+
+    uint8_t bson_value_type;
+    const void *bson_value = astarte_bson_key_lookup("v", data, &bson_value_type);
+    if (!bson_value) {
+        ESP_LOGE(TAG, "Cannot retrieve BSON value from data");
+        return;
+    }
+
+    astarte_device_data_event_t event = {
+        .device = device,
+        .interface_name = interface_name,
+        .path = path,
+        .bson_value = bson_value,
+        .bson_value_type = bson_value_type,
+    };
+
+    device->data_event_callback(&event);
+}
+
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
     astarte_device_handle_t device = (astarte_device_handle_t) event->user_context;
@@ -378,6 +446,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
         case MQTT_EVENT_DATA:
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+            on_incoming(device, event->topic, event->topic_len, event->data, event->data_len);
             break;
 
         case MQTT_EVENT_ERROR:
