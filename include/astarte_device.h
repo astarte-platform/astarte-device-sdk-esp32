@@ -24,6 +24,8 @@ typedef struct {
     int bson_value_type;
 } astarte_device_data_event_t;
 
+typedef void (*astarte_device_data_event_callback_t)(astarte_device_data_event_t *event);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
