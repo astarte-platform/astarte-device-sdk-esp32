@@ -16,6 +16,20 @@
 
 typedef struct astarte_device_t *astarte_device_handle_t;
 
+typedef struct {
+    astarte_device_handle_t device;
+    const char *interface_name;
+    const char *path;
+    const void *bson_value;
+    int bson_value_type;
+} astarte_device_data_event_t;
+
+typedef void (*astarte_device_data_event_callback_t)(astarte_device_data_event_t *event);
+
+typedef struct {
+   astarte_device_data_event_callback_t data_event_callback;
+} astarte_device_config_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -26,7 +40,7 @@ extern "C" {
  * @details This function has to be called to initialize the device SDK before doing anything else.
  * @return The handle to the device, NULL if an error occurred.
  */
-astarte_device_handle_t astarte_device_init();
+astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg);
 
 /**
  * @brief destroy Astarte device.
