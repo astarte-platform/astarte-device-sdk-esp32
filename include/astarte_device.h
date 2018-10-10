@@ -71,6 +71,21 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const
  */
 void astarte_device_start(astarte_device_handle_t device);
 
+/**
+ * @brief send a boolean value on a datastream endpoint.
+ *
+ * @details This function sends a boolean value on a path of a given datastream interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param value The value to be sent (0 or 1).
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
+ * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
+ * or for PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_stream_bool(astarte_device_handle_t device, const char *interface_name, char *path, int value, int qos);
+
 #ifdef __cplusplus
 }
 #endif
