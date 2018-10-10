@@ -7,6 +7,7 @@
 #include <astarte_device.h>
 
 #include <astarte_bson.h>
+#include <astarte_bson_serializer.h>
 #include <astarte_credentials.h>
 #include <astarte_hwid.h>
 #include <astarte_pairing.h>
@@ -222,6 +223,50 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const
 void astarte_device_start(astarte_device_handle_t device)
 {
     esp_mqtt_client_start(device->mqtt_client);
+}
+
+astarte_err_t astarte_device_stream_bool(astarte_device_handle_t device, const char *interface_name, char *path, int value, int qos)
+{
+    if (path[0] != '/') {
+        ESP_LOGE(TAG, "Invalid path: %s (must be start with /)", path);
+        return ASTARTE_ERR;
+    }
+
+    if (qos < 0 || qos > 2) {
+        ESP_LOGE(TAG, "Invalid QoS: %d (must be start 0, 1 or 2)", qos);
+        return ASTARTE_ERR;
+    }
+
+    esp_mqtt_client_handle_t mqtt = device->mqtt_client;
+
+    astarte_err_t exit_code = ASTARTE_ERR;
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_boolean(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+    int len;
+    const void *data = astarte_bson_serializer_get_document(&bs, &len);
+    if (!data) {
+        ESP_LOGE(TAG, "Error during BSON serialization");
+        goto exit;
+    }
+
+    char topic[TOPIC_LENGTH];
+    snprintf(topic, TOPIC_LENGTH, "%s/%s%s", device->device_topic, interface_name, path);
+
+    ESP_LOGI(TAG, "Publishing bool %d on %s with QoS %d", value != 0, topic, qos);
+    int ret = esp_mqtt_client_publish(mqtt, topic, data, len, qos, 0);
+    if (ret < 0) {
+        ESP_LOGE(TAG, "Publish on %s failed", topic);
+        goto exit;
+    }
+
+    ESP_LOGI(TAG, "Publish succeeded, msg_id: %d", ret);
+    exit_code = ASTARTE_OK;
+
+exit:
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
 }
 
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config)
