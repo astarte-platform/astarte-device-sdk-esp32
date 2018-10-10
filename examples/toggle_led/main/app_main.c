@@ -9,6 +9,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
+#include "freertos/queue.h"
+#include "driver/gpio.h"
 
 #include "esp_log.h"
 #include "esp_vfs.h"
@@ -22,9 +24,12 @@
 
 #define BASE_PATH "/spiflash"
 
+#define ESP_INTR_FLAG_DEFAULT 0
+
 static wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
 static EventGroupHandle_t wifi_event_group;
 const static int CONNECTED_BIT = BIT0;
+static xQueueHandle button_evt_queue;
 
 static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
 {
@@ -44,6 +49,12 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
             break;
     }
     return ESP_OK;
+}
+
+static void IRAM_ATTR button_isr_handler(void* arg)
+{
+    uint32_t gpio_num = (uint32_t) arg;
+    xQueueSendFromISR(button_evt_queue, &gpio_num, NULL);
 }
 
 static void wifi_init(void)
@@ -82,6 +93,23 @@ static void spiflash_mount()
     }
 }
 
+static void button_gpio_init()
+{
+    // Set GPIO 0 (BOOT button) as input
+    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
+    // Enable pullup
+    gpio_pullup_en(GPIO_NUM_0);
+    // Trigger interrupt on negative edge, i.e. on release
+    gpio_set_intr_type(GPIO_NUM_0, GPIO_INTR_NEGEDGE);
+
+    button_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+
+    // Install gpio isr service
+    gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
+    // Hook ISR handler for specific gpio pin
+    gpio_isr_handler_add(GPIO_NUM_0, button_isr_handler, (void*) GPIO_NUM_0);
+}
+
 static void astarte_data_events_handler(astarte_device_data_event_t *event)
 {
     ESP_LOGI(TAG, "Got Astarte data event, interface_name: %s, path: %s, bson_type: %d",
@@ -114,7 +142,14 @@ static void led_toggle_task(void *ctx)
     astarte_device_add_interface(device, "org.astarteplatform.esp32.ServerDatastream", 0, 1);
     astarte_device_start(device);
 
+    uint32_t io_num;
     while (1) {
+        if (xQueueReceive(button_evt_queue, &io_num, portMAX_DELAY)) {
+            if (io_num == 0) {
+                // Button pressed
+                astarte_device_stream_bool(device, "org.astarteplatform.esp32.DeviceDatastream", "/userButton", 1, 0);
+            }
+        }
     }
 }
 
@@ -130,5 +165,7 @@ void app_main()
     nvs_flash_init();
     spiflash_mount();
     wifi_init();
+    button_gpio_init();
+
     xTaskCreate(led_toggle_task, "led_toggle_task", 16384, NULL, tskIDLE_PRIORITY, NULL);
 }
