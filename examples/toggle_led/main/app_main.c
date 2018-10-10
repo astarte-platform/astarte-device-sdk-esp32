@@ -16,6 +16,7 @@
 
 #include "astarte_device.h"
 #include "astarte_bson.h"
+#include "astarte_bson_types.h"
 
 #define TAG "ASTARTE_TOGGLE_LED"
 
@@ -88,7 +89,7 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
 
     if (strcmp(event->interface_name, "org.astarteplatform.esp32.ServerDatastream") == 0 &&
             strcmp(event->path, "/led") == 0 &&
-            event->bson_value_type == 8) { // TODO: expose BSON types somewhere
+            event->bson_value_type == BSON_TYPE_BOOLEAN) {
         int led_state = astarte_bson_value_to_int8(event->bson_value);
         if (led_state) {
             ESP_LOGI(TAG, "Turning led on");

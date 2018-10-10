@@ -6,20 +6,13 @@
 
 #include <astarte_bson.h>
 
+#include <astarte_bson_types.h>
+
 #include <stdio.h>
 #include <string.h>
 #include <endian.h>
 
 #include <esp_log.h>
-
-#define TYPE_DOUBLE 0x01
-#define TYPE_STRING 0x02
-#define TYPE_DOCUMENT 0x03
-#define TYPE_BINARY 0x05
-#define TYPE_BOOLEAN 0x08
-#define TYPE_DATETIME 0x09
-#define TYPE_INT32 0x10
-#define TYPE_INT64 0x12
 
 #define TAG "ASTARTE_BSON"
 
@@ -44,37 +37,37 @@ static unsigned int astarte_bson_next_item_offset(unsigned int offset, unsigned 
     offset += 1 + keyLen + 1;
 
     switch (elementType) {
-        case TYPE_STRING: {
+        case BSON_TYPE_STRING: {
             uint32_t stringLen = read_uint32(docBytes + offset);
             offset += stringLen + 4;
         }
         break;
 
-        case TYPE_DOCUMENT: {
+        case BSON_TYPE_DOCUMENT: {
             uint32_t docLen = read_uint32(docBytes + offset);
             offset += docLen;
         }
         break;
 
-        case TYPE_BINARY: {
+        case BSON_TYPE_BINARY: {
             uint32_t binLen = read_uint32(docBytes + offset);
             offset += 4 + 1 + binLen; /* int32 (len) + byte (subtype) + binLen */
         }
         break;
 
-        case TYPE_INT32: {
+        case BSON_TYPE_INT32: {
            offset += sizeof(int32_t);
         }
         break;
 
-        case TYPE_DOUBLE:
-        case TYPE_DATETIME:
-        case TYPE_INT64: {
+        case BSON_TYPE_DOUBLE:
+        case BSON_TYPE_DATETIME:
+        case BSON_TYPE_INT64: {
             offset += sizeof(int64_t);
         }
         break;
 
-        case TYPE_BOOLEAN: {
+        case BSON_TYPE_BOOLEAN: {
             offset += 1;
         }
         break;
@@ -246,14 +239,14 @@ int astarte_bson_check_validity(const void *document, unsigned int fileSize)
 
     offset = 4;
     switch (docBytes[offset]) {
-       case TYPE_DOUBLE:
-       case TYPE_STRING:
-       case TYPE_DOCUMENT:
-       case TYPE_BINARY:
-       case TYPE_BOOLEAN:
-       case TYPE_DATETIME:
-       case TYPE_INT32:
-       case TYPE_INT64:
+       case BSON_TYPE_DOUBLE:
+       case BSON_TYPE_STRING:
+       case BSON_TYPE_DOCUMENT:
+       case BSON_TYPE_BINARY:
+       case BSON_TYPE_BOOLEAN:
+       case BSON_TYPE_DATETIME:
+       case BSON_TYPE_INT32:
+       case BSON_TYPE_INT64:
        break;
 
        default:
