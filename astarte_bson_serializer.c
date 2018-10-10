@@ -6,6 +6,8 @@
 
 #include <astarte_bson_serializer.h>
 
+#include <astarte_bson_types.h>
+
 #include <esp_log.h>
 
 #include <endian.h>
@@ -13,18 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TAG "ASTARTE_CREDENTIALS"
-
-#define BSON_TYPE_DOUBLE    '\x01'
-#define BSON_TYPE_STRING    '\x02'
-#define BSON_TYPE_DOCUMENT  '\x03'
-#define BSON_TYPE_BINARY    '\x05'
-#define BSON_TYPE_BOOLEAN   '\x08'
-#define BSON_TYPE_DATETIME  '\x09'
-#define BSON_TYPE_INT32     '\x10'
-#define BSON_TYPE_INT64     '\x12'
-
-#define BSON_SUBTYPE_DEFAULT_BINARY '\0'
+#define TAG "ASTARTE_BSON_SERIALIZER"
 
 #define INT32_TO_BYTES(value, buf) \
     union data32 { \
