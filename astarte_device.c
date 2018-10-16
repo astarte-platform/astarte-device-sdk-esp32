@@ -225,7 +225,7 @@ void astarte_device_start(astarte_device_handle_t device)
     esp_mqtt_client_start(device->mqtt_client);
 }
 
-astarte_err_t astarte_device_stream_bool(astarte_device_handle_t device, const char *interface_name, char *path, int value, int qos)
+astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, char *path, int value, int qos)
 {
     if (path[0] != '/') {
         ESP_LOGE(TAG, "Invalid path: %s (must be start with /)", path);
@@ -254,7 +254,7 @@ astarte_err_t astarte_device_stream_bool(astarte_device_handle_t device, const c
     char topic[TOPIC_LENGTH];
     snprintf(topic, TOPIC_LENGTH, "%s/%s%s", device->device_topic, interface_name, path);
 
-    ESP_LOGI(TAG, "Publishing bool %d on %s with QoS %d", value != 0, topic, qos);
+    ESP_LOGI(TAG, "Publishing boolean %d on %s with QoS %d", value != 0, topic, qos);
     int ret = esp_mqtt_client_publish(mqtt, topic, data, len, qos, 0);
     if (ret < 0) {
         ESP_LOGE(TAG, "Publish on %s failed", topic);
