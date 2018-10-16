@@ -263,11 +263,90 @@ astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface
     return ASTARTE_OK;
 }
 
+astarte_err_t astarte_device_stream_double(astarte_device_handle_t device, const char *interface_name, const char *path, double value, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_double(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+astarte_err_t astarte_device_stream_integer(astarte_device_handle_t device, const char *interface_name, const char *path, int32_t value, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_int32(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+astarte_err_t astarte_device_stream_longinteger(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_int64(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
 astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, int value, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
     astarte_bson_serializer_append_boolean(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+astarte_err_t astarte_device_stream_string(astarte_device_handle_t device, const char *interface_name, const char *path, char *value, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_string(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device, const char *interface_name, const char *path, void *value,
+                                               size_t size, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_binary(&bs, "v", value, size);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_datetime(&bs, "v", value);
     astarte_bson_serializer_append_end_of_document(&bs);
 
     astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
