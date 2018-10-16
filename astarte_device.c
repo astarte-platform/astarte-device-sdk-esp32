@@ -263,7 +263,7 @@ astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface
     return ASTARTE_OK;
 }
 
-astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, char *path, int value, int qos)
+astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, int value, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);

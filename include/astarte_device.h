@@ -84,7 +84,7 @@ void astarte_device_start(astarte_device_handle_t device);
  * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
  * or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, char *path, int value, int qos);
+astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, int value, int qos);
 
 #ifdef __cplusplus
 }
