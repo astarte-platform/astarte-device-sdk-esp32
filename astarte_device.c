@@ -41,6 +41,8 @@ struct astarte_device_t
 
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config);
 static astarte_err_t check_device(astarte_device_handle_t device);
+astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name, const char *path,
+                           const struct astarte_bson_serializer_t *bs, int qos);
 static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void on_connected(astarte_device_handle_t device, int session_present);
@@ -225,7 +227,8 @@ void astarte_device_start(astarte_device_handle_t device)
     esp_mqtt_client_start(device->mqtt_client);
 }
 
-astarte_err_t astarte_device_stream_bool(astarte_device_handle_t device, const char *interface_name, char *path, int value, int qos)
+astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name, const char *path,
+                           const struct astarte_bson_serializer_t *bs, int qos)
 {
     if (path[0] != '/') {
         ESP_LOGE(TAG, "Invalid path: %s (must be start with /)", path);
@@ -233,38 +236,121 @@ astarte_err_t astarte_device_stream_bool(astarte_device_handle_t device, const c
     }
 
     if (qos < 0 || qos > 2) {
-        ESP_LOGE(TAG, "Invalid QoS: %d (must be start 0, 1 or 2)", qos);
+        ESP_LOGE(TAG, "Invalid QoS: %d (must be 0, 1 or 2)", qos);
         return ASTARTE_ERR;
     }
 
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
 
-    astarte_err_t exit_code = ASTARTE_ERR;
-    struct astarte_bson_serializer_t bs;
-    astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_boolean(&bs, "v", value);
-    astarte_bson_serializer_append_end_of_document(&bs);
     int len;
-    const void *data = astarte_bson_serializer_get_document(&bs, &len);
+    const void *data = astarte_bson_serializer_get_document(bs, &len);
     if (!data) {
         ESP_LOGE(TAG, "Error during BSON serialization");
-        goto exit;
+        return ASTARTE_ERR;
     }
 
     char topic[TOPIC_LENGTH];
     snprintf(topic, TOPIC_LENGTH, "%s/%s%s", device->device_topic, interface_name, path);
 
-    ESP_LOGI(TAG, "Publishing bool %d on %s with QoS %d", value != 0, topic, qos);
+    ESP_LOGI(TAG, "Publishing on %s with QoS %d", topic, qos);
     int ret = esp_mqtt_client_publish(mqtt, topic, data, len, qos, 0);
     if (ret < 0) {
         ESP_LOGE(TAG, "Publish on %s failed", topic);
-        goto exit;
+        return ASTARTE_ERR;
     }
 
     ESP_LOGI(TAG, "Publish succeeded, msg_id: %d", ret);
-    exit_code = ASTARTE_OK;
+    return ASTARTE_OK;
+}
 
-exit:
+astarte_err_t astarte_device_stream_double(astarte_device_handle_t device, const char *interface_name, const char *path, double value, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_double(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+astarte_err_t astarte_device_stream_integer(astarte_device_handle_t device, const char *interface_name, const char *path, int32_t value, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_int32(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+astarte_err_t astarte_device_stream_longinteger(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_int64(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, int value, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_boolean(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+astarte_err_t astarte_device_stream_string(astarte_device_handle_t device, const char *interface_name, const char *path, char *value, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_string(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device, const char *interface_name, const char *path, void *value,
+                                               size_t size, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_binary(&bs, "v", value, size);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_datetime(&bs, "v", value);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
     astarte_bson_serializer_destroy(&bs);
     return exit_code;
 }

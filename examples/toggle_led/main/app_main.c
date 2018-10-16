@@ -147,7 +147,7 @@ static void led_toggle_task(void *ctx)
         if (xQueueReceive(button_evt_queue, &io_num, portMAX_DELAY)) {
             if (io_num == 0) {
                 // Button pressed
-                astarte_device_stream_bool(device, "org.astarteplatform.esp32.DeviceDatastream", "/userButton", 1, 0);
+                astarte_device_stream_boolean(device, "org.astarteplatform.esp32.DeviceDatastream", "/userButton", 1, 0);
             }
         }
     }
