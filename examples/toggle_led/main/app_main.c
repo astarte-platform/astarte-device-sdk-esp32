@@ -138,7 +138,7 @@ static void led_toggle_task(void *ctx)
         return;
     }
 
-    astarte_device_add_interface(device, "org.astarteplatform.esp32.DeviceDatastream", 0, 1);
+    astarte_device_add_interface(device, "org.astarteplatform.esp32.DeviceDatastream", 0, 2);
     astarte_device_add_interface(device, "org.astarteplatform.esp32.ServerDatastream", 0, 1);
     astarte_device_start(device);
 
@@ -146,8 +146,10 @@ static void led_toggle_task(void *ctx)
     while (1) {
         if (xQueueReceive(button_evt_queue, &io_num, portMAX_DELAY)) {
             if (io_num == 0) {
-                // Button pressed
+                // Button pressed, send 1 and current uptime
                 astarte_device_stream_boolean(device, "org.astarteplatform.esp32.DeviceDatastream", "/userButton", 1, 0);
+                int uptimeSeconds = (xTaskGetTickCount() * portTICK_PERIOD_MS) / 1000;
+                astarte_device_stream_integer(device, "org.astarteplatform.esp32.DeviceDatastream", "/uptimeSeconds", uptimeSeconds, 0);
             }
         }
     }
