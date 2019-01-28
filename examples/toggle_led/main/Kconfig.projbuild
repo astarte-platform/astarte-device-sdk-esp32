@@ -22,25 +22,4 @@ config LED_GPIO
         Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to blink.
 
         GPIOs 35-39 are input-only so cannot be used as outputs.
-
-config ASTARTE_REALM
-    string "Astarte realm"
-    default "test"
-    help
-        The realm to be used use in Astarte requests.
-
-config ASTARTE_PAIRING_BASE_URL
-    string "Astarte pairing base URL"
-    default "http://localhost:4003"
-    help
-        The base URL to reach Astarte Pairing API. This should be the URL up to (and excluding) /v1.
-
-config ASTARTE_PAIRING_JWT
-    string "Pairing JWT token"
-    default ""
-    help
-        JWT token to authorize device registration.
-
-        Can be obtained with ./generate-astarte-credentials -t pairing -p yourrealmkey.key
-
 endmenu
