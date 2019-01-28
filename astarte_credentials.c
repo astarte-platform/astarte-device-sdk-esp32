@@ -6,7 +6,10 @@
 
 #include <astarte_credentials.h>
 
+#include <esp_err.h>
 #include <esp_log.h>
+#include <esp_vfs.h>
+#include <esp_vfs_fat.h>
 
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
@@ -24,10 +27,12 @@
 
 #define TAG "ASTARTE_CREDENTIALS"
 
-#define CREDENTIALS_DIR_PATH "/spiflash/ast_cred"
-#define PRIVKEY_PATH (CREDENTIALS_DIR_PATH "/device.key")
-#define CSR_PATH (CREDENTIALS_DIR_PATH "/device.csr")
-#define CRT_PATH (CREDENTIALS_DIR_PATH "/device.crt")
+#define PARTITION_NAME          "astarte"
+#define CREDENTIALS_MOUNTPOINT  "/astarte"
+#define CREDENTIALS_DIR_PATH    CREDENTIALS_MOUNTPOINT "/ast_cred"
+#define PRIVKEY_PATH            CREDENTIALS_DIR_PATH "/device.key"
+#define CSR_PATH                CREDENTIALS_DIR_PATH "/device.csr"
+#define CRT_PATH                CREDENTIALS_DIR_PATH "/device.crt"
 
 #define KEY_SIZE 2048
 #define EXPONENT 65537
@@ -35,14 +40,28 @@
 
 #define CSR_BUFFER_LENGTH 4096
 
+static wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
+
 astarte_err_t astarte_credentials_init()
 {
+    ESP_LOGI(TAG, "Mounting FAT filesystem for credentials");
+    const esp_vfs_fat_mount_config_t mount_config = {
+            .max_files = 4,
+            .format_if_mount_failed = true,
+            .allocation_unit_size = CONFIG_WL_SECTOR_SIZE
+    };
+    esp_err_t err = esp_vfs_fat_spiflash_mount(CREDENTIALS_MOUNTPOINT, PARTITION_NAME, &mount_config, &s_wl_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to mount FATFS (%s)", esp_err_to_name(err));
+        ESP_LOGE(TAG, "You have to add a partition named astarte to your partitions.csv file");
+        return ASTARTE_ERR;
+    }
+
     struct stat st;
     if (stat(CREDENTIALS_DIR_PATH, &st) < 0) {
         ESP_LOGI(TAG, "Directory %s doesn't exist, creating it", CREDENTIALS_DIR_PATH);
         if (mkdir(CREDENTIALS_DIR_PATH, 0700) < 0) {
             ESP_LOGE(TAG, "Cannot create %s directory", CREDENTIALS_DIR_PATH);
-            ESP_LOGE(TAG, "You have to mount a FAT fs on /spiflash");
             return ASTARTE_ERR;
         }
     }
