@@ -552,6 +552,10 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
     astarte_device_handle_t device = (astarte_device_handle_t) event->user_context;
     switch (event->event_id) {
+        case MQTT_EVENT_BEFORE_CONNECT:
+            ESP_LOGI(TAG, "MQTT_EVENT_BEFORE_CONNECT");
+            break;
+
         case MQTT_EVENT_CONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
             // Session present is always false for now
