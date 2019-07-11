@@ -113,7 +113,7 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
     }
 }
 
-static void led_toggle_task(void *ctx)
+static void astarte_example_task(void *ctx)
 {
     astarte_device_config_t cfg = {
         .data_event_callback = astarte_data_events_handler,
@@ -153,6 +153,5 @@ void app_main()
     nvs_flash_init();
     wifi_init();
     button_gpio_init();
-
-    xTaskCreate(led_toggle_task, "led_toggle_task", 16384, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(astarte_example_task, "astarte_example_task", 16384, NULL, tskIDLE_PRIORITY, NULL);
 }
