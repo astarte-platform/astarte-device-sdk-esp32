@@ -12,6 +12,15 @@ config WIFI_PASSWORD
     help
         WiFi password (WPA or WPA2) for the example to use.
 
+config BUTTON_GPIO
+    int "Button GPIO number"
+    range 0 34
+    default 0
+    help
+        GPIO number (IOxx) connected to a button.
+
+        When pressed, the button will send a boolean and the current uptime to Astarte.
+
 config LED_GPIO
     int "LED GPIO number"
     range 0 34
