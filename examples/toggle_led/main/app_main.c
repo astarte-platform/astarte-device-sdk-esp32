@@ -22,6 +22,7 @@
 
 // Make sure to configure these according to your board
 #define BUTTON_GPIO CONFIG_BUTTON_GPIO
+#define LED_GPIO CONFIG_LED_GPIO
 
 #define ESP_INTR_FLAG_DEFAULT 0
 
@@ -96,6 +97,14 @@ static void button_gpio_init()
     gpio_isr_handler_add(BUTTON_GPIO, button_isr_handler, (void*) BUTTON_GPIO);
 }
 
+static void led_init()
+{
+    // Set the pad as GPIO
+    gpio_pad_select_gpio(LED_GPIO);
+    // Set LED GPIO as output
+    gpio_set_direction(LED_GPIO, GPIO_MODE_OUTPUT);
+}
+
 static void astarte_data_events_handler(astarte_device_data_event_t *event)
 {
     ESP_LOGI(TAG, "Got Astarte data event, interface_name: %s, path: %s, bson_type: %d",
@@ -107,8 +116,10 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
         int led_state = astarte_bson_value_to_int8(event->bson_value);
         if (led_state) {
             ESP_LOGI(TAG, "Turning led on");
+            gpio_set_level(LED_GPIO, 1);
         } else {
             ESP_LOGI(TAG, "Turning led off");
+            gpio_set_level(LED_GPIO, 0);
         }
     }
 }
@@ -152,6 +163,7 @@ void app_main()
 
     nvs_flash_init();
     wifi_init();
+    led_init();
     button_gpio_init();
     xTaskCreate(astarte_example_task, "astarte_example_task", 16384, NULL, tskIDLE_PRIORITY, NULL);
 }
