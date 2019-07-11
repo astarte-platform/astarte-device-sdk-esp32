@@ -20,6 +20,9 @@
 
 #define TAG "ASTARTE_TOGGLE_LED"
 
+// Make sure to configure these according to your board
+#define BUTTON_GPIO CONFIG_BUTTON_GPIO
+
 #define ESP_INTR_FLAG_DEFAULT 0
 
 static EventGroupHandle_t wifi_event_group;
@@ -76,19 +79,21 @@ static void wifi_init(void)
 
 static void button_gpio_init()
 {
-    // Set GPIO 0 (BOOT button) as input
-    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
+    // Set the pad as GPIO
+    gpio_pad_select_gpio(BUTTON_GPIO);
+    // Set button GPIO as input
+    gpio_set_direction(BUTTON_GPIO, GPIO_MODE_INPUT);
     // Enable pullup
-    gpio_pullup_en(GPIO_NUM_0);
+    gpio_pullup_en(BUTTON_GPIO);
     // Trigger interrupt on negative edge, i.e. on release
-    gpio_set_intr_type(GPIO_NUM_0, GPIO_INTR_NEGEDGE);
+    gpio_set_intr_type(BUTTON_GPIO, GPIO_INTR_NEGEDGE);
 
     button_evt_queue = xQueueCreate(10, sizeof(uint32_t));
 
     // Install gpio isr service
     gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
     // Hook ISR handler for specific gpio pin
-    gpio_isr_handler_add(GPIO_NUM_0, button_isr_handler, (void*) GPIO_NUM_0);
+    gpio_isr_handler_add(BUTTON_GPIO, button_isr_handler, (void*) BUTTON_GPIO);
 }
 
 static void astarte_data_events_handler(astarte_device_data_event_t *event)
@@ -126,7 +131,7 @@ static void led_toggle_task(void *ctx)
     uint32_t io_num;
     while (1) {
         if (xQueueReceive(button_evt_queue, &io_num, portMAX_DELAY)) {
-            if (io_num == 0) {
+            if (io_num == BUTTON_GPIO) {
                 // Button pressed, send 1 and current uptime
                 astarte_device_stream_boolean(device, "org.astarteplatform.esp32.DeviceDatastream", "/userButton", 1, 0);
                 int uptimeSeconds = (xTaskGetTickCount() * portTICK_PERIOD_MS) / 1000;
