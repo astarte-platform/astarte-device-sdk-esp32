@@ -30,7 +30,8 @@ typedef struct {
 typedef void (*astarte_device_data_event_callback_t)(astarte_device_data_event_t *event);
 
 typedef struct {
-   astarte_device_data_event_callback_t data_event_callback;
+    astarte_device_data_event_callback_t data_event_callback;
+    const char *hwid;
 } astarte_device_config_t;
 
 #ifdef __cplusplus

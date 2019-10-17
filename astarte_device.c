@@ -51,10 +51,17 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
 
 astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 {
-    uint8_t hwid[HWID_LENGTH];
-    astarte_hwid_get_id(hwid);
-    char encoded_hwid[ENCODED_HWID_LENGTH];
-    astarte_hwid_encode(encoded_hwid, ENCODED_HWID_LENGTH, hwid);
+    const char *encoded_hwid;
+    if (cfg->hwid) {
+        encoded_hwid = cfg->hwid;
+    } else {
+        uint8_t generated_hwid[HWID_LENGTH];
+        astarte_hwid_get_id(generated_hwid);
+        char generated_encoded_hwid[ENCODED_HWID_LENGTH];
+        astarte_hwid_encode(generated_encoded_hwid, ENCODED_HWID_LENGTH, generated_hwid);
+        encoded_hwid = generated_encoded_hwid;
+    }
+
     ESP_LOGI(TAG, "hwid is: %s", encoded_hwid);
 
     astarte_err_t err = astarte_credentials_init();
