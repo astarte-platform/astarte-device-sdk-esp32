@@ -42,6 +42,31 @@ extern "C" {
  * @brief initialize Astarte device.
  *
  * @details This function has to be called to initialize the device SDK before doing anything else.
+ *
+ * If hwid is not defined explicitly in cfg, the device will use an hwid derived from unique device
+ * features (e.g. MAC address, CPU features...).
+ * An explicit hwid can be passed in the astarte_device_config_t struct. For example, it is possible to
+ * use a UUIDv5 as hwid, using a personal UUID namespace and some custom device data to derive it.
+ *
+ * Example:
+ *
+ *  uuid_t uuid_ns;
+ *  if (uuid_from_string("de40ff58-5696-4b35-a6d6-0cc7280bcd56", uuid_ns) != 0) {
+ *      ESP_LOGE(TAG, "Error while parsing namespace UUID");
+ *  }
+ *
+ *  uuid_t device_uuid;
+ *  const char *unique_data = "my_unique_data"
+ *  uuid_generate_v5(uuid_ns, unique_data, strlen(unique_data), device_uuid);
+ *
+ *  char hwid[32];
+ *  astarte_hwid_encode(hwid, sizeof(hwid), device_uuid);
+ *
+ *  astarte_device_config_t cfg = {
+ *      .data_event_callback = astarte_data_events_handler,
+ *      .hwid = hwid,
+ *  };
+ *
  * @return The handle to the device, NULL if an error occurred.
  */
 astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg);
