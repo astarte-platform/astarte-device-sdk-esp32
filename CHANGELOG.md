@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [0.10.2] - Unreleased
 ### Added
 - Allow setting an explicit hwid instead of using the hardware generated one.
+- Add UUID library, allowing to generate a UUIDv5 to be used as hwid.
 
 ## [0.10.1] - 2019-10-02
 
