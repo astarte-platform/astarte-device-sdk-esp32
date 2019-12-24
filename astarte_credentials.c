@@ -305,6 +305,17 @@ astarte_err_t astarte_credentials_save_certificate(const char *cert_pem)
     return ASTARTE_OK;
 }
 
+astarte_err_t astarte_credentials_delete_certificate()
+{
+    int ret;
+    if ((ret = remove(CRT_PATH)) != 0) {
+        ESP_LOGE(TAG, "remove returned %d", ret);
+        return ASTARTE_ERR;
+    }
+
+    return ASTARTE_OK;
+}
+
 astarte_err_t astarte_credentials_get_csr(char *out, size_t length)
 {
     FILE *fcsr = fopen(CSR_PATH, "rb");
