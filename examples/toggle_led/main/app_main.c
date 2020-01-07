@@ -126,9 +126,15 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
 
 static void astarte_example_task(void *ctx)
 {
+    /*
+     * For additional ways to define the hwid of your device, see the documentation for
+     * the astarte_device_init function in astarte_device.h
+     *
+     */
     astarte_device_config_t cfg = {
         .data_event_callback = astarte_data_events_handler,
     };
+
     astarte_device_handle_t device = astarte_device_init(&cfg);
     if (!device) {
         ESP_LOGE(TAG, "Failed to init astarte device");
