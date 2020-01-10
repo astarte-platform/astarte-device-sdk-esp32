@@ -50,7 +50,10 @@ astarte_err_t astarte_credentials_init()
             .format_if_mount_failed = true,
             .allocation_unit_size = CONFIG_WL_SECTOR_SIZE
     };
-    esp_err_t err = esp_vfs_fat_spiflash_mount(CREDENTIALS_MOUNTPOINT, PARTITION_NAME, &mount_config, &s_wl_handle);
+    esp_err_t err = ESP_OK;
+    if (s_wl_handle == WL_INVALID_HANDLE) {
+        err = esp_vfs_fat_spiflash_mount(CREDENTIALS_MOUNTPOINT, PARTITION_NAME, &mount_config, &s_wl_handle);
+    }
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to mount FATFS (%s)", esp_err_to_name(err));
         ESP_LOGE(TAG, "You have to add a partition named astarte to your partitions.csv file");
