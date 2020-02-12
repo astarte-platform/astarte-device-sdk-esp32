@@ -167,8 +167,12 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
             ESP_LOGI(TAG, "Got credentials, client_crt is %s", client_crt);
         } else {
             char *json_error = cJSON_Print(resp);
-            ESP_LOGE(TAG, "Device registration failed with code %d: %s", status_code, json_error);
-            free(json_error);
+            if (json_error) {
+                ESP_LOGE(TAG, "Device credentials request failed with code %d: %s", status_code, json_error);
+                free(json_error);
+            } else {
+                ESP_LOGE(TAG, "Device credentials request failed with code %d", status_code);
+            }
         }
 
         if (client_crt) {
@@ -228,8 +232,12 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairin
             ESP_LOGI(TAG, "Got info, broker_url is %s", broker_url);
         } else {
             char *json_error = cJSON_Print(resp);
-            ESP_LOGE(TAG, "Device info failed with code %d: %s", status_code, json_error);
-            free(json_error);
+            if (json_error) {
+                ESP_LOGE(TAG, "Device info failed with code %d: %s", status_code, json_error);
+                free(json_error);
+            } else {
+                ESP_LOGE(TAG, "Device info failed with code %d", status_code);
+            }
         }
 
         if (broker_url) {
@@ -290,8 +298,12 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
             ESP_LOGI(TAG, "Device registered, credentials_secret is %s", credentials_secret);
         } else {
             char *json_error = cJSON_Print(resp);
-            ESP_LOGE(TAG, "Device registration failed with code %d: %s", status_code, json_error);
-            free(json_error);
+            if (json_error) {
+                ESP_LOGE(TAG, "Device registration failed with code %d: %s", status_code, json_error);
+                free(json_error);
+            } else {
+                ESP_LOGE(TAG, "Device registration failed with code %d", status_code);
+            }
         }
 
         if (credentials_secret && save_credentials_secret(credentials_secret) == ESP_OK) {
