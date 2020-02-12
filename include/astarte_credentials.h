@@ -58,6 +58,14 @@ astarte_err_t astarte_credentials_create_csr();
 astarte_err_t astarte_credentials_save_certificate(const char *cert_pem);
 
 /**
+ * @brief delets the saved certificate used to connect with the Astarte MQTT v1 protocol
+ *
+ * @details Delete the certificate from the credentials folder. This requires a mounted FAT on the /spiflash mountpoint
+ * @return The status code, ASTARTE_OK if the certificate was correctly deleted, otherwise an error code is returned.
+ */
+astarte_err_t astarte_credentials_delete_certificate();
+
+/**
  * @brief get the saved CSR
  *
  * @details Get the CSR, writing it to the out buffer, if it is present.

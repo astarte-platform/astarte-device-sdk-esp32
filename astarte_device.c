@@ -15,6 +15,8 @@
 #include <mqtt_client.h>
 
 #include <esp_log.h>
+#include <freertos/task.h>
+#include <freertos/semphr.h>
 
 #define TAG "ASTARTE_DEVICE"
 
@@ -28,6 +30,7 @@
 #define URL_LENGTH 512
 #define INTROSPECTION_INTERFACE_LENGTH 512
 #define TOPIC_LENGTH 512
+#define REINIT_RETRY_INTERVAL_MS (30 * 1000)
 
 struct astarte_device_t
 {
@@ -35,10 +38,16 @@ struct astarte_device_t
     char *device_topic;
     int device_topic_len;
     char *introspection_string;
+    char *client_cert_pem;
+    char *key_pem;
     astarte_device_data_event_callback_t data_event_callback;
     esp_mqtt_client_handle_t mqtt_client;
+    TaskHandle_t reinit_task_handle;
+    SemaphoreHandle_t reinit_mutex;
 };
 
+static void astarte_device_reinit_task(void *ctx);
+static astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, const char *encoded_hwid);
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config);
 static astarte_err_t check_device(astarte_device_handle_t device);
 astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name, const char *path,
@@ -47,10 +56,31 @@ static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void on_connected(astarte_device_handle_t device, int session_present);
 static void on_incoming(astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len);
+static void on_certificate_error(astarte_device_handle_t device);
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
 
 astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 {
+    astarte_device_handle_t ret = calloc(1, sizeof(struct astarte_device_t));
+    if (!ret) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        return NULL;
+    }
+
+    ret->reinit_mutex = xSemaphoreCreateMutex();
+    if (!ret->reinit_mutex) {
+        ESP_LOGE(TAG, "Cannot create reinit_mutex");
+        free(ret);
+        return NULL;
+    }
+
+    xTaskCreate(astarte_device_reinit_task, "astarte_device_reinit_task", 16384, ret, tskIDLE_PRIORITY, &ret->reinit_task_handle);
+    if (!ret->reinit_task_handle) {
+        ESP_LOGE(TAG, "Cannot start astarte_device_reinit_task");
+        free(ret);
+        return NULL;
+    }
+
     const char *encoded_hwid;
     if (cfg->hwid) {
         encoded_hwid = cfg->hwid;
@@ -64,10 +94,62 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 
     ESP_LOGI(TAG, "hwid is: %s", encoded_hwid);
 
+    astarte_err_t res;
+    if ((res = astarte_device_init_connection(ret, encoded_hwid)) != ASTARTE_OK) {
+        ESP_LOGE(TAG, "Cannot init Astarte device: %d", res);
+        free(ret);
+        return NULL;
+    }
+
+    ret->encoded_hwid = strdup(encoded_hwid);
+    if (!ret->encoded_hwid) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        free(ret);
+        return NULL;
+    }
+
+    ret->data_event_callback = cfg->data_event_callback;
+
+    return ret;
+}
+
+static void astarte_device_reinit_task(void *ctx) {
+    // This task will just wait for a notification and if it receives one, it will
+    // reinit the device. This is necessary to handle the device certificate expiration,
+    // that can't be handled in the event callback since that's executed in the mqtt
+    // client task, that gets stopped to create a new mqtt client with the new certificate.
+
+    astarte_device_handle_t device = (astarte_device_handle_t) ctx;
+
+    uint32_t notification_value;
+    astarte_err_t res;
+    while(1) {
+        notification_value = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        if (notification_value) {
+            xSemaphoreTake(device->reinit_mutex, portMAX_DELAY);
+            ESP_LOGI(TAG, "Reinitializing the device");
+            // Delete the old certificate
+            astarte_credentials_delete_certificate();
+            // Retry until we succeed
+            while ((res = astarte_device_init_connection(device, device->encoded_hwid)) != ASTARTE_OK) {
+                ESP_LOGE(TAG, "Cannot reinit Astarte device: %d, trying again in %d milliseconds", res, REINIT_RETRY_INTERVAL_MS);
+                vTaskDelay(REINIT_RETRY_INTERVAL_MS / portTICK_PERIOD_MS);
+            }
+
+            ESP_LOGI(TAG, "Device reinitialized, starting it again");
+            esp_mqtt_client_start(device->mqtt_client);
+
+            xSemaphoreGive(device->reinit_mutex);
+        }
+    }
+}
+
+astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, const char *encoded_hwid)
+{
     astarte_err_t err = astarte_credentials_init();
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in astarte_credentials_init");
-        return NULL;
+        return ASTARTE_ERR;
     }
 
     struct astarte_pairing_config pairing_config = {
@@ -80,15 +162,13 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
     err = astarte_pairing_get_credentials_secret(&pairing_config, credentials_secret, CREDENTIALS_SECRET_LENGTH);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_credentials_secret");
-        return NULL;
+        return ASTARTE_ERR;
     } else {
         ESP_LOGI(TAG, "credentials_secret is: %s", credentials_secret);
     }
 
-    astarte_device_handle_t ret = NULL;
     char *client_cert_pem = NULL;
     char *client_cert_cn = NULL;
-    char *broker_url = NULL;
     char *key_pem = NULL;
 
     if (!astarte_credentials_has_certificate() && retrieve_credentials(&pairing_config) != ASTARTE_OK) {
@@ -134,11 +214,7 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         ESP_LOGI(TAG, "Device topic is: %s", client_cert_cn);
     }
 
-    broker_url = calloc(URL_LENGTH, sizeof(char));
-    if (!broker_url) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
-        goto init_failed;
-    }
+    char broker_url[URL_LENGTH];
     err = astarte_pairing_get_mqtt_v1_broker_url(&pairing_config, broker_url, URL_LENGTH);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_mqtt_v1_broker_url");
@@ -147,47 +223,48 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         ESP_LOGI(TAG, "Broker URL is: %s", broker_url);
     }
 
-    ret = calloc(1, sizeof(struct astarte_device_t));
-    if (!ret) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
-        goto init_failed;
-    }
-
     const esp_mqtt_client_config_t mqtt_cfg = {
         .uri = broker_url,
         .event_handle = mqtt_event_handler,
         .client_cert_pem = client_cert_pem,
         .client_key_pem = key_pem,
-        .user_context = ret,
+        .user_context = device,
     };
     esp_mqtt_client_handle_t mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
     if (!mqtt_client) {
         ESP_LOGE(TAG, "Error in esp_mqtt_client_init");
         goto init_failed;
     }
-    ret->mqtt_client = mqtt_client;
 
-    ret->encoded_hwid = strdup(encoded_hwid);
-    if (!ret->encoded_hwid) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
-        goto init_failed;
+    if (device->mqtt_client) {
+        esp_mqtt_client_destroy(device->mqtt_client);
     }
+    device->mqtt_client = mqtt_client;
 
-    ret->device_topic = client_cert_cn;
-    ret->device_topic_len = strlen(client_cert_cn);
-    ret->introspection_string = NULL;
-    ret->data_event_callback = cfg->data_event_callback;
+    if (device->device_topic) {
+        free(device->device_topic);
+    }
+    device->device_topic = client_cert_cn;
+    device->device_topic_len = strlen(client_cert_cn);
 
-    return ret;
+    if (device->client_cert_pem) {
+        free(device->client_cert_pem);
+    }
+    device->client_cert_pem = client_cert_pem;
+
+    if (device->key_pem) {
+        free(device->key_pem);
+    }
+    device->key_pem = key_pem;
+
+    return ASTARTE_OK;
 
 init_failed:
-    free(ret);
     free(key_pem);
     free(client_cert_pem);
     free(client_cert_cn);
-    free(broker_url);
 
-    return NULL;
+    return ASTARTE_ERR;
 }
 
 void astarte_device_destroy(astarte_device_handle_t device)
@@ -196,13 +273,27 @@ void astarte_device_destroy(astarte_device_handle_t device)
         return;
     }
 
+    // Avoid destroying a device that is being reinitialized
+    xSemaphoreTake(device->reinit_mutex, portMAX_DELAY);
+
     esp_mqtt_client_destroy(device->mqtt_client);
+    vTaskDelete(device->reinit_task_handle);
+    vSemaphoreDelete(device->reinit_mutex);
+    free(device->device_topic);
+    free(device->client_cert_pem);
+    free(device->key_pem);
+    free(device->introspection_string);
     free(device->encoded_hwid);
     free(device);
 }
 
 astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const char *interface_name, int major_version, int minor_version)
 {
+    if (xSemaphoreTake(device->reinit_mutex, (TickType_t) 10) == pdFALSE) {
+        ESP_LOGE(TAG, "Trying to add an interface to a device that is being reinitialized");
+        return ASTARTE_ERR;
+    }
+
     char new_interface[INTROSPECTION_INTERFACE_LENGTH];
     snprintf(new_interface, INTROSPECTION_INTERFACE_LENGTH, "%s:%d:%d", interface_name, major_version, minor_version);
 
@@ -210,6 +301,7 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const
         device->introspection_string = strdup(new_interface);
         if (!device->introspection_string) {
             ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            xSemaphoreGive(device->reinit_mutex);
             return ASTARTE_ERR;
         }
     } else {
@@ -218,6 +310,7 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const
         char *new_introspection_string = calloc(1, len);
         if (!new_introspection_string) {
             ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            xSemaphoreGive(device->reinit_mutex);
             return ASTARTE_ERR;
         }
 
@@ -226,12 +319,19 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const
         device->introspection_string = new_introspection_string;
     }
 
+    xSemaphoreGive(device->reinit_mutex);
     return ASTARTE_OK;
 }
 
 void astarte_device_start(astarte_device_handle_t device)
 {
+    if (xSemaphoreTake(device->reinit_mutex, (TickType_t) 10) == pdFALSE) {
+        ESP_LOGE(TAG, "Trying to start device that is being reinitialized");
+        return;
+    }
+
     esp_mqtt_client_start(device->mqtt_client);
+    xSemaphoreGive(device->reinit_mutex);
 }
 
 astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name, const char *path,
@@ -247,8 +347,6 @@ astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface
         return ASTARTE_ERR;
     }
 
-    esp_mqtt_client_handle_t mqtt = device->mqtt_client;
-
     int len;
     const void *data = astarte_bson_serializer_get_document(bs, &len);
     if (!data) {
@@ -259,8 +357,16 @@ astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface
     char topic[TOPIC_LENGTH];
     snprintf(topic, TOPIC_LENGTH, "%s/%s%s", device->device_topic, interface_name, path);
 
+    if (xSemaphoreTake(device->reinit_mutex, (TickType_t) 10) == pdFALSE) {
+        ESP_LOGE(TAG, "Trying to publish to a device that is being reinitialized");
+        return ASTARTE_ERR;
+    }
+
+    esp_mqtt_client_handle_t mqtt = device->mqtt_client;
+
     ESP_LOGI(TAG, "Publishing on %s with QoS %d", topic, qos);
     int ret = esp_mqtt_client_publish(mqtt, topic, data, len, qos, 0);
+    xSemaphoreGive(device->reinit_mutex);
     if (ret < 0) {
         ESP_LOGE(TAG, "Publish on %s failed", topic);
         return ASTARTE_ERR;
@@ -555,6 +661,11 @@ static void on_incoming(astarte_device_handle_t device, char *topic, int topic_l
     device->data_event_callback(&event);
 }
 
+static void on_certificate_error(astarte_device_handle_t device) {
+    ESP_LOGW(TAG, "Certificate error, notifying the reinit task");
+    xTaskNotifyGive(device->reinit_task_handle);
+}
+
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
     astarte_device_handle_t device = (astarte_device_handle_t) event->user_context;
@@ -591,6 +702,9 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
         case MQTT_EVENT_ERROR:
             ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+            if (event->error_handle->error_type == MQTT_ERROR_TYPE_ESP_TLS) {
+                on_certificate_error(device);
+            }
             break;
     }
     return ESP_OK;
