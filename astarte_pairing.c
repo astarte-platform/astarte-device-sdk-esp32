@@ -82,6 +82,8 @@ astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairin
     }
 
     err = nvs_get_str(nvs, CRED_SECRET_KEY, out, &length);
+    nvs_close(nvs);
+
     switch (err) {
         case ESP_OK:
             // Got it
@@ -108,6 +110,8 @@ astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairin
     nvs_open(PAIRING_NAMESPACE, NVS_READONLY, &nvs);
     // Now we should have credentials_secret in NVS
     err = nvs_get_str(nvs, CRED_SECRET_KEY, out, &length);
+    nvs_close(nvs);
+
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Can't retrieve credentials_secret after registration: %s", esp_err_to_name(err));
         return ASTARTE_ERR;
