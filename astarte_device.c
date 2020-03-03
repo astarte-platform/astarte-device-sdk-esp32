@@ -32,6 +32,9 @@
 #define TOPIC_LENGTH 512
 #define REINIT_RETRY_INTERVAL_MS (30 * 1000)
 
+#define NOTIFY_TERMINATE (1 << 0)
+#define NOTIFY_REINIT (1 << 1)
+
 struct astarte_device_t
 {
     char *encoded_hwid;
@@ -70,15 +73,13 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
     ret->reinit_mutex = xSemaphoreCreateMutex();
     if (!ret->reinit_mutex) {
         ESP_LOGE(TAG, "Cannot create reinit_mutex");
-        free(ret);
-        return NULL;
+        goto init_failed;
     }
 
     xTaskCreate(astarte_device_reinit_task, "astarte_device_reinit_task", 16384, ret, tskIDLE_PRIORITY, &ret->reinit_task_handle);
     if (!ret->reinit_task_handle) {
         ESP_LOGE(TAG, "Cannot start astarte_device_reinit_task");
-        free(ret);
-        return NULL;
+        goto init_failed;
     }
 
     const char *encoded_hwid;
@@ -97,20 +98,31 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
     astarte_err_t res;
     if ((res = astarte_device_init_connection(ret, encoded_hwid)) != ASTARTE_OK) {
         ESP_LOGE(TAG, "Cannot init Astarte device: %d", res);
-        free(ret);
-        return NULL;
+        goto init_failed;
     }
 
     ret->encoded_hwid = strdup(encoded_hwid);
     if (!ret->encoded_hwid) {
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
-        free(ret);
-        return NULL;
+        goto init_failed;
     }
 
     ret->data_event_callback = cfg->data_event_callback;
 
     return ret;
+
+init_failed:
+    if (ret->reinit_mutex) {
+        vSemaphoreDelete(ret->reinit_mutex);
+    }
+
+    if (ret->reinit_task_handle) {
+        xTaskNotify(ret->reinit_task_handle, NOTIFY_TERMINATE, eSetBits);
+    }
+
+    free(ret);
+
+    return NULL;
 }
 
 static void astarte_device_reinit_task(void *ctx) {
@@ -125,21 +137,28 @@ static void astarte_device_reinit_task(void *ctx) {
     astarte_err_t res;
     while(1) {
         notification_value = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        if (notification_value) {
-            xSemaphoreTake(device->reinit_mutex, portMAX_DELAY);
-            ESP_LOGI(TAG, "Reinitializing the device");
-            // Delete the old certificate
-            astarte_credentials_delete_certificate();
-            // Retry until we succeed
-            while ((res = astarte_device_init_connection(device, device->encoded_hwid)) != ASTARTE_OK) {
-                ESP_LOGE(TAG, "Cannot reinit Astarte device: %d, trying again in %d milliseconds", res, REINIT_RETRY_INTERVAL_MS);
-                vTaskDelay(REINIT_RETRY_INTERVAL_MS / portTICK_PERIOD_MS);
-            }
+        if (notification_value & NOTIFY_TERMINATE) {
+            // Terminate the task
+            vTaskDelete(NULL);
+        } else if (notification_value & NOTIFY_REINIT) {
+          xSemaphoreTake(device->reinit_mutex, portMAX_DELAY);
+          ESP_LOGI(TAG, "Reinitializing the device");
+          // Delete the old certificate
+          astarte_credentials_delete_certificate();
+          // Retry until we succeed
+          while ((res = astarte_device_init_connection(
+                      device, device->encoded_hwid)) != ASTARTE_OK) {
+            ESP_LOGE(TAG,
+                     "Cannot reinit Astarte device: %d, trying again in %d "
+                     "milliseconds",
+                     res, REINIT_RETRY_INTERVAL_MS);
+            vTaskDelay(REINIT_RETRY_INTERVAL_MS / portTICK_PERIOD_MS);
+          }
 
-            ESP_LOGI(TAG, "Device reinitialized, starting it again");
-            esp_mqtt_client_start(device->mqtt_client);
+          ESP_LOGI(TAG, "Device reinitialized, starting it again");
+          esp_mqtt_client_start(device->mqtt_client);
 
-            xSemaphoreGive(device->reinit_mutex);
+          xSemaphoreGive(device->reinit_mutex);
         }
     }
 }
@@ -277,7 +296,7 @@ void astarte_device_destroy(astarte_device_handle_t device)
     xSemaphoreTake(device->reinit_mutex, portMAX_DELAY);
 
     esp_mqtt_client_destroy(device->mqtt_client);
-    vTaskDelete(device->reinit_task_handle);
+    xTaskNotify(device->reinit_task_handle, NOTIFY_TERMINATE, eSetBits);
     vSemaphoreDelete(device->reinit_mutex);
     free(device->device_topic);
     free(device->client_cert_pem);
@@ -663,7 +682,7 @@ static void on_incoming(astarte_device_handle_t device, char *topic, int topic_l
 
 static void on_certificate_error(astarte_device_handle_t device) {
     ESP_LOGW(TAG, "Certificate error, notifying the reinit task");
-    xTaskNotifyGive(device->reinit_task_handle);
+    xTaskNotify(device->reinit_task_handle, NOTIFY_REINIT, eSetBits);
 }
 
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
