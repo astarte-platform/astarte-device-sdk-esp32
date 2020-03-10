@@ -14,8 +14,10 @@
 
 #include <string.h>
 
+#define CRED_SECRET_LENGTH 256
 #define MAX_URL_LENGTH 512
-#define MAX_HEADER_LENGTH 1024
+#define MAX_CRED_SECR_HEADER_LENGTH 64
+#define MAX_JWT_HEADER_LENGTH 1024
 
 #define TAG "ASTARTE_PAIRING"
 #define PAIRING_NAMESPACE "astarte_pairing"
@@ -122,17 +124,34 @@ astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairin
 
 astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairing_config *config, const char *csr, char *out, size_t length)
 {
-    char cred_secret[256];
+    astarte_err_t ret = ASTARTE_ERR;
+    char *cred_secret = NULL;
+    char *url = NULL;
+    char *auth_header = NULL;
+    cJSON *resp = NULL;
+    char *payload = NULL;
+    esp_http_client_handle_t client = NULL;
+
+    cred_secret = calloc(CRED_SECRET_LENGTH, sizeof(char));
+    if (!cred_secret) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto exit;
+    }
+
     astarte_err_t err = astarte_pairing_get_credentials_secret(config, cred_secret, 256);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Can't retrieve credentials_secret");
-        return err;
+        goto exit;
     }
 
-    char url[MAX_URL_LENGTH];
+    url = calloc(MAX_URL_LENGTH, sizeof(char));
+    if (!url) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto exit;
+    }
+
     snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s/protocols/astarte_mqtt_v1/credentials", config->base_url, config->realm, config->hw_id);
 
-    cJSON *resp = NULL;
     esp_http_client_config_t http_config = {
         .url = url,
         .event_handler = http_event_handler,
@@ -141,25 +160,33 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
         .user_data = &resp,
     };
 
-    esp_http_client_handle_t client = esp_http_client_init(&http_config);
+    client = esp_http_client_init(&http_config);
+    if (!client) {
+        ESP_LOGE(TAG, "Could not initialize http client");
+        goto exit;
+    }
 
     cJSON *root = cJSON_CreateObject();
     cJSON *data = cJSON_CreateObject();
     cJSON_AddItemToObject(root, "data", data);
     cJSON_AddStringToObject(data, "csr", csr);
-    char *payload = cJSON_PrintUnformatted(root);
+    payload = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
     ESP_ERROR_CHECK(esp_http_client_set_post_field(client, payload, strlen(payload)));
 
-    char auth_header[MAX_HEADER_LENGTH];
-    snprintf(auth_header, MAX_HEADER_LENGTH, "Bearer %s", cred_secret);
+    auth_header = calloc(MAX_CRED_SECR_HEADER_LENGTH, sizeof(char));
+    if (!auth_header) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto exit;
+    }
+
+    snprintf(auth_header, MAX_CRED_SECR_HEADER_LENGTH, "Bearer %s", cred_secret);
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Authorization", auth_header));
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Content-Type", "application/json"));
 
     err = esp_http_client_perform(client);
 
-    astarte_err_t ret = ASTARTE_ERR;
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
         ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d",
@@ -187,26 +214,50 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
         ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
 
+exit:
+    free(cred_secret);
+    free(url);
+    free(auth_header);
     free(payload);
-    cJSON_Delete(resp);
-    esp_http_client_cleanup(client);
+    if (resp) {
+        cJSON_Delete(resp);
+    }
+    if (client) {
+        esp_http_client_cleanup(client);
+    }
 
     return ret;
 }
 
 astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairing_config *config, char *out, size_t length)
 {
-    char cred_secret[256];
+    astarte_err_t ret = ASTARTE_ERR;
+    char *cred_secret = NULL;
+    char *url = NULL;
+    char *auth_header = NULL;
+    cJSON *resp = NULL;
+    esp_http_client_handle_t client = NULL;
+
+    cred_secret = calloc(CRED_SECRET_LENGTH, sizeof(char));
+    if (!cred_secret) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto exit;
+    }
+
     astarte_err_t err = astarte_pairing_get_credentials_secret(config, cred_secret, 256);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Can't retrieve credentials_secret");
-        return err;
+        goto exit;
     }
 
-    char url[MAX_URL_LENGTH];
+    url = calloc(MAX_URL_LENGTH, sizeof(char));
+    if (!url) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto exit;
+    }
+
     snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s", config->base_url, config->realm, config->hw_id);
 
-    cJSON *resp = NULL;
     esp_http_client_config_t http_config = {
         .url = url,
         .event_handler = http_event_handler,
@@ -215,16 +266,24 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairin
         .user_data = &resp,
     };
 
-    esp_http_client_handle_t client = esp_http_client_init(&http_config);
+    client = esp_http_client_init(&http_config);
+    if (!client) {
+        ESP_LOGE(TAG, "Could not initialize http client");
+        goto exit;
+    }
 
-    char auth_header[MAX_HEADER_LENGTH];
-    snprintf(auth_header, MAX_HEADER_LENGTH, "Bearer %s", cred_secret);
+    auth_header = calloc(MAX_CRED_SECR_HEADER_LENGTH, sizeof(char));
+    if (!auth_header) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto exit;
+    }
+
+    snprintf(auth_header, MAX_CRED_SECR_HEADER_LENGTH, "Bearer %s", cred_secret);
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Authorization", auth_header));
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Content-Type", "application/json"));
 
     err = esp_http_client_perform(client);
 
-    astarte_err_t ret = ASTARTE_ERR;
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
         ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %d",
@@ -252,18 +311,37 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairin
         ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
     }
 
-    cJSON_Delete(resp);
-    esp_http_client_cleanup(client);
+exit:
+    free(cred_secret);
+    free(url);
+    free(auth_header);
+    if (resp) {
+        cJSON_Delete(resp);
+    }
+    if (client) {
+        esp_http_client_cleanup(client);
+    }
 
     return ret;
 }
 
 astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_config *config)
 {
-    char url[MAX_URL_LENGTH];
+    astarte_err_t ret = ASTARTE_ERR;
+    char *url = NULL;
+    char *auth_header = NULL;
+    cJSON *resp = NULL;
+    char *payload = NULL;
+    esp_http_client_handle_t client = NULL;
+
+    url = calloc(MAX_URL_LENGTH, sizeof(char));
+    if (!url) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto exit;
+    }
+
     snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/agent/devices", config->base_url, config->realm);
 
-    cJSON *resp = NULL;
     esp_http_client_config_t http_config = {
         .url = url,
         .event_handler = http_event_handler,
@@ -272,25 +350,33 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
         .user_data = &resp,
     };
 
-    esp_http_client_handle_t client = esp_http_client_init(&http_config);
+    client = esp_http_client_init(&http_config);
+    if (!client) {
+        ESP_LOGE(TAG, "Could not initialize http client");
+        goto exit;
+    }
 
     cJSON *root = cJSON_CreateObject();
     cJSON *data = cJSON_CreateObject();
     cJSON_AddItemToObject(root, "data", data);
     cJSON_AddStringToObject(data, "hw_id", config->hw_id);
-    char *payload = cJSON_PrintUnformatted(root);
+    payload = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
     ESP_ERROR_CHECK(esp_http_client_set_post_field(client, payload, strlen(payload)));
 
-    char auth_header[MAX_HEADER_LENGTH];
-    snprintf(auth_header, MAX_HEADER_LENGTH, "Bearer %s", config->jwt);
+    auth_header = calloc(MAX_JWT_HEADER_LENGTH, sizeof(char));
+    if (!auth_header) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto exit;
+    }
+
+    snprintf(auth_header, MAX_JWT_HEADER_LENGTH, "Bearer %s", config->jwt);
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Authorization", auth_header));
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Content-Type", "application/json"));
 
     esp_err_t err = esp_http_client_perform(client);
 
-    astarte_err_t ret = ASTARTE_ERR;
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
         ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d",
@@ -317,9 +403,16 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
         ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
 
+exit:
+    free(url);
+    free(auth_header);
     free(payload);
-    cJSON_Delete(resp);
-    esp_http_client_cleanup(client);
+    if (resp) {
+        cJSON_Delete(resp);
+    }
+    if (client) {
+        esp_http_client_cleanup(client);
+    }
 
     return ret;
 }
