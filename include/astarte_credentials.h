@@ -29,6 +29,13 @@ extern "C" {
 astarte_err_t astarte_credentials_init();
 
 /**
+ * @brief check if Astarte credentials are initialized.
+ *
+ * @return 1 if the private key and CSR exist, 0 otherwise.
+ */
+int astarte_credentials_is_initialized();
+
+/**
  * @brief create Astarte private key.
  *
  * @details This function creates the private key and saves it on the FAT filesystem on the SPI flash. It requires
