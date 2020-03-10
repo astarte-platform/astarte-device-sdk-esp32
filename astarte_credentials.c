@@ -354,18 +354,15 @@ astarte_err_t astarte_credentials_get_certificate(char *out, size_t length)
     return ASTARTE_OK;
 }
 
-astarte_err_t astarte_credentials_get_certificate_common_name(char *out, size_t length)
+astarte_err_t astarte_credentials_get_certificate_common_name(const char *cert_pem, char *out, size_t length)
 {
-    if (!astarte_credentials_has_certificate()) {
-        return ASTARTE_ERR_NOT_FOUND;
-    }
-
     astarte_err_t exit_code = ASTARTE_ERR;
     mbedtls_x509_crt crt;
     mbedtls_x509_crt_init(&crt);
 
     int ret;
-    if ((ret = mbedtls_x509_crt_parse_file(&crt, CRT_PATH)) < 0) {
+    size_t cert_length = strlen(cert_pem) + 1; // + 1 for NULL terminator, as per documentation
+    if ((ret = mbedtls_x509_crt_parse(&crt, (unsigned char *) cert_pem, cert_length)) < 0) {
         ESP_LOGE(TAG, "mbedtls_x509_crt_parse_file returned %d", ret);
         goto exit;
     }

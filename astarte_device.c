@@ -225,7 +225,7 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto init_failed;
     }
-    err = astarte_credentials_get_certificate_common_name(client_cert_cn, CN_LENGTH);
+    err = astarte_credentials_get_certificate_common_name(client_cert_pem, client_cert_cn, CN_LENGTH);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_certificate_common_name");
         goto init_failed;
