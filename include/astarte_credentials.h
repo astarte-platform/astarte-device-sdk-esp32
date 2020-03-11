@@ -29,6 +29,13 @@ extern "C" {
 astarte_err_t astarte_credentials_init();
 
 /**
+ * @brief check if Astarte credentials are initialized.
+ *
+ * @return 1 if the private key and CSR exist, 0 otherwise.
+ */
+int astarte_credentials_is_initialized();
+
+/**
  * @brief create Astarte private key.
  *
  * @details This function creates the private key and saves it on the FAT filesystem on the SPI flash. It requires
@@ -88,12 +95,14 @@ astarte_err_t astarte_credentials_get_certificate(char *out, size_t length);
 /**
  * @brief get the certificate Common Name
  *
- * @details Get the certificate Common Name, writing it to the out buffer, if it is present.
+ * @details Get the certificate Common Name, writing it to the out buffer.
+ * @param cert_pem A pointer to buffer containing the PEM encoded certificate.
  * @param out A pointer to an allocated buffer where the CN will be written.
  * @param length The length of the out buffer.
- * @return The status code, ASTARTE_OK if the certificate was correctly written, otherwise an error code is returned.
+ * @return The status code, ASTARTE_OK if the certificate was correctly written,
+ * otherwise an error code is returned.
  */
-astarte_err_t astarte_credentials_get_certificate_common_name(char *out, size_t length);
+astarte_err_t astarte_credentials_get_certificate_common_name(const char *cert_pem, char *out, size_t length);
 
 /**
  * @brief get the private key to connect with the Astarte MQTT v1 protocol

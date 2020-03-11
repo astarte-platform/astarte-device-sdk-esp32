@@ -10,6 +10,7 @@
 #include <esp_log.h>
 #include <esp_vfs.h>
 #include <esp_vfs_fat.h>
+#include <freertos/task.h>
 
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
@@ -41,46 +42,106 @@
 #define CSR_BUFFER_LENGTH 4096
 
 static wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
+static QueueHandle_t s_init_result_queue = NULL;
 
-astarte_err_t astarte_credentials_init()
+static astarte_err_t ensure_mounted();
+
+void credentials_init_task(void *ctx)
 {
-    ESP_LOGI(TAG, "Mounting FAT filesystem for credentials");
-    const esp_vfs_fat_mount_config_t mount_config = {
-            .max_files = 4,
-            .format_if_mount_failed = true,
-            .allocation_unit_size = CONFIG_WL_SECTOR_SIZE
-    };
-    esp_err_t err = ESP_OK;
-    if (s_wl_handle == WL_INVALID_HANDLE) {
-        err = esp_vfs_fat_spiflash_mount(CREDENTIALS_MOUNTPOINT, PARTITION_NAME, &mount_config, &s_wl_handle);
-    }
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to mount FATFS (%s)", esp_err_to_name(err));
-        ESP_LOGE(TAG, "You have to add a partition named astarte to your partitions.csv file");
-        return ASTARTE_ERR;
-    }
-
     struct stat st;
+    astarte_err_t res = ASTARTE_ERR;
     if (stat(CREDENTIALS_DIR_PATH, &st) < 0) {
         ESP_LOGI(TAG, "Directory %s doesn't exist, creating it", CREDENTIALS_DIR_PATH);
         if (mkdir(CREDENTIALS_DIR_PATH, 0700) < 0) {
             ESP_LOGE(TAG, "Cannot create %s directory", CREDENTIALS_DIR_PATH);
-            return ASTARTE_ERR;
+            xQueueSend(s_init_result_queue, &res, portMAX_DELAY);
+            vTaskDelete(NULL);
+            return;
         }
     }
 
     if (!astarte_credentials_has_key()) {
         ESP_LOGI(TAG, "Private key not found, creating it.");
         if (astarte_credentials_create_key() != ASTARTE_OK) {
-            return ASTARTE_ERR;
+            xQueueSend(s_init_result_queue, &res, portMAX_DELAY);
+            vTaskDelete(NULL);
+            return;
         }
     }
 
     if (!astarte_credentials_has_csr()) {
         ESP_LOGI(TAG, "CSR not found, creating it.");
         if (astarte_credentials_create_csr() != ASTARTE_OK) {
+            xQueueSend(s_init_result_queue, &res, portMAX_DELAY);
+            vTaskDelete(NULL);
+            return;
+        }
+    }
+
+    res = ASTARTE_OK;
+    xQueueSend(s_init_result_queue, &res, portMAX_DELAY);
+    vTaskDelete(NULL);
+}
+
+astarte_err_t astarte_credentials_init()
+{
+    if (astarte_credentials_is_initialized()) {
+        return ASTARTE_OK;
+    }
+
+    astarte_err_t err = ensure_mounted();
+    if (err != ASTARTE_OK) {
+        return err;
+    }
+
+    if (!s_init_result_queue) {
+        s_init_result_queue = xQueueCreate(1, sizeof(astarte_err_t));
+        if (!s_init_result_queue) {
+            ESP_LOGE(TAG, "Cannot initialize s_init_result_queue");
             return ASTARTE_ERR;
         }
+    }
+
+    TaskHandle_t task_handle;
+    xTaskCreate(credentials_init_task, "credentials_init_task", 16384, NULL, tskIDLE_PRIORITY, &task_handle);
+    if (!task_handle) {
+        ESP_LOGE(TAG, "Cannot create credentials_init_task");
+        return ASTARTE_ERR;
+    }
+
+    astarte_err_t result;
+    xQueueReceive(s_init_result_queue, &result, portMAX_DELAY);
+
+    return result;
+}
+
+int astarte_credentials_is_initialized()
+{
+    astarte_err_t err = ensure_mounted();
+    if (err != ASTARTE_OK) {
+        return 0;
+    }
+
+    return astarte_credentials_has_key() && astarte_credentials_has_csr();
+}
+
+static astarte_err_t ensure_mounted()
+{
+    const esp_vfs_fat_mount_config_t mount_config = {
+            .max_files = 4,
+            .format_if_mount_failed = true,
+            .allocation_unit_size = CONFIG_WL_SECTOR_SIZE,
+    };
+    esp_err_t err = ESP_OK;
+    if (s_wl_handle == WL_INVALID_HANDLE) {
+        ESP_LOGI(TAG, "Mounting FAT filesystem for credentials");
+        err = esp_vfs_fat_spiflash_mount(CREDENTIALS_MOUNTPOINT, PARTITION_NAME, &mount_config,
+                                         &s_wl_handle);
+    }
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to mount FATFS (%s)", esp_err_to_name(err));
+        ESP_LOGE(TAG, "You have to add a partition named astarte to your partitions.csv file");
+        return ASTARTE_ERR;
     }
 
     return ASTARTE_OK;
@@ -354,18 +415,15 @@ astarte_err_t astarte_credentials_get_certificate(char *out, size_t length)
     return ASTARTE_OK;
 }
 
-astarte_err_t astarte_credentials_get_certificate_common_name(char *out, size_t length)
+astarte_err_t astarte_credentials_get_certificate_common_name(const char *cert_pem, char *out, size_t length)
 {
-    if (!astarte_credentials_has_certificate()) {
-        return ASTARTE_ERR_NOT_FOUND;
-    }
-
     astarte_err_t exit_code = ASTARTE_ERR;
     mbedtls_x509_crt crt;
     mbedtls_x509_crt_init(&crt);
 
     int ret;
-    if ((ret = mbedtls_x509_crt_parse_file(&crt, CRT_PATH)) < 0) {
+    size_t cert_length = strlen(cert_pem) + 1; // + 1 for NULL terminator, as per documentation
+    if ((ret = mbedtls_x509_crt_parse(&crt, (unsigned char *) cert_pem, cert_length)) < 0) {
         ESP_LOGE(TAG, "mbedtls_x509_crt_parse_file returned %d", ret);
         goto exit;
     }

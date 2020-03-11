@@ -14,6 +14,7 @@
 
 #include "esp_log.h"
 
+#include "astarte_credentials.h"
 #include "astarte_device.h"
 #include "astarte_bson.h"
 #include "astarte_bson_types.h"
@@ -171,5 +172,6 @@ void app_main()
     wifi_init();
     led_init();
     button_gpio_init();
-    xTaskCreate(astarte_example_task, "astarte_example_task", 16384, NULL, tskIDLE_PRIORITY, NULL);
+    astarte_credentials_init();
+    xTaskCreate(astarte_example_task, "astarte_example_task", 6000, NULL, tskIDLE_PRIORITY, NULL);
 }

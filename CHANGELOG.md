@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.11.0-rc.1] - Unreleased
+### Changed
+- Deprecate implicit credentials initialization, the user should now call `astarte_credentials_init`
+  in its `main` before calling `astarte_device_init`.
+- Improve memory footprint.
+
 ## [0.11.0-rc.0] - 2020-02-27
 ### Fixed
 - Handle client certificate expiration by requesting new credentials to Pairing API.
