@@ -76,7 +76,7 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         goto init_failed;
     }
 
-    xTaskCreate(astarte_device_reinit_task, "astarte_device_reinit_task", 16384, ret, tskIDLE_PRIORITY, &ret->reinit_task_handle);
+    xTaskCreate(astarte_device_reinit_task, "astarte_device_reinit_task", 6000, ret, tskIDLE_PRIORITY, &ret->reinit_task_handle);
     if (!ret->reinit_task_handle) {
         ESP_LOGE(TAG, "Cannot start astarte_device_reinit_task");
         goto init_failed;
@@ -165,10 +165,17 @@ static void astarte_device_reinit_task(void *ctx) {
 
 astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, const char *encoded_hwid)
 {
-    astarte_err_t err = astarte_credentials_init();
-    if (err != ASTARTE_OK) {
-        ESP_LOGE(TAG, "Error in astarte_credentials_init");
-        return ASTARTE_ERR;
+    astarte_err_t err;
+    if (!astarte_credentials_is_initialized()) {
+        // TODO: this should be manually called from main before initializing the device,
+        // but we just print a warning to maintain backwards compatibility for now
+        ESP_LOGW(TAG, "You should manually call astarte_credentials_init before calling "
+                      "astarte_device_init");
+        err = astarte_credentials_init();
+        if (err != ASTARTE_OK) {
+            ESP_LOGE(TAG, "Error in astarte_credentials_init");
+            return ASTARTE_ERR;
+        }
     }
 
     struct astarte_pairing_config pairing_config = {
@@ -225,7 +232,7 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto init_failed;
     }
-    err = astarte_credentials_get_certificate_common_name(client_cert_cn, CN_LENGTH);
+    err = astarte_credentials_get_certificate_common_name(client_cert_pem, client_cert_cn, CN_LENGTH);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_certificate_common_name");
         goto init_failed;
