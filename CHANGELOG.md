@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Deprecate implicit credentials initialization, the user should now call `astarte_credentials_init`
   in its `main` before calling `astarte_device_init`.
 - Improve memory footprint.
+- Use ECDSA for keys instead of RSA.
 
 ## [0.11.0-rc.0] - 2020-02-27
 ### Fixed

@@ -16,7 +16,7 @@
 #include <mbedtls/entropy.h>
 #include <mbedtls/oid.h>
 #include <mbedtls/pk.h>
-#include <mbedtls/rsa.h>
+#include <mbedtls/ecp.h>
 #include <mbedtls/x509_crt.h>
 #include <mbedtls/x509_csr.h>
 
@@ -154,21 +154,12 @@ astarte_err_t astarte_credentials_create_key()
     mbedtls_pk_context key;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-    mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
     FILE *fpriv = NULL;
     unsigned char *privkey_buffer = NULL;
     const char *pers = "astarte_credentials_create_key";
 
     mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_pk_init(&key);
-    mbedtls_mpi_init(&N);
-    mbedtls_mpi_init(&P);
-    mbedtls_mpi_init(&Q);
-    mbedtls_mpi_init(&D);
-    mbedtls_mpi_init(&E);
-    mbedtls_mpi_init(&DP);
-    mbedtls_mpi_init(&DQ);
-    mbedtls_mpi_init(&QP);
     mbedtls_entropy_init(&entropy);
 
     int ret = 0;
@@ -178,22 +169,16 @@ astarte_err_t astarte_credentials_create_key()
         goto exit;
     }
 
-    ESP_LOGI(TAG, "Generating the RSA key [ %d-bit ]", KEY_SIZE);
+    ESP_LOGI(TAG, "Generating the EC key (using curve secp256r1)");
 
-    if ((ret = mbedtls_pk_setup(&key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA))) != 0) {
+    if ((ret = mbedtls_pk_setup(&key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY))) != 0) {
         ESP_LOGE(TAG, "mbedtls_pk_setup returned %d", ret);
         goto exit;
     }
 
-    if ((ret = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key), mbedtls_ctr_drbg_random, &ctr_drbg, KEY_SIZE, EXPONENT)) != 0) {
-        ESP_LOGE(TAG, "mbedtls_rsa_gen_key returned %d", ret);
-        goto exit;
-    }
-
-    mbedtls_rsa_context *rsa = mbedtls_pk_rsa(key);
-    if ((ret = mbedtls_rsa_export(rsa, &N, &P, &Q, &D, &E)) != 0
-            || (ret = mbedtls_rsa_export_crt(rsa, &DP, &DQ, &QP)) != 0 ) {
-        ESP_LOGE(TAG, "Cannot export RSA parameters");
+    if ((ret = mbedtls_ecp_gen_key(MBEDTLS_ECP_DP_SECP256R1, mbedtls_pk_ec(key),
+                                   mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+        ESP_LOGE(TAG, "mbedtls_ecp_gen_key returned %d", ret);
         goto exit;
     }
 
@@ -241,14 +226,6 @@ exit:
         fclose(fpriv);
     }
 
-    mbedtls_mpi_free(&N);
-    mbedtls_mpi_free(&P);
-    mbedtls_mpi_free(&Q);
-    mbedtls_mpi_free(&D);
-    mbedtls_mpi_free(&E);
-    mbedtls_mpi_free(&DP);
-    mbedtls_mpi_free(&DQ);
-    mbedtls_mpi_free(&QP);
     mbedtls_pk_free(&key);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
