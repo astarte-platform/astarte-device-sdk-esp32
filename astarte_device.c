@@ -15,6 +15,7 @@
 #include <mqtt_client.h>
 
 #include <esp_log.h>
+#include <esp_http_client.h>
 #include <freertos/task.h>
 #include <freertos/semphr.h>
 
@@ -61,6 +62,7 @@ static void on_connected(astarte_device_handle_t device, int session_present);
 static void on_incoming(astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len);
 static void on_certificate_error(astarte_device_handle_t device);
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
+static int has_connectivity();
 
 astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 {
@@ -687,9 +689,31 @@ static void on_incoming(astarte_device_handle_t device, char *topic, int topic_l
     device->data_event_callback(&event);
 }
 
+static int has_connectivity()
+{
+    esp_http_client_config_t config = {
+        .url = CONFIG_ASTARTE_CONNECTIVITY_TEST_URL,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_err_t err = esp_http_client_perform(client);
+
+    int res = 0;
+    if ((err == ESP_OK) && (esp_http_client_get_status_code(client) < 400)) {
+        res = 1;
+    }
+    esp_http_client_cleanup(client);
+
+    return res;
+}
+
 static void on_certificate_error(astarte_device_handle_t device) {
-    ESP_LOGW(TAG, "Certificate error, notifying the reinit task");
-    xTaskNotify(device->reinit_task_handle, NOTIFY_REINIT, eSetBits);
+    if (has_connectivity()) {
+        ESP_LOGW(TAG, "Certificate error, notifying the reinit task");
+        xTaskNotify(device->reinit_task_handle, NOTIFY_REINIT, eSetBits);
+    } else {
+        ESP_LOGI(TAG, "TLS error due to missing connectivity, ignoring");
+        // Do nothing, the mqtt client will try to connect again
+    }
 }
 
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
