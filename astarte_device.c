@@ -44,6 +44,7 @@ struct astarte_device_t
     char *introspection_string;
     char *client_cert_pem;
     char *key_pem;
+    bool connected;
     astarte_device_data_event_callback_t data_event_callback;
     esp_mqtt_client_handle_t mqtt_client;
     TaskHandle_t reinit_task_handle;
@@ -59,6 +60,7 @@ astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface
 static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void on_connected(astarte_device_handle_t device, int session_present);
+static void on_disconnected(astarte_device_handle_t device);
 static void on_incoming(astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len);
 static void on_certificate_error(astarte_device_handle_t device);
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
@@ -148,6 +150,7 @@ static void astarte_device_reinit_task(void *ctx) {
           // Delete the old certificate
           astarte_credentials_delete_certificate();
           // Retry until we succeed
+          bool reinitialized = true;
           while ((res = astarte_device_init_connection(
                       device, device->encoded_hwid)) != ASTARTE_OK) {
             ESP_LOGE(TAG,
@@ -155,10 +158,23 @@ static void astarte_device_reinit_task(void *ctx) {
                      "milliseconds",
                      res, REINIT_RETRY_INTERVAL_MS);
             vTaskDelay(REINIT_RETRY_INTERVAL_MS / portTICK_PERIOD_MS);
+
+            // We check if the device got connected again. If it has, then we
+            // can break away from the reinit process, since it was a false positive.
+            // We deleted the certificate but the device will just ask for a new one
+            // the next time it boots.
+            if (device->connected) {
+                ESP_LOGI(TAG, "Device reconnected, skipping device reinitialization");
+                reinitialized = false;
+                break;
+            }
+
           }
 
-          ESP_LOGI(TAG, "Device reinitialized, starting it again");
-          esp_mqtt_client_start(device->mqtt_client);
+          if (reinitialized) {
+              ESP_LOGI(TAG, "Device reinitialized, starting it again");
+              esp_mqtt_client_start(device->mqtt_client);
+          }
 
           xSemaphoreGive(device->reinit_mutex);
         }
@@ -615,12 +631,19 @@ static void setup_subscriptions(astarte_device_handle_t device)
 
 static void on_connected(astarte_device_handle_t device, int session_present)
 {
+    device->connected = true;
+
     if (session_present) {
         return;
     }
 
     setup_subscriptions(device);
     send_introspection(device);
+}
+
+static void on_disconnected(astarte_device_handle_t device)
+{
+    device->connected = false;
 }
 
 static void on_incoming(astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len)
@@ -731,6 +754,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
         case MQTT_EVENT_DISCONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+            on_disconnected(device);
             break;
 
         case MQTT_EVENT_SUBSCRIBED:
