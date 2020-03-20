@@ -19,4 +19,10 @@ config ASTARTE_PAIRING_JWT
         JWT token to authorize device registration.
 
         Can be obtained with ./generate-astarte-credentials -t pairing -p yourrealmkey.key
+
+config ASTARTE_CONNECTIVITY_TEST_URL
+    string "Astarte connectivity test URL"
+    default "http://www.example.com"
+    help
+        The URL used by the SDK to perform a GET request to verify connectivity. It must return an HTTP code < 400 to succeed.
 endmenu

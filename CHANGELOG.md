@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improve memory footprint.
 - Use ECDSA for keys instead of RSA.
 
+### Fixed
+- Avoid reinitializing a valid device due to connectivity errors.
+
 ## [0.11.0-rc.0] - 2020-02-27
 ### Fixed
 - Handle client certificate expiration by requesting new credentials to Pairing API.
