@@ -15,6 +15,7 @@
 #include <mqtt_client.h>
 
 #include <esp_log.h>
+#include <esp_http_client.h>
 #include <freertos/task.h>
 #include <freertos/semphr.h>
 
@@ -43,6 +44,7 @@ struct astarte_device_t
     char *introspection_string;
     char *client_cert_pem;
     char *key_pem;
+    bool connected;
     astarte_device_data_event_callback_t data_event_callback;
     esp_mqtt_client_handle_t mqtt_client;
     TaskHandle_t reinit_task_handle;
@@ -58,9 +60,11 @@ astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface
 static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void on_connected(astarte_device_handle_t device, int session_present);
+static void on_disconnected(astarte_device_handle_t device);
 static void on_incoming(astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len);
 static void on_certificate_error(astarte_device_handle_t device);
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
+static int has_connectivity();
 
 astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 {
@@ -146,6 +150,7 @@ static void astarte_device_reinit_task(void *ctx) {
           // Delete the old certificate
           astarte_credentials_delete_certificate();
           // Retry until we succeed
+          bool reinitialized = true;
           while ((res = astarte_device_init_connection(
                       device, device->encoded_hwid)) != ASTARTE_OK) {
             ESP_LOGE(TAG,
@@ -153,10 +158,23 @@ static void astarte_device_reinit_task(void *ctx) {
                      "milliseconds",
                      res, REINIT_RETRY_INTERVAL_MS);
             vTaskDelay(REINIT_RETRY_INTERVAL_MS / portTICK_PERIOD_MS);
+
+            // We check if the device got connected again. If it has, then we
+            // can break away from the reinit process, since it was a false positive.
+            // We deleted the certificate but the device will just ask for a new one
+            // the next time it boots.
+            if (device->connected) {
+                ESP_LOGI(TAG, "Device reconnected, skipping device reinitialization");
+                reinitialized = false;
+                break;
+            }
+
           }
 
-          ESP_LOGI(TAG, "Device reinitialized, starting it again");
-          esp_mqtt_client_start(device->mqtt_client);
+          if (reinitialized) {
+              ESP_LOGI(TAG, "Device reinitialized, starting it again");
+              esp_mqtt_client_start(device->mqtt_client);
+          }
 
           xSemaphoreGive(device->reinit_mutex);
         }
@@ -613,12 +631,19 @@ static void setup_subscriptions(astarte_device_handle_t device)
 
 static void on_connected(astarte_device_handle_t device, int session_present)
 {
+    device->connected = true;
+
     if (session_present) {
         return;
     }
 
     setup_subscriptions(device);
     send_introspection(device);
+}
+
+static void on_disconnected(astarte_device_handle_t device)
+{
+    device->connected = false;
 }
 
 static void on_incoming(astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len)
@@ -687,9 +712,31 @@ static void on_incoming(astarte_device_handle_t device, char *topic, int topic_l
     device->data_event_callback(&event);
 }
 
+static int has_connectivity()
+{
+    esp_http_client_config_t config = {
+        .url = CONFIG_ASTARTE_CONNECTIVITY_TEST_URL,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_err_t err = esp_http_client_perform(client);
+
+    int res = 0;
+    if ((err == ESP_OK) && (esp_http_client_get_status_code(client) < 400)) {
+        res = 1;
+    }
+    esp_http_client_cleanup(client);
+
+    return res;
+}
+
 static void on_certificate_error(astarte_device_handle_t device) {
-    ESP_LOGW(TAG, "Certificate error, notifying the reinit task");
-    xTaskNotify(device->reinit_task_handle, NOTIFY_REINIT, eSetBits);
+    if (has_connectivity()) {
+        ESP_LOGW(TAG, "Certificate error, notifying the reinit task");
+        xTaskNotify(device->reinit_task_handle, NOTIFY_REINIT, eSetBits);
+    } else {
+        ESP_LOGI(TAG, "TLS error due to missing connectivity, ignoring");
+        // Do nothing, the mqtt client will try to connect again
+    }
 }
 
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
@@ -707,6 +754,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
         case MQTT_EVENT_DISCONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+            on_disconnected(device);
             break;
 
         case MQTT_EVENT_SUBSCRIBED:
