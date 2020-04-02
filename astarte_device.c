@@ -196,6 +196,23 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
         }
     }
 
+    // If the device was already initialized, we free some resources first
+    if (device->mqtt_client) {
+        esp_mqtt_client_destroy(device->mqtt_client);
+    }
+
+    if (device->device_topic) {
+        free(device->device_topic);
+    }
+
+    if (device->client_cert_pem) {
+        free(device->client_cert_pem);
+    }
+
+    if (device->key_pem) {
+        free(device->key_pem);
+    }
+
     struct astarte_pairing_config pairing_config = {
         .base_url = CONFIG_ASTARTE_PAIRING_BASE_URL,
         .jwt = CONFIG_ASTARTE_PAIRING_JWT,
@@ -280,25 +297,10 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
         goto init_failed;
     }
 
-    if (device->mqtt_client) {
-        esp_mqtt_client_destroy(device->mqtt_client);
-    }
     device->mqtt_client = mqtt_client;
-
-    if (device->device_topic) {
-        free(device->device_topic);
-    }
     device->device_topic = client_cert_cn;
     device->device_topic_len = strlen(client_cert_cn);
-
-    if (device->client_cert_pem) {
-        free(device->client_cert_pem);
-    }
     device->client_cert_pem = client_cert_pem;
-
-    if (device->key_pem) {
-        free(device->key_pem);
-    }
     device->key_pem = key_pem;
 
     return ASTARTE_OK;
