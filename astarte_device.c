@@ -39,6 +39,7 @@
 struct astarte_device_t
 {
     char *encoded_hwid;
+    char *credentials_secret;
     char *device_topic;
     int device_topic_len;
     char *introspection_string;
@@ -99,6 +100,10 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 
     ESP_LOGI(TAG, "hwid is: %s", encoded_hwid);
 
+    if (cfg->credentials_secret) {
+        ret->credentials_secret = strdup(cfg->credentials_secret);
+    }
+
     astarte_err_t res;
     if ((res = astarte_device_init_connection(ret, encoded_hwid)) != ASTARTE_OK) {
         ESP_LOGE(TAG, "Cannot init Astarte device: %d", res);
@@ -116,6 +121,10 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
     return ret;
 
 init_failed:
+    if (ret->credentials_secret) {
+        free(ret->credentials_secret);
+    }
+
     if (ret->reinit_mutex) {
         vSemaphoreDelete(ret->reinit_mutex);
     }
@@ -196,12 +205,34 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
         }
     }
 
+    // If the device was already initialized, we free some resources first
+    if (device->mqtt_client) {
+        esp_mqtt_client_destroy(device->mqtt_client);
+    }
+
+    if (device->device_topic) {
+        free(device->device_topic);
+    }
+
+    if (device->client_cert_pem) {
+        free(device->client_cert_pem);
+    }
+
+    if (device->key_pem) {
+        free(device->key_pem);
+    }
+
     struct astarte_pairing_config pairing_config = {
         .base_url = CONFIG_ASTARTE_PAIRING_BASE_URL,
         .jwt = CONFIG_ASTARTE_PAIRING_JWT,
         .realm = CONFIG_ASTARTE_REALM,
         .hw_id = encoded_hwid,
     };
+
+    if (device->credentials_secret) {
+        pairing_config.credentials_secret = device->credentials_secret;
+    }
+
     char credentials_secret[CREDENTIALS_SECRET_LENGTH];
     err = astarte_pairing_get_credentials_secret(&pairing_config, credentials_secret, CREDENTIALS_SECRET_LENGTH);
     if (err != ASTARTE_OK) {
@@ -280,25 +311,10 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
         goto init_failed;
     }
 
-    if (device->mqtt_client) {
-        esp_mqtt_client_destroy(device->mqtt_client);
-    }
     device->mqtt_client = mqtt_client;
-
-    if (device->device_topic) {
-        free(device->device_topic);
-    }
     device->device_topic = client_cert_cn;
     device->device_topic_len = strlen(client_cert_cn);
-
-    if (device->client_cert_pem) {
-        free(device->client_cert_pem);
-    }
     device->client_cert_pem = client_cert_pem;
-
-    if (device->key_pem) {
-        free(device->key_pem);
-    }
     device->key_pem = key_pem;
 
     return ASTARTE_OK;
@@ -328,6 +344,7 @@ void astarte_device_destroy(astarte_device_handle_t device)
     free(device->key_pem);
     free(device->introspection_string);
     free(device->encoded_hwid);
+    free(device->credentials_secret);
     free(device);
 }
 
@@ -510,6 +527,11 @@ astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, con
 
     astarte_bson_serializer_destroy(&bs);
     return exit_code;
+}
+
+bool astarte_device_is_connected(astarte_device_handle_t device)
+{
+    return device->connected;
 }
 
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config)

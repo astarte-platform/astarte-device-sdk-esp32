@@ -6,9 +6,10 @@
 
 #include "astarte_pairing.h"
 
+#include "astarte_credentials.h"
+
 #include <esp_http_client.h>
 #include <esp_log.h>
-#include <nvs.h>
 
 #include <cJSON.h>
 
@@ -20,14 +21,11 @@
 #define MAX_JWT_HEADER_LENGTH 1024
 
 #define TAG "ASTARTE_PAIRING"
-#define PAIRING_NAMESPACE "astarte_pairing"
-#define CRED_SECRET_KEY "cred_secret"
 
 static esp_err_t http_event_handler(esp_http_client_event_t *evt);
 static const char *extract_broker_url(cJSON *response);
 static const char *extract_credentials_secret(cJSON *response);
 static const char *extract_client_crt(cJSON *response);
-static esp_err_t save_credentials_secret(const char *credentials_secret);
 
 static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 {
@@ -67,56 +65,37 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 
 astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairing_config *config, char *out, size_t length)
 {
-    nvs_handle nvs;
-    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READONLY, &nvs);
-    switch (err) {
-        // NVS_NOT_FOUND is ok if we don't have credentials_secret yet
-        case ESP_ERR_NVS_NOT_FOUND:
-        case ESP_OK:
-            break;
-        case ESP_ERR_NVS_NOT_INITIALIZED:
-            ESP_LOGE(TAG, "Non-volatile storage not initialized");
-            ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
-            return ASTARTE_ERR;
-        default:
-            ESP_LOGE(TAG, "nvs_open error while reading credentials_secret: %s", esp_err_to_name(err));
-            return ASTARTE_ERR;
+    if (config->credentials_secret) {
+        // We have an explicit credentials_secret in the config, we're done
+        strncpy(out, config->credentials_secret, length);
+        return ASTARTE_OK;
     }
 
-    err = nvs_get_str(nvs, CRED_SECRET_KEY, out, &length);
-    nvs_close(nvs);
-
+    astarte_err_t err = astarte_credentials_get_stored_credentials_secret(out, length);
     switch (err) {
-        case ESP_OK:
-            // Got it
+        case ASTARTE_OK:
             return ASTARTE_OK;
 
-        // Here we come from NVS_NOT_FOUND above
-        case ESP_ERR_NVS_INVALID_HANDLE:
-        case ESP_ERR_NVS_NOT_FOUND:
+        case ASTARTE_ERR_NOT_FOUND:
             ESP_LOGI(TAG, "credentials_secret not found, registering device");
             break;
 
         default:
-            ESP_LOGE(TAG, "nvs_get_str error: %s", esp_err_to_name(err));
-            return ASTARTE_ERR;
+            // Some other error happened, bail out
+            return err;
     }
 
-    astarte_err_t ast_err = astarte_pairing_register_device(config);
-    if (ast_err != ASTARTE_OK) {
-        ESP_LOGE(TAG, "Device registration failed: %d", ast_err);
-        return ast_err;
+    err = astarte_pairing_register_device(config);
+    if (err != ASTARTE_OK) {
+        ESP_LOGE(TAG, "Device registration failed: %d", err);
+        return err;
     }
 
-    // Open the handle again since it could have been invalid from above
-    nvs_open(PAIRING_NAMESPACE, NVS_READONLY, &nvs);
     // Now we should have credentials_secret in NVS
-    err = nvs_get_str(nvs, CRED_SECRET_KEY, out, &length);
-    nvs_close(nvs);
-
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Can't retrieve credentials_secret after registration: %s", esp_err_to_name(err));
-        return ASTARTE_ERR;
+    err = astarte_credentials_get_stored_credentials_secret(out, length);
+    if (err != ASTARTE_OK) {
+        ESP_LOGE(TAG, "Can't retrieve credentials_secret after registration");
+        return err;
     }
 
     return ASTARTE_OK;
@@ -327,6 +306,12 @@ exit:
 
 astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_config *config)
 {
+    if (!config->jwt || strlen(config->jwt) == 0) {
+        ESP_LOGE(TAG, "ASTARTE_PAIRING_JWT is not configured, device can't be registered. "
+                      "Configure it using make menuconfig");
+        return ASTARTE_ERR;
+    }
+
     astarte_err_t ret = ASTARTE_ERR;
     char *url = NULL;
     char *auth_header = NULL;
@@ -395,8 +380,8 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
                 ESP_LOGE(TAG, "Device registration failed with code %d", status_code);
             }
         }
-
-        if (credentials_secret && save_credentials_secret(credentials_secret) == ESP_OK) {
+        if (credentials_secret &&
+            astarte_credentials_set_stored_credentials_secret(credentials_secret) == ASTARTE_OK) {
             ret = ASTARTE_OK;
         }
     } else {
@@ -456,22 +441,4 @@ static const char *extract_client_crt(cJSON *response)
         ESP_LOGE(TAG, "Error parsing client_crt");
         return NULL;
     }
-}
-
-
-static esp_err_t save_credentials_secret(const char *credentials_secret)
-{
-    nvs_handle nvs;
-    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "nvs_open error while saving credentials_secret: %s", esp_err_to_name(err));
-        return err;
-    }
-
-    err = nvs_set_str(nvs, CRED_SECRET_KEY, credentials_secret);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "nvs_set_str error while saving credentials_secret: %s", esp_err_to_name(err));
-    }
-
-    return err;
 }

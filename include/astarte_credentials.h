@@ -115,6 +115,39 @@ astarte_err_t astarte_credentials_get_certificate_common_name(const char *cert_p
 astarte_err_t astarte_credentials_get_key(char *out, size_t length);
 
 /**
+ * @brief get the stored credentials_secret
+ *
+ * @details Get the credentials_secret stored in the NVS, writing it to the out buffer, if it is present.
+ * @param out A pointer to an allocated buffer where the credentials_secret will be written.
+ * @param length The length of the out buffer.
+ * @return The status code, ASTARTE_OK if the credentials_secret was found, ASTARTE_ERR_NOT_FOUND if the
+ * credentials secret is not present in the NVS, another astarte_err_t if an error occurs.
+ */
+astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_t length);
+
+/**
+ * @brief save the credentials_secret in the NVS
+ *
+ * @details Save the credentials_secret in the NVS, where it can be used internally by Astarte Pairing
+ * to obtain Astarte MQTT v1 credentials.
+ * @param credentials_secret A pointer to the buffer that contains the credentials_secret.
+ * @return The status code, ASTARTE_OK if the credentials_secret was correctly written, otherwise an
+ * error code is returned.
+ */
+astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *credentials_secret);
+
+/**
+ * @brief delete the credentials_secret from the NVS
+ *
+ * @details Delete the credentials_secret from the NVS. Keep in mind that if you lose access to the
+ * credentials_secret of a device, you have to unregister it from Astarte before being able to
+ * make it register again.
+ * @return The status code, ASTARTE_OK if the credentials_secret was found, ASTARTE_ERR_NOT_FOUND if
+ * the credentials secret is not present in the NVS, another astarte_err_t if an error occurs.
+ */
+astarte_err_t astarte_credentials_erase_stored_credentials_secret();
+
+/**
  * @brief check if the certificate exists
  *
  * @details Check if the file containing the certificate exists and is readable.
