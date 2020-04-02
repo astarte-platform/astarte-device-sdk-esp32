@@ -39,6 +39,7 @@
 struct astarte_device_t
 {
     char *encoded_hwid;
+    char *credentials_secret;
     char *device_topic;
     int device_topic_len;
     char *introspection_string;
@@ -99,6 +100,10 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 
     ESP_LOGI(TAG, "hwid is: %s", encoded_hwid);
 
+    if (cfg->credentials_secret) {
+        ret->credentials_secret = strdup(cfg->credentials_secret);
+    }
+
     astarte_err_t res;
     if ((res = astarte_device_init_connection(ret, encoded_hwid)) != ASTARTE_OK) {
         ESP_LOGE(TAG, "Cannot init Astarte device: %d", res);
@@ -116,6 +121,10 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
     return ret;
 
 init_failed:
+    if (ret->credentials_secret) {
+        free(ret->credentials_secret);
+    }
+
     if (ret->reinit_mutex) {
         vSemaphoreDelete(ret->reinit_mutex);
     }
@@ -202,6 +211,11 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
         .realm = CONFIG_ASTARTE_REALM,
         .hw_id = encoded_hwid,
     };
+
+    if (device->credentials_secret) {
+        pairing_config.credentials_secret = device->credentials_secret;
+    }
+
     char credentials_secret[CREDENTIALS_SECRET_LENGTH];
     err = astarte_pairing_get_credentials_secret(&pairing_config, credentials_secret, CREDENTIALS_SECRET_LENGTH);
     if (err != ASTARTE_OK) {
@@ -328,6 +342,7 @@ void astarte_device_destroy(astarte_device_handle_t device)
     free(device->key_pem);
     free(device->introspection_string);
     free(device->encoded_hwid);
+    free(device->credentials_secret);
     free(device);
 }
 

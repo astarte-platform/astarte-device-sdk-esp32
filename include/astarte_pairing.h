@@ -22,6 +22,7 @@ struct astarte_pairing_config
     const char* jwt;
     const char* realm;
     const char* hw_id;
+    const char* credentials_secret;
 };
 
 #ifdef __cplusplus
