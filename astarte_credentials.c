@@ -11,6 +11,7 @@
 #include <esp_vfs.h>
 #include <esp_vfs_fat.h>
 #include <freertos/task.h>
+#include <nvs.h>
 
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
@@ -40,6 +41,9 @@
 #define PRIVKEY_BUFFER_LENGTH 16000
 
 #define CSR_BUFFER_LENGTH 4096
+
+#define PAIRING_NAMESPACE "astarte_pairing"
+#define CRED_SECRET_KEY "cred_secret"
 
 static wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
 static QueueHandle_t s_init_result_queue = NULL;
@@ -441,6 +445,105 @@ astarte_err_t astarte_credentials_get_key(char *out, size_t length)
     }
 
     fclose(fpriv);
+    return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_t length)
+{
+    nvs_handle nvs;
+    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READONLY, &nvs);
+    switch (err) {
+        // NVS_NOT_FOUND is ok if we don't have credentials_secret yet
+        case ESP_ERR_NVS_NOT_FOUND:
+        case ESP_OK:
+            break;
+        case ESP_ERR_NVS_NOT_INITIALIZED:
+            ESP_LOGE(TAG, "Non-volatile storage not initialized");
+            ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
+            return ASTARTE_ERR;
+        default:
+            ESP_LOGE(TAG, "nvs_open error while reading credentials_secret: %s", esp_err_to_name(err));
+            return ASTARTE_ERR;
+    }
+
+    err = nvs_get_str(nvs, CRED_SECRET_KEY, out, &length);
+    nvs_close(nvs);
+
+    switch (err) {
+        case ESP_OK:
+            // Got it
+            return ASTARTE_OK;
+
+        // Here we come from NVS_NOT_FOUND above
+        case ESP_ERR_NVS_INVALID_HANDLE:
+        case ESP_ERR_NVS_NOT_FOUND:
+            return ASTARTE_ERR_NOT_FOUND;
+
+        default:
+            ESP_LOGE(TAG, "nvs_get_str error: %s", esp_err_to_name(err));
+            return ASTARTE_ERR;
+    }
+}
+
+astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *credentials_secret)
+{
+    nvs_handle nvs;
+    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
+    switch (err) {
+        case ESP_OK:
+            break;
+        case ESP_ERR_NVS_NOT_INITIALIZED:
+            ESP_LOGE(TAG, "Non-volatile storage not initialized");
+            ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
+            return ASTARTE_ERR;
+        default:
+            ESP_LOGE(TAG, "nvs_open error while reading credentials_secret: %s",
+                     esp_err_to_name(err));
+            return ASTARTE_ERR;
+    }
+
+    err = nvs_set_str(nvs, CRED_SECRET_KEY, credentials_secret);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "nvs_set_str error while saving credentials_secret: %s",
+                 esp_err_to_name(err));
+        return ASTARTE_ERR;
+    }
+
+    return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_erase_stored_credentials_secret()
+{
+    nvs_handle nvs;
+    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
+    switch (err) {
+        case ESP_OK:
+            break;
+        case ESP_ERR_NVS_NOT_INITIALIZED:
+            ESP_LOGE(TAG, "Non-volatile storage not initialized");
+            ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
+            return ASTARTE_ERR;
+        default:
+            ESP_LOGE(TAG, "nvs_open error while reading credentials_secret: %s",
+                     esp_err_to_name(err));
+            return ASTARTE_ERR;
+    }
+
+    err = nvs_erase_key(nvs, CRED_SECRET_KEY);
+    switch (err) {
+        case ESP_OK:
+            return ASTARTE_OK;
+
+        // Here we come from NVS_NOT_FOUND above
+        case ESP_ERR_NVS_INVALID_HANDLE:
+        case ESP_ERR_NVS_NOT_FOUND:
+            return ASTARTE_ERR_NOT_FOUND;
+
+        default:
+            ESP_LOGE(TAG, "nvs_erase_key error: %s", esp_err_to_name(err));
+            return ASTARTE_ERR;
+    }
+
     return ASTARTE_OK;
 }
 
