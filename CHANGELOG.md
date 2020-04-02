@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Allow passing an explicit credentials secret to the device instead of depending from the on-board
   agent registration.
+- Add `astarte_device_is_connected` function.
 
 ## [0.11.0-rc.1] - 2020-03-26
 ### Changed

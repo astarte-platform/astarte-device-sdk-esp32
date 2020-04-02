@@ -529,6 +529,11 @@ astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, con
     return exit_code;
 }
 
+bool astarte_device_is_connected(astarte_device_handle_t device)
+{
+    return device->connected;
+}
+
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config)
 {
     astarte_err_t ret = ASTARTE_ERR;

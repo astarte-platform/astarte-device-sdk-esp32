@@ -14,6 +14,7 @@
 
 #include "astarte.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -208,6 +209,15 @@ astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device, c
  * or for PUBCOMP for QoS 2 messages
  */
 astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos);
+
+/**
+ * @brief check if the device is connected.
+ *
+ * @details check if the Astarte device is currently connected to the MQTT broker.
+ * @param device An Astarte device handle.
+ * @return true if the device is currently connected to the broker, false if it's not.
+ */
+bool astarte_device_is_connected(astarte_device_handle_t device);
 
 #ifdef __cplusplus
 }
