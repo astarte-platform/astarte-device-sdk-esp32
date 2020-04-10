@@ -503,6 +503,8 @@ astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *cred
     }
 
     err = nvs_set_str(nvs, CRED_SECRET_KEY, credentials_secret);
+    nvs_close(nvs);
+
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "nvs_set_str error while saving credentials_secret: %s",
                  esp_err_to_name(err));
@@ -530,6 +532,8 @@ astarte_err_t astarte_credentials_erase_stored_credentials_secret()
     }
 
     err = nvs_erase_key(nvs, CRED_SECRET_KEY);
+    nvs_close(nvs);
+
     switch (err) {
         case ESP_OK:
             return ASTARTE_OK;
