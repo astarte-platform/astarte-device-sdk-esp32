@@ -229,7 +229,7 @@ void astarte_bson_serializer_append_document(struct astarte_bson_serializer_t *b
 {
     uint32_t size;
     memcpy(&size, document, sizeof(uint32_t));
-    size = le64toh(size);
+    size = le32toh(size);
 
     astarte_byte_array_append_byte(&bs->ba, BSON_TYPE_DOCUMENT);
     astarte_byte_array_append(&bs->ba, name, strlen(name) + 1);
