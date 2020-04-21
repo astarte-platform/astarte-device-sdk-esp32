@@ -211,6 +211,34 @@ astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device, c
 astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos);
 
 /**
+ * @brief send an aggregate value on a datastream endpoint of an interface with object aggregation.
+ *
+ * @details This function sends an aggregate value on a path of a given datastream interface. The
+ * value is represented with a BSON document that can be built with astarte_bson_serializer.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path_prefix A string containing the path prefix of the aggregate (beginning with /).
+ * The path prefix is the common prefix of the endpoints in the aggregate interface.
+ * @param bson_document A pointer to the document buffer containing the aggregate. Here's an example
+ * of how you can obtain the bson_document for an AirSensor interface containing 3 endpoints:
+ *
+ *  astarte_bson_serializer_init(&bs);
+ *  astarte_bson_serializer_append_double(&bs, "co2", 4.0);
+ *  astarte_bson_serializer_append_double(&bs, "temperature", 20.0);
+ *  astarte_bson_serializer_append_double(&bs, "humidity", 77.2);
+ *  astarte_bson_serializer_append_end_of_document(&bs);
+ *  int size;
+ *  const void *document = astarte_bson_serializer_get_document(&bs, &size);
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_stream_aggregate(astarte_device_handle_t device,
+                                              const char *interface_name, const char *path_prefix,
+                                              const void *bson_document, int qos);
+
+/**
  * @brief check if the device is connected.
  *
  * @details check if the Astarte device is currently connected to the MQTT broker.

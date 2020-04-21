@@ -529,6 +529,21 @@ astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, con
     return exit_code;
 }
 
+astarte_err_t astarte_device_stream_aggregate(astarte_device_handle_t device,
+                                              const char *interface_name, const char *path_prefix,
+                                              const void *bson_document, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_document(&bs, "v", bson_document);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
 bool astarte_device_is_connected(astarte_device_handle_t device)
 {
     return device->connected;
