@@ -538,7 +538,7 @@ astarte_err_t astarte_device_stream_aggregate(astarte_device_handle_t device,
     astarte_bson_serializer_append_document(&bs, "v", bson_document);
     astarte_bson_serializer_append_end_of_document(&bs);
 
-    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+    astarte_err_t exit_code = publish_bson(device, interface_name, path_prefix, &bs, qos);
 
     astarte_bson_serializer_destroy(&bs);
     return exit_code;
