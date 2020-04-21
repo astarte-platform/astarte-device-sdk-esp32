@@ -8,7 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Allow sending data to object aggregated interfaces.
 
-## [0.11.0] - Unreleased
+## [0.11.1] - Unreleased
+### Fixed
+- Correctly interpret the document length as a 32 bit number when appending a BSON document.
+
+## [0.11.0] - 2020-04-13
 ### Added
 - Allow passing an explicit credentials secret to the device instead of depending from the on-board
   agent registration.
