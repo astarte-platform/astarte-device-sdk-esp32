@@ -56,8 +56,10 @@ static void astarte_device_reinit_task(void *ctx);
 static astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, const char *encoded_hwid);
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config);
 static astarte_err_t check_device(astarte_device_handle_t device);
-astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name, const char *path,
+static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name, const char *path,
                            const struct astarte_bson_serializer_t *bs, int qos);
+static astarte_err_t publish_data(astarte_device_handle_t device, const char *interface_name,
+                                  const char *path, const void *data, size_t length, int qos);
 static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void on_connected(astarte_device_handle_t device, int session_present);
@@ -395,8 +397,21 @@ void astarte_device_start(astarte_device_handle_t device)
     xSemaphoreGive(device->reinit_mutex);
 }
 
-astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name, const char *path,
+static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name, const char *path,
                            const struct astarte_bson_serializer_t *bs, int qos)
+{
+    int len;
+    const void *data = astarte_bson_serializer_get_document(bs, &len);
+    if (!data) {
+        ESP_LOGE(TAG, "Error during BSON serialization");
+        return ASTARTE_ERR;
+    }
+
+    return publish_data(device, interface_name, path, data, len, qos);
+}
+
+static astarte_err_t publish_data(astarte_device_handle_t device, const char *interface_name,
+                           const char *path, const void *data, size_t length, int qos)
 {
     if (path[0] != '/') {
         ESP_LOGE(TAG, "Invalid path: %s (must be start with /)", path);
@@ -405,13 +420,6 @@ astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface
 
     if (qos < 0 || qos > 2) {
         ESP_LOGE(TAG, "Invalid QoS: %d (must be 0, 1 or 2)", qos);
-        return ASTARTE_ERR;
-    }
-
-    int len;
-    const void *data = astarte_bson_serializer_get_document(bs, &len);
-    if (!data) {
-        ESP_LOGE(TAG, "Error during BSON serialization");
         return ASTARTE_ERR;
     }
 
@@ -426,7 +434,7 @@ astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
 
     ESP_LOGI(TAG, "Publishing on %s with QoS %d", topic, qos);
-    int ret = esp_mqtt_client_publish(mqtt, topic, data, len, qos, 0);
+    int ret = esp_mqtt_client_publish(mqtt, topic, data, length, qos, 0);
     xSemaphoreGive(device->reinit_mutex);
     if (ret < 0) {
         ESP_LOGE(TAG, "Publish on %s failed", topic);
@@ -527,6 +535,12 @@ astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, con
 
     astarte_bson_serializer_destroy(&bs);
     return exit_code;
+}
+
+astarte_err_t astarte_device_unset_path(astarte_device_handle_t device, const char *interface_name,
+                                        const char *path)
+{
+    return publish_data(device, interface_name, path, "", 0, 2);
 }
 
 bool astarte_device_is_connected(astarte_device_handle_t device)
@@ -715,6 +729,16 @@ static void on_incoming(astarte_device_handle_t device, char *topic, int topic_l
     int path_len = topic_len - device->device_topic_len - strlen("/") - interface_name_len;
     char path[512];
     snprintf(path, 512, "%.*s", path_len, path_begin);
+
+    if (!data && data_len == 0) {
+        // TODO: handle incoming unset messages
+        return;
+    }
+
+    if (!astarte_bson_check_validity(data, data_len)) {
+        ESP_LOGE(TAG, "Invalid BSON document in data");
+        return;
+    }
 
     uint8_t bson_value_type;
     const void *bson_value = astarte_bson_key_lookup("v", data, &bson_value_type);
