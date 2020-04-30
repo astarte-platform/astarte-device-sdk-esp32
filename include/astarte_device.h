@@ -211,6 +211,21 @@ astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device, c
 astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos);
 
 /**
+ * @brief unset a path belonging to a properties interface.
+ *
+ * @details This function is used to unset a path. It is possible to use it only with an interface
+ * of type properties and on a path belonging to an endpoint with allow_unset set to true.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_unset_path(astarte_device_handle_t device, const char *interface_name,
+                                        const char *path);
+
+/**
  * @brief check if the device is connected.
  *
  * @details check if the Astarte device is currently connected to the MQTT broker.
