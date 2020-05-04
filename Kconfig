@@ -25,4 +25,20 @@ config ASTARTE_CONNECTIVITY_TEST_URL
     default "http://www.example.com"
     help
         The URL used by the SDK to perform a GET request to verify connectivity. It must return an HTTP code < 400 to succeed.
+
+config ASTARTE_HWID_ENABLE_UUID
+    bool "Use UUIDv5 to derive the hardware ID"
+    default y
+    help
+        This option controls how the hardware id is derived.
+        If it's enabled, device-specific data will be feed to UUIDv5 to generate an hardware id.
+        If it's disabled, a SHA256 hash will be used, to maintain compatibility with pre-1.0 behaviour.
+        It is recommended to use UUIDv5 unless there's the need to maintain backwards compatibility (note that changing the setting will change the device-id, invalidating its credentials secret and requiring a new registration).
+
+config ASTARTE_HWID_UUID_NAMESPACE
+    string "The UUIDv5 namespace to use when generating the hardware ID"
+    default "30349dbb-85b6-489e-a8ed-532e65c55c38"
+    help
+        This option controls the UUID namespace that will be fed to the UUIDv5 algorithm when generating the hardware ID (if the "Use UUIDv5 to derive the hardware ID" is enabled).
+
 endmenu

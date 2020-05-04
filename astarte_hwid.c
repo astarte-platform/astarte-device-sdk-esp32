@@ -6,6 +6,7 @@
 
 #include <astarte_hwid.h>
 
+#include <uuid.h>
 #include <string.h>
 
 #include <esp_log.h>
@@ -42,6 +43,15 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
 
     ESP_LOGD(HWID_TAG, "Astarte Device SDK running on: %s", info_string);
 
+#ifdef CONFIG_ASTARTE_HWID_ENABLE_UUID
+    uuid_t namespace_uuid;
+    uuid_from_string(CONFIG_ASTARTE_HWID_UUID_NAMESPACE, namespace_uuid);
+
+    uuid_t device_uuid;
+    uuid_generate_v5(namespace_uuid, info_string, strlen(info_string), device_uuid);
+
+    memcpy(hardware_id, device_uuid, 16);
+#else
     uint8_t sha_result[32];
 
     mbedtls_md_context_t ctx;
@@ -55,6 +65,7 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
     mbedtls_md_free(&ctx);
 
     memcpy(hardware_id, sha_result, 16);
+#endif // ASTARTE_HWID_ENABLE_UUID
 
     return ASTARTE_OK;
 }
