@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 ### Added
 - Allow sending data to object aggregated interfaces.
+- Allow using UUIDv5 to derive the hardware id.
+
+### Changed
+- The hardware id now will use UUIDv5 by default. This means that if you were using an old version
+  of the SDK, this version will change the generated device id, requiring a new credentials secret.
+  If you need to keep the old device id, disable `Use UUIDv5 to derive the hardware ID` in the
+  Astarte SDK settings with `make menuconfig`.
 
 ## [0.11.1] - Unreleased
 ### Added
