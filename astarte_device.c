@@ -841,6 +841,10 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
                 on_certificate_error(device);
             }
             break;
+
+        default:
+            // Handle MQTT_EVENT_ANY introduced in esp-idf 4.x
+            break;
     }
     return ESP_OK;
 }
