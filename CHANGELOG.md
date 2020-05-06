@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Allow sending data to object aggregated interfaces.
 - Allow using UUIDv5 to derive the hardware id.
+- Add support for esp-idf 4.x build system.
 
 ### Changed
 - The hardware id now will use UUIDv5 by default. This means that if you were using an old version
