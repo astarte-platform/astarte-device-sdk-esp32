@@ -203,7 +203,7 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
         err = astarte_credentials_init();
         if (err != ASTARTE_OK) {
             ESP_LOGE(TAG, "Error in astarte_credentials_init");
-            return ASTARTE_ERR;
+            return err;
         }
     }
 
@@ -239,7 +239,7 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
     err = astarte_pairing_get_credentials_secret(&pairing_config, credentials_secret, CREDENTIALS_SECRET_LENGTH);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_credentials_secret");
-        return ASTARTE_ERR;
+        return err;
     } else {
         ESP_LOGI(TAG, "credentials_secret is: %s", credentials_secret);
     }
@@ -326,7 +326,7 @@ init_failed:
     free(client_cert_pem);
     free(client_cert_cn);
 
-    return ASTARTE_ERR;
+    return err;
 }
 
 void astarte_device_destroy(astarte_device_handle_t device)
@@ -365,7 +365,7 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const
         if (!device->introspection_string) {
             ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
             xSemaphoreGive(device->reinit_mutex);
-            return ASTARTE_ERR;
+            return ASTARTE_ERR_OUT_OF_MEMORY;
         }
     } else {
         // + 2 for ; and terminator
@@ -374,7 +374,7 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const
         if (!new_introspection_string) {
             ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
             xSemaphoreGive(device->reinit_mutex);
-            return ASTARTE_ERR;
+            return ASTARTE_ERR_OUT_OF_MEMORY;
         }
 
         snprintf(new_introspection_string, len, "%s;%s", device->introspection_string, new_interface);
@@ -415,12 +415,12 @@ static astarte_err_t publish_data(astarte_device_handle_t device, const char *in
 {
     if (path[0] != '/') {
         ESP_LOGE(TAG, "Invalid path: %s (must be start with /)", path);
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_INVALID_INTERFACE_PATH;
     }
 
     if (qos < 0 || qos > 2) {
         ESP_LOGE(TAG, "Invalid QoS: %d (must be 0, 1 or 2)", qos);
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_INVALID_QOS;
     }
 
     char topic[TOPIC_LENGTH];
@@ -428,7 +428,7 @@ static astarte_err_t publish_data(astarte_device_handle_t device, const char *in
 
     if (xSemaphoreTake(device->reinit_mutex, (TickType_t) 10) == pdFALSE) {
         ESP_LOGE(TAG, "Trying to publish to a device that is being reinitialized");
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_DEVICE_NOT_READY;
     }
 
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
@@ -438,7 +438,7 @@ static astarte_err_t publish_data(astarte_device_handle_t device, const char *in
     xSemaphoreGive(device->reinit_mutex);
     if (ret < 0) {
         ESP_LOGE(TAG, "Publish on %s failed", topic);
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_PUBLISH;
     }
 
     ESP_LOGI(TAG, "Publish succeeded, msg_id: %d", ret);
@@ -484,7 +484,7 @@ astarte_err_t astarte_device_stream_longinteger(astarte_device_handle_t device, 
     return exit_code;
 }
 
-astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, int value, int qos)
+astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, bool value, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
@@ -552,6 +552,55 @@ astarte_err_t astarte_device_stream_aggregate(astarte_device_handle_t device,
     return exit_code;
 }
 
+astarte_err_t astarte_device_set_double_property(astarte_device_handle_t device,
+                                                 const char *interface_name, const char *path,
+                                                 double value)
+{
+    return astarte_device_stream_double(device, interface_name, path, value, 2);
+}
+
+astarte_err_t astarte_device_set_integer_property(astarte_device_handle_t device,
+                                                  const char *interface_name, const char *path,
+                                                  int32_t value)
+{
+    return astarte_device_stream_integer(device, interface_name, path, value, 2);
+}
+
+astarte_err_t astarte_device_set_longinteger_property(astarte_device_handle_t device,
+                                                      const char *interface_name, const char *path,
+                                                      int64_t value)
+{
+    return astarte_device_stream_longinteger(device, interface_name, path, value, 2);
+}
+
+astarte_err_t astarte_device_set_boolean_property(astarte_device_handle_t device,
+                                                  const char *interface_name, const char *path,
+                                                  bool value)
+{
+    return astarte_device_stream_boolean(device, interface_name, path, value, 2);
+}
+
+astarte_err_t astarte_device_set_string_property(astarte_device_handle_t device,
+                                                 const char *interface_name, const char *path,
+                                                 char *value)
+{
+    return astarte_device_stream_string(device, interface_name, path, value, 2);
+}
+
+astarte_err_t astarte_device_set_binaryblob_property(astarte_device_handle_t device,
+                                                     const char *interface_name, const char *path,
+                                                     void *value, size_t size)
+{
+    return astarte_device_stream_binaryblob(device, interface_name, path, value, size, 2);
+}
+
+astarte_err_t astarte_device_set_datetime_property(astarte_device_handle_t device,
+                                                   const char *interface_name, const char *path,
+                                                   int64_t value)
+{
+    return astarte_device_stream_datetime(device, interface_name, path, value, 2);
+}
+
 astarte_err_t astarte_device_unset_path(astarte_device_handle_t device, const char *interface_name,
                                         const char *path)
 {
@@ -569,6 +618,7 @@ static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing
     char *cert_pem = NULL;
     char *csr = calloc(CSR_LENGTH, sizeof(char));
     if (!csr) {
+        ret = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto exit;
     }
@@ -580,6 +630,7 @@ static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing
 
     cert_pem = calloc(CERT_LENGTH, sizeof(char));
     if (!cert_pem) {
+        ret = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto exit;
     }
@@ -611,7 +662,7 @@ static astarte_err_t check_device(astarte_device_handle_t device)
 {
     if (!device->introspection_string) {
         ESP_LOGE(TAG, "NULL introspection_string in send_introspection");
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_INVALID_INTROSPECTION;
     }
 
     if (!device->mqtt_client) {

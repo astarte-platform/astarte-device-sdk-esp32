@@ -66,7 +66,8 @@ void credentials_init_task(void *ctx)
 
     if (!astarte_credentials_has_key()) {
         ESP_LOGI(TAG, "Private key not found, creating it.");
-        if (astarte_credentials_create_key() != ASTARTE_OK) {
+        res = astarte_credentials_create_key();
+        if (res != ASTARTE_OK) {
             xQueueSend(s_init_result_queue, &res, portMAX_DELAY);
             vTaskDelete(NULL);
             return;
@@ -75,7 +76,8 @@ void credentials_init_task(void *ctx)
 
     if (!astarte_credentials_has_csr()) {
         ESP_LOGI(TAG, "CSR not found, creating it.");
-        if (astarte_credentials_create_csr() != ASTARTE_OK) {
+        res = astarte_credentials_create_csr();
+        if (res != ASTARTE_OK) {
             xQueueSend(s_init_result_queue, &res, portMAX_DELAY);
             vTaskDelete(NULL);
             return;
@@ -145,7 +147,7 @@ static astarte_err_t ensure_mounted()
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to mount FATFS (%s)", esp_err_to_name(err));
         ESP_LOGE(TAG, "You have to add a partition named astarte to your partitions.csv file");
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_PARTITION_SCHEME;
     }
 
     return ASTARTE_OK;
@@ -153,7 +155,7 @@ static astarte_err_t ensure_mounted()
 
 astarte_err_t astarte_credentials_create_key()
 {
-    astarte_err_t exit_code = ASTARTE_ERR;
+    astarte_err_t exit_code = ASTARTE_ERR_MBED_TLS;
 
     mbedtls_pk_context key;
     mbedtls_entropy_context entropy;
@@ -190,6 +192,7 @@ astarte_err_t astarte_credentials_create_key()
 
     privkey_buffer = calloc(PRIVKEY_BUFFER_LENGTH, sizeof(unsigned char));
     if (!privkey_buffer) {
+        exit_code = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Cannot allocate private key buffer");
         goto exit;
     }
@@ -203,11 +206,13 @@ astarte_err_t astarte_credentials_create_key()
     ESP_LOGI(TAG, "Saving the private key in %s", PRIVKEY_PATH);
     fpriv = fopen(PRIVKEY_PATH, "wb+");
     if (!fpriv) {
+        exit_code = ASTARTE_ERR_IO;
         ESP_LOGE(TAG, "Cannot open %s for writing", PRIVKEY_PATH);
         goto exit;
     }
 
     if (fwrite(privkey_buffer, sizeof(unsigned char), len, fpriv) != len) {
+        exit_code = ASTARTE_ERR_IO;
         ESP_LOGE(TAG, "Cannot write private key to %s", PRIVKEY_PATH);
         goto exit;
     }
@@ -239,7 +244,7 @@ exit:
 
 astarte_err_t astarte_credentials_create_csr()
 {
-    astarte_err_t exit_code = ASTARTE_ERR;
+    astarte_err_t exit_code = ASTARTE_ERR_MBED_TLS;
 
     mbedtls_pk_context key;
     mbedtls_x509write_csr req;
@@ -280,6 +285,7 @@ astarte_err_t astarte_credentials_create_csr()
 
     csr_buffer = calloc(CSR_BUFFER_LENGTH, sizeof(unsigned char));
     if (!csr_buffer) {
+        exit_code = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Cannot allocate CSR buffer");
         goto exit;
     }
@@ -293,11 +299,13 @@ astarte_err_t astarte_credentials_create_csr()
     ESP_LOGI(TAG, "Saving the CSR in %s", CSR_PATH);
     fcsr = fopen(CSR_PATH, "wb+");
     if (!fcsr) {
+        exit_code = ASTARTE_ERR_IO;
         ESP_LOGE(TAG, "Cannot open %s for writing", CSR_PATH);
         goto exit;
     }
 
     if (fwrite(csr_buffer, sizeof(unsigned char), len, fcsr) != len) {
+        exit_code = ASTARTE_ERR_IO;
         ESP_LOGE(TAG, "Cannot write CSR to %s", CSR_PATH);
         goto exit;
     }
@@ -332,7 +340,7 @@ astarte_err_t astarte_credentials_save_certificate(const char *cert_pem)
     FILE *fcert = fopen(CRT_PATH, "wb+");
     if (!fcert) {
         ESP_LOGE(TAG, "Cannot open %s", CRT_PATH);
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_IO;
     }
 
     size_t len = strlen(cert_pem);
@@ -340,7 +348,7 @@ astarte_err_t astarte_credentials_save_certificate(const char *cert_pem)
     if ((ret = fwrite(cert_pem, 1, len, fcert)) != len) {
         ESP_LOGE(TAG, "fwrite returned %d", ret);
         fclose(fcert);
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_IO;
     }
 
     fclose(fcert);
@@ -352,7 +360,7 @@ astarte_err_t astarte_credentials_delete_certificate()
     int ret;
     if ((ret = remove(CRT_PATH)) != 0) {
         ESP_LOGE(TAG, "remove returned %d", ret);
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_IO;
     }
 
     return ASTARTE_OK;
@@ -370,7 +378,7 @@ astarte_err_t astarte_credentials_get_csr(char *out, size_t length)
     if ((ret = fread(out, 1, length, fcsr)) < 0) {
         ESP_LOGE(TAG, "fread returned %d", ret);
         fclose(fcsr);
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_IO;
     }
 
     fclose(fcsr);
@@ -389,7 +397,7 @@ astarte_err_t astarte_credentials_get_certificate(char *out, size_t length)
     if ((ret = fread(out, 1, length, fcert)) < 0) {
         ESP_LOGE(TAG, "fread returned %d", ret);
         fclose(fcert);
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_IO;
     }
 
     fclose(fcert);
@@ -398,7 +406,7 @@ astarte_err_t astarte_credentials_get_certificate(char *out, size_t length)
 
 astarte_err_t astarte_credentials_get_certificate_common_name(const char *cert_pem, char *out, size_t length)
 {
-    astarte_err_t exit_code = ASTARTE_ERR;
+    astarte_err_t exit_code = ASTARTE_ERR_MBED_TLS;
     mbedtls_x509_crt crt;
     mbedtls_x509_crt_init(&crt);
 
@@ -441,7 +449,7 @@ astarte_err_t astarte_credentials_get_key(char *out, size_t length)
     if ((ret = fread(out, 1, length, fpriv)) < 0) {
         ESP_LOGE(TAG, "fread returned %d", ret);
         fclose(fpriv);
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_IO;
     }
 
     fclose(fpriv);
@@ -460,10 +468,10 @@ astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_
         case ESP_ERR_NVS_NOT_INITIALIZED:
             ESP_LOGE(TAG, "Non-volatile storage not initialized");
             ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
-            return ASTARTE_ERR;
+            return ASTARTE_ERR_NVS_NOT_INITIALIZED;
         default:
             ESP_LOGE(TAG, "nvs_open error while reading credentials_secret: %s", esp_err_to_name(err));
-            return ASTARTE_ERR;
+            return ASTARTE_ERR_NVS;
     }
 
     err = nvs_get_str(nvs, CRED_SECRET_KEY, out, &length);
@@ -481,7 +489,7 @@ astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_
 
         default:
             ESP_LOGE(TAG, "nvs_get_str error: %s", esp_err_to_name(err));
-            return ASTARTE_ERR;
+            return ASTARTE_ERR_NVS;
     }
 }
 
@@ -495,11 +503,11 @@ astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *cred
         case ESP_ERR_NVS_NOT_INITIALIZED:
             ESP_LOGE(TAG, "Non-volatile storage not initialized");
             ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
-            return ASTARTE_ERR;
+            return ASTARTE_ERR_NVS_NOT_INITIALIZED;
         default:
             ESP_LOGE(TAG, "nvs_open error while reading credentials_secret: %s",
                      esp_err_to_name(err));
-            return ASTARTE_ERR;
+            return ASTARTE_ERR_NVS;
     }
 
     err = nvs_set_str(nvs, CRED_SECRET_KEY, credentials_secret);
@@ -508,7 +516,7 @@ astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *cred
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "nvs_set_str error while saving credentials_secret: %s",
                  esp_err_to_name(err));
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_NVS;
     }
 
     return ASTARTE_OK;
@@ -524,11 +532,11 @@ astarte_err_t astarte_credentials_erase_stored_credentials_secret()
         case ESP_ERR_NVS_NOT_INITIALIZED:
             ESP_LOGE(TAG, "Non-volatile storage not initialized");
             ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
-            return ASTARTE_ERR;
+            return ASTARTE_ERR_NVS_NOT_INITIALIZED;
         default:
             ESP_LOGE(TAG, "nvs_open error while reading credentials_secret: %s",
                      esp_err_to_name(err));
-            return ASTARTE_ERR;
+            return ASTARTE_ERR_NVS;
     }
 
     err = nvs_erase_key(nvs, CRED_SECRET_KEY);
@@ -545,7 +553,7 @@ astarte_err_t astarte_credentials_erase_stored_credentials_secret()
 
         default:
             ESP_LOGE(TAG, "nvs_erase_key error: %s", esp_err_to_name(err));
-            return ASTARTE_ERR;
+            return ASTARTE_ERR_NVS;
     }
 
     return ASTARTE_OK;
