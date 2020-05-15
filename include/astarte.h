@@ -12,6 +12,11 @@
 #ifndef _ASTARTE_H_
 #define _ASTARTE_H_
 
+// Version information
+#define ASTARTE_DEVICE_SDK_MAJOR 0
+#define ASTARTE_DEVICE_SDK_MINOR 11
+#define ASTARTE_DEVICE_SDK_PATCH 1
+
 /**
  * @brief Astarte return codes.
  *
