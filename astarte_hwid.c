@@ -21,7 +21,7 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
     uint8_t mac_addr[6];
     if (esp_efuse_mac_get_default(mac_addr)) {
         ESP_LOGE(HWID_TAG, "Cannot read MAC address.");
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_ESP_SDK;
     }
 
     esp_chip_info_t chip_info;

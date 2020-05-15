@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [0.11.1] - Unreleased
 ### Added
 - Add a function to unset a properties path.
+- More detailed return error codes.
+
+### Changed
+- Most functions will no longer return ASTARTE_ERR, but a more specific error. Code checking for
+  `err == ASTARTE_ERR` will most likely need to be changed.
 
 ### Fixed
 - Correctly interpret the document length as a 32 bit number when appending a BSON document.
