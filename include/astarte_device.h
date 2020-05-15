@@ -160,7 +160,7 @@ astarte_err_t astarte_device_stream_longinteger(astarte_device_handle_t device, 
  * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
  * or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, int value, int qos);
+astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, bool value, int qos);
 
 /**
  * @brief send a UTF8 encoded string on a datastream endpoint.
@@ -209,6 +209,121 @@ astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device, c
  * or for PUBCOMP for QoS 2 messages
  */
 astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos);
+
+/**
+ * @brief send a double value on a properties endpoint.
+ *
+ * @details This function sends a double value on a path of a given properties interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param value The value to be sent.
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_set_double_property(astarte_device_handle_t device,
+                                                 const char *interface_name, const char *path,
+                                                 double value);
+
+/**
+ * @brief send a 32 bit integer value on a properties endpoint.
+ *
+ * @details This function sends a 32 bit int value on a path of a given properties interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param value The value to be sent.
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_set_integer_property(astarte_device_handle_t device,
+                                                  const char *interface_name, const char *path,
+                                                  int32_t value);
+
+/**
+ * @brief send a 64 bit integer value on a properties endpoint.
+ *
+ * @details This function sends a 64 bit int value on a path of a given properties interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param value The value to be sent.
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_set_longinteger_property(astarte_device_handle_t device,
+                                                      const char *interface_name, const char *path,
+                                                      int64_t value);
+
+/**
+ * @brief send a boolean value on a properties endpoint.
+ *
+ * @details This function sends a boolean value on a path of a given properties interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param value The value to be sent (0 or 1).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_set_boolean_property(astarte_device_handle_t device,
+                                                  const char *interface_name, const char *path,
+                                                  bool value);
+
+/**
+ * @brief send a UTF8 encoded string on a properties endpoint.
+ *
+ * @details This function sends a UTF8 encoded string on a path of a given properties interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param value The value to be sent (a NULL terminated string).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_set_string_property(astarte_device_handle_t device,
+                                                 const char *interface_name, const char *path,
+                                                 char *value);
+
+/**
+ * @brief send a binary value on a properties endpoint.
+ *
+ * @details This function sends a binary value on a path of a given properties interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param value A pointer to the binary data to be sent.
+ * @param size The length in bytes of the binary data to be sent.
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_set_binaryblob_property(astarte_device_handle_t device,
+                                                     const char *interface_name, const char *path,
+                                                     void *value, size_t size);
+
+/**
+ * @brief send a datetime value on a properties endpoint.
+ *
+ * @details This function sends a datetime value on a path of a given properties interface. The
+ * datetime represents the number of milliseconds since Unix epoch (1970-01-01).
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param value The value to be sent, representing the number of milliseconds since Unix epoch
+ * (1970-01-01).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_set_datetime_property(astarte_device_handle_t device,
+                                                   const char *interface_name, const char *path,
+                                                   int64_t value);
 
 /**
  * @brief unset a path belonging to a properties interface.

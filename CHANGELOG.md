@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Add a function to unset a properties path.
 - More detailed return error codes.
+- Add wrappers to set values on properties interfaces.
 
 ### Changed
 - Most functions will no longer return ASTARTE_ERR, but a more specific error. Code checking for
