@@ -113,18 +113,21 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
 
     cred_secret = calloc(CRED_SECRET_LENGTH, sizeof(char));
     if (!cred_secret) {
+        ret = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto exit;
     }
 
     astarte_err_t err = astarte_pairing_get_credentials_secret(config, cred_secret, 256);
     if (err != ASTARTE_OK) {
+        ret = err;
         ESP_LOGE(TAG, "Can't retrieve credentials_secret");
         goto exit;
     }
 
     url = calloc(MAX_URL_LENGTH, sizeof(char));
     if (!url) {
+        ret = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto exit;
     }
@@ -141,6 +144,7 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
 
     client = esp_http_client_init(&http_config);
     if (!client) {
+        ret = ASTARTE_ERR_ESP_SDK;
         ESP_LOGE(TAG, "Could not initialize http client");
         goto exit;
     }
@@ -156,6 +160,7 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
 
     auth_header = calloc(MAX_CRED_SECR_HEADER_LENGTH, sizeof(char));
     if (!auth_header) {
+        ret = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto exit;
     }
@@ -183,6 +188,13 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
             } else {
                 ESP_LOGE(TAG, "Device credentials request failed with code %d", status_code);
             }
+
+            // Set ret to the right error
+            if (status_code == 401 || status_code == 403) {
+                ret = ASTARTE_ERR_AUTH;
+            } else {
+                ret = ASTARTE_ERR_API;
+            }
         }
 
         if (client_crt) {
@@ -190,6 +202,7 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
             ret = ASTARTE_OK;
         }
     } else {
+        ret = ASTARTE_ERR_HTTP;
         ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
 
@@ -219,18 +232,21 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairin
 
     cred_secret = calloc(CRED_SECRET_LENGTH, sizeof(char));
     if (!cred_secret) {
+        ret = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto exit;
     }
 
     astarte_err_t err = astarte_pairing_get_credentials_secret(config, cred_secret, 256);
     if (err != ASTARTE_OK) {
+        ret = err;
         ESP_LOGE(TAG, "Can't retrieve credentials_secret");
         goto exit;
     }
 
     url = calloc(MAX_URL_LENGTH, sizeof(char));
     if (!url) {
+        ret = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto exit;
     }
@@ -247,12 +263,14 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairin
 
     client = esp_http_client_init(&http_config);
     if (!client) {
+        ret = ASTARTE_ERR_ESP_SDK;
         ESP_LOGE(TAG, "Could not initialize http client");
         goto exit;
     }
 
     auth_header = calloc(MAX_CRED_SECR_HEADER_LENGTH, sizeof(char));
     if (!auth_header) {
+        ret = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto exit;
     }
@@ -280,6 +298,13 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairin
             } else {
                 ESP_LOGE(TAG, "Device info failed with code %d", status_code);
             }
+
+            // Set ret to the right error
+            if (status_code == 401 || status_code == 403) {
+                ret = ASTARTE_ERR_AUTH;
+            } else {
+                ret = ASTARTE_ERR_API;
+            }
         }
 
         if (broker_url) {
@@ -287,6 +312,7 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairin
             ret = ASTARTE_OK;
         }
     } else {
+        ret = ASTARTE_ERR_HTTP;
         ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
     }
 
@@ -309,7 +335,7 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
     if (!config->jwt || strlen(config->jwt) == 0) {
         ESP_LOGE(TAG, "ASTARTE_PAIRING_JWT is not configured, device can't be registered. "
                       "Configure it using make menuconfig");
-        return ASTARTE_ERR;
+        return ASTARTE_ERR_NO_JWT;
     }
 
     astarte_err_t ret = ASTARTE_ERR;
@@ -321,6 +347,7 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
 
     url = calloc(MAX_URL_LENGTH, sizeof(char));
     if (!url) {
+        ret = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto exit;
     }
@@ -337,6 +364,7 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
 
     client = esp_http_client_init(&http_config);
     if (!client) {
+        ret = ASTARTE_ERR_ESP_SDK;
         ESP_LOGE(TAG, "Could not initialize http client");
         goto exit;
     }
@@ -352,6 +380,7 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
 
     auth_header = calloc(MAX_JWT_HEADER_LENGTH, sizeof(char));
     if (!auth_header) {
+        ret = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto exit;
     }
@@ -379,12 +408,22 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
             } else {
                 ESP_LOGE(TAG, "Device registration failed with code %d", status_code);
             }
+
+            // Set ret to the right error
+            if (status_code == 401 || status_code == 403) {
+                ret = ASTARTE_ERR_AUTH;
+            } else if (status_code == 422) {
+                ret = ASTARTE_ERR_ALREADY_EXISTS;
+            } else {
+                ret = ASTARTE_ERR_API;
+            }
         }
         if (credentials_secret &&
             astarte_credentials_set_stored_credentials_secret(credentials_secret) == ASTARTE_OK) {
             ret = ASTARTE_OK;
         }
     } else {
+        ret = ASTARTE_ERR_HTTP;
         ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
 
