@@ -484,7 +484,7 @@ astarte_err_t astarte_device_stream_longinteger(astarte_device_handle_t device, 
     return exit_code;
 }
 
-astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, int value, int qos)
+astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, bool value, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
@@ -535,6 +535,55 @@ astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, con
 
     astarte_bson_serializer_destroy(&bs);
     return exit_code;
+}
+
+astarte_err_t astarte_device_set_double_property(astarte_device_handle_t device,
+                                                 const char *interface_name, const char *path,
+                                                 double value)
+{
+    return astarte_device_stream_double(device, interface_name, path, value, 2);
+}
+
+astarte_err_t astarte_device_set_integer_property(astarte_device_handle_t device,
+                                                  const char *interface_name, const char *path,
+                                                  int32_t value)
+{
+    return astarte_device_stream_integer(device, interface_name, path, value, 2);
+}
+
+astarte_err_t astarte_device_set_longinteger_property(astarte_device_handle_t device,
+                                                      const char *interface_name, const char *path,
+                                                      int64_t value)
+{
+    return astarte_device_stream_longinteger(device, interface_name, path, value, 2);
+}
+
+astarte_err_t astarte_device_set_boolean_property(astarte_device_handle_t device,
+                                                  const char *interface_name, const char *path,
+                                                  bool value)
+{
+    return astarte_device_stream_boolean(device, interface_name, path, value, 2);
+}
+
+astarte_err_t astarte_device_set_string_property(astarte_device_handle_t device,
+                                                 const char *interface_name, const char *path,
+                                                 char *value)
+{
+    return astarte_device_stream_string(device, interface_name, path, value, 2);
+}
+
+astarte_err_t astarte_device_set_binaryblob_property(astarte_device_handle_t device,
+                                                     const char *interface_name, const char *path,
+                                                     void *value, size_t size)
+{
+    return astarte_device_stream_binaryblob(device, interface_name, path, value, size, 2);
+}
+
+astarte_err_t astarte_device_set_datetime_property(astarte_device_handle_t device,
+                                                   const char *interface_name, const char *path,
+                                                   int64_t value)
+{
+    return astarte_device_stream_datetime(device, interface_name, path, value, 2);
 }
 
 astarte_err_t astarte_device_unset_path(astarte_device_handle_t device, const char *interface_name,
