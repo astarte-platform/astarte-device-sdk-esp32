@@ -349,6 +349,15 @@ astarte_err_t astarte_device_unset_path(astarte_device_handle_t device, const ch
  */
 bool astarte_device_is_connected(astarte_device_handle_t device);
 
+/**
+ * @brief Get the encoded hardware ID of the device.
+ *
+ * @details Get the encoded hardware ID of the device. The string is owned by astarte_device_handle_t
+ * and it is freed when the device is closed/freed.
+ * @param device An Astarte device handle.
+ * @return The string containing the encoded device ID.
+ */
+char *astarte_device_get_encoded_id(astarte_device_handle_t device);
 #ifdef __cplusplus
 }
 #endif
