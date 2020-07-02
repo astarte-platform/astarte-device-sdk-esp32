@@ -139,6 +139,9 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
         .event_handler = http_event_handler,
         .method = HTTP_METHOD_POST,
         .buffer_size = 2048,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
+        .buffer_size_tx = 2048,
+#endif
         .user_data = &resp,
     };
 
@@ -258,6 +261,9 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairin
         .event_handler = http_event_handler,
         .method = HTTP_METHOD_GET,
         .buffer_size = 2048,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
+        .buffer_size_tx = 2048,
+#endif
         .user_data = &resp,
     };
 
@@ -359,6 +365,9 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
         .event_handler = http_event_handler,
         .method = HTTP_METHOD_POST,
         .buffer_size = 2048,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
+        .buffer_size_tx = 2048,
+#endif
         .user_data = &resp,
     };
 
