@@ -612,6 +612,11 @@ bool astarte_device_is_connected(astarte_device_handle_t device)
     return device->connected;
 }
 
+char* astarte_device_get_encoded_id(astarte_device_handle_t device)
+{
+    return device->encoded_hwid;
+}
+
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config)
 {
     astarte_err_t ret = ASTARTE_ERR;
@@ -894,7 +899,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             break;
 
         default:
-            // Handle MQTT_EVENT_ANY introduced in esp-idf 4.x
+            // Handle MQTT_EVENT_ANY introduced in esp-idf 3.2
             break;
     }
     return ESP_OK;
