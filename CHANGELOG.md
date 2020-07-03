@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - More detailed return error codes.
 - Add wrappers to set values on properties interfaces.
 - Add SDK version in `astarte.h`.
+- Add device hardware id getter.
 
 ### Changed
 - Most functions will no longer return ASTARTE_ERR, but a more specific error. Code checking for
