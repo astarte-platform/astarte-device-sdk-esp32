@@ -146,6 +146,8 @@ static void astarte_example_task(void *ctx)
     astarte_device_add_interface(device, "org.astarteplatform.esp32.ServerDatastream", 0, 1);
     astarte_device_start(device);
 
+    ESP_LOGI(TAG, "[APP] Encoded device ID: %s", astarte_device_get_encoded_id(device));
+
     uint32_t io_num;
     while (1) {
         if (xQueueReceive(button_evt_queue, &io_num, portMAX_DELAY)) {
