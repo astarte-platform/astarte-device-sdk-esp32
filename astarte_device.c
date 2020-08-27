@@ -248,8 +248,12 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
     char *client_cert_cn = NULL;
     char *key_pem = NULL;
 
-    if (!astarte_credentials_has_certificate() && retrieve_credentials(&pairing_config) != ASTARTE_OK) {
-        goto init_failed;
+    if (!astarte_credentials_has_certificate()) {
+        err = retrieve_credentials(&pairing_config);
+        if (err != ASTARTE_OK) {
+            ESP_LOGE(TAG, "Could not retrieve credentials");
+            goto init_failed;
+        }
     }
 
     key_pem = calloc(PRIVKEY_LENGTH, sizeof(char));
