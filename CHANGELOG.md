@@ -16,13 +16,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   If you need to keep the old device id, disable `Use UUIDv5 to derive the hardware ID` in the
   Astarte SDK settings with `make menuconfig`.
 
+## [0.11.2] - 2020-08-31
+### Added
+- Add device hardware id getter.
+
+### Fixed
+- Fix a bug preventing device reinitialization if credentials were not retrieved correctly.
+
 ## [0.11.1] - 2020-05-18
 ### Added
 - Add a function to unset a properties path.
 - More detailed return error codes.
 - Add wrappers to set values on properties interfaces.
 - Add SDK version in `astarte.h`.
-- Add device hardware id getter.
 
 ### Changed
 - Most functions will no longer return ASTARTE_ERR, but a more specific error. Code checking for
