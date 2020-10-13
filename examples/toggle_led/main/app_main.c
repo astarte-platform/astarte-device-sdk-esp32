@@ -1,23 +1,23 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
+#include "esp_event_loop.h"
 #include "esp_wifi.h"
 #include "nvs_flash.h"
-#include "esp_event_loop.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
+#include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
-#include "driver/gpio.h"
+#include "freertos/task.h"
 
 #include "esp_log.h"
 
-#include "astarte_credentials.h"
-#include "astarte_device.h"
 #include "astarte_bson.h"
 #include "astarte_bson_types.h"
+#include "astarte_credentials.h"
+#include "astarte_device.h"
 
 #define TAG "ASTARTE_TOGGLE_LED"
 
@@ -51,7 +51,7 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
     return ESP_OK;
 }
 
-static void IRAM_ATTR button_isr_handler(void* arg)
+static void IRAM_ATTR button_isr_handler(void *arg)
 {
     uint32_t gpio_num = (uint32_t) arg;
     xQueueSendFromISR(button_evt_queue, &gpio_num, NULL);
@@ -95,7 +95,7 @@ static void button_gpio_init()
     // Install gpio isr service
     gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
     // Hook ISR handler for specific gpio pin
-    gpio_isr_handler_add(BUTTON_GPIO, button_isr_handler, (void*) BUTTON_GPIO);
+    gpio_isr_handler_add(BUTTON_GPIO, button_isr_handler, (void *) BUTTON_GPIO);
 }
 
 static void led_init()

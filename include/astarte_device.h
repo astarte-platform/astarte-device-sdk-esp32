@@ -22,7 +22,8 @@
 
 typedef struct astarte_device_t *astarte_device_handle_t;
 
-typedef struct {
+typedef struct
+{
     astarte_device_handle_t device;
     const char *interface_name;
     const char *path;
@@ -32,7 +33,8 @@ typedef struct {
 
 typedef void (*astarte_device_data_event_callback_t)(astarte_device_data_event_t *event);
 
-typedef struct {
+typedef struct
+{
     astarte_device_data_event_callback_t data_event_callback;
     const char *hwid;
     const char *credentials_secret;
@@ -49,8 +51,9 @@ extern "C" {
  *
  * If hwid is not defined explicitly in cfg, the device will use an hwid derived from unique device
  * features (e.g. MAC address, CPU features...).
- * An explicit hwid can be passed in the astarte_device_config_t struct. For example, it is possible to
- * use a UUIDv5 as hwid, using a personal UUID namespace and some custom device data to derive it.
+ * An explicit hwid can be passed in the astarte_device_config_t struct. For example, it is possible
+ * to use a UUIDv5 as hwid, using a personal UUID namespace and some custom device data to derive
+ * it.
  *
  * Example:
  *
@@ -86,15 +89,16 @@ void astarte_device_destroy(astarte_device_handle_t device);
 /**
  * @brief add an interface to the device.
  *
- * @details This function has to be called before astarte_device_start to add all the needed Astarte interfaces,
- * that will be sent in the device introspection when it connects.
+ * @details This function has to be called before astarte_device_start to add all the needed Astarte
+ * interfaces, that will be sent in the device introspection when it connects.
  * @param device A valid Astarte device handle.
  * @param interface_name A string containing the name of the interface.
  * @param major_version The major version of the interface.
  * @param minor_version The minor_version of the interface.
  * @return ASTARTE_OK if the interface was succesfully added, another astarte_err_t otherwise.
  */
-astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const char *interface_name, int major_version, int minor_version);
+astarte_err_t astarte_device_add_interface(astarte_device_handle_t device,
+    const char *interface_name, int major_version, int minor_version);
 
 /**
  * @brief start Astarte device.
@@ -113,11 +117,12 @@ void astarte_device_start(astarte_device_handle_t device);
  * @param path A string containing the path (beginning with /).
  * @param value The value to be sent.
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_double(astarte_device_handle_t device, const char *interface_name, const char *path, double value, int qos);
+astarte_err_t astarte_device_stream_double(astarte_device_handle_t device,
+    const char *interface_name, const char *path, double value, int qos);
 
 /**
  * @brief send a double value on a datastream endpoint with an explicit timestamp.
@@ -131,11 +136,12 @@ astarte_err_t astarte_device_stream_double(astarte_device_handle_t device, const
  * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
  * ASTARTE_INVALID_TIMESTAMP is ignored.
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_double_with_timestamp(astarte_device_handle_t device, const char *interface_name, const char *path, double value, uint64_t ts_epoch_millis, int qos);
+astarte_err_t astarte_device_stream_double_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, double value, uint64_t ts_epoch_millis, int qos);
 
 /**
  * @brief send a 32 bit integer value on a datastream endpoint.
@@ -146,11 +152,12 @@ astarte_err_t astarte_device_stream_double_with_timestamp(astarte_device_handle_
  * @param path A string containing the path (beginning with /).
  * @param value The value to be sent.
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_integer(astarte_device_handle_t device, const char *interface_name, const char *path, int32_t value, int qos);
+astarte_err_t astarte_device_stream_integer(astarte_device_handle_t device,
+    const char *interface_name, const char *path, int32_t value, int qos);
 
 /**
  * @brief send a 32 bit integer value on a datastream endpoint with an explicit timestamp.
@@ -164,11 +171,12 @@ astarte_err_t astarte_device_stream_integer(astarte_device_handle_t device, cons
  * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
  * ASTARTE_INVALID_TIMESTAMP is ignored.
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_integer_with_timestamp(astarte_device_handle_t device, const char *interface_name, const char *path, int32_t value, uint64_t ts_epoch_millis, int qos);
+astarte_err_t astarte_device_stream_integer_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, int32_t value, uint64_t ts_epoch_millis, int qos);
 
 /**
  * @brief send a 64 bit integer value on a datastream endpoint.
@@ -179,11 +187,12 @@ astarte_err_t astarte_device_stream_integer_with_timestamp(astarte_device_handle
  * @param path A string containing the path (beginning with /).
  * @param value The value to be sent.
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_longinteger(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos);
+astarte_err_t astarte_device_stream_longinteger(astarte_device_handle_t device,
+    const char *interface_name, const char *path, int64_t value, int qos);
 
 /**
  * @brief send a 64 bit integer value on a datastream endpoint with an explicit timestamp.
@@ -197,11 +206,12 @@ astarte_err_t astarte_device_stream_longinteger(astarte_device_handle_t device, 
  * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
  * ASTARTE_INVALID_TIMESTAMP is ignored.
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_longinteger_with_timestamp(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, uint64_t ts_epoch_millis, int qos);
+astarte_err_t astarte_device_stream_longinteger_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, int64_t value, uint64_t ts_epoch_millis, int qos);
 
 /**
  * @brief send a boolean value on a datastream endpoint.
@@ -212,11 +222,12 @@ astarte_err_t astarte_device_stream_longinteger_with_timestamp(astarte_device_ha
  * @param path A string containing the path (beginning with /).
  * @param value The value to be sent (0 or 1).
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, bool value, int qos);
+astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device,
+    const char *interface_name, const char *path, bool value, int qos);
 
 /**
  * @brief send a boolean value on a datastream endpoint with an explicit timestamp.
@@ -230,11 +241,12 @@ astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, cons
  * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
  * ASTARTE_INVALID_TIMESTAMP is ignored.
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-    astarte_err_t astarte_device_stream_boolean_with_timestamp(astarte_device_handle_t device, const char *interface_name, const char *path, bool value, uint64_t ts_epoch_millis, int qos);
+astarte_err_t astarte_device_stream_boolean_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, bool value, uint64_t ts_epoch_millis, int qos);
 
 /**
  * @brief send a UTF8 encoded string on a datastream endpoint.
@@ -245,11 +257,12 @@ astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, cons
  * @param path A string containing the path (beginning with /).
  * @param value The value to be sent (a NULL terminated string).
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_string(astarte_device_handle_t device, const char *interface_name, const char *path, char *value, int qos);
+astarte_err_t astarte_device_stream_string(astarte_device_handle_t device,
+    const char *interface_name, const char *path, char *value, int qos);
 
 /**
  * @brief send a UTF8 encoded string on a datastream endpoint with an explicit timestamp.
@@ -263,11 +276,12 @@ astarte_err_t astarte_device_stream_string(astarte_device_handle_t device, const
  * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
  * ASTARTE_INVALID_TIMESTAMP is ignored.
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_string_with_timestamp(astarte_device_handle_t device, const char *interface_name, const char *path, char *value, uint64_t ts_epoch_millis, int qos);
+astarte_err_t astarte_device_stream_string_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, char *value, uint64_t ts_epoch_millis, int qos);
 
 /**
  * @brief send a binary value on a datastream endpoint.
@@ -279,12 +293,12 @@ astarte_err_t astarte_device_stream_string_with_timestamp(astarte_device_handle_
  * @param value A pointer to the binary data to be sent.
  * @param size The length in bytes of the binary data to be sent.
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device, const char *interface_name, const char *path, void *value,
-                                               size_t size, int qos);
+astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device,
+    const char *interface_name, const char *path, void *value, size_t size, int qos);
 
 /**
  * @brief send a binary value on a datastream endpoint with an explicit timestamp.
@@ -299,46 +313,52 @@ astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device, c
  * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
  * ASTARTE_INVALID_TIMESTAMP is ignored.
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_binaryblob_with_timestamp(astarte_device_handle_t device, const char *interface_name, const char *path, void *value, size_t size, uint64_t ts_epoch_millis, int qos);
+astarte_err_t astarte_device_stream_binaryblob_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, void *value, size_t size,
+    uint64_t ts_epoch_millis, int qos);
 
 /**
  * @brief send a datetime value on a datastream endpoint.
  *
- * @details This function sends a datetime value on a path of a given datastream interface. The datetime
- * represents the number of milliseconds since Unix epoch (1970-01-01).
+ * @details This function sends a datetime value on a path of a given datastream interface. The
+ * datetime represents the number of milliseconds since Unix epoch (1970-01-01).
  * @param device A started Astarte device handle.
  * @param interface_name A string containing the name of the interface.
  * @param path A string containing the path (beginning with /).
- * @param value The value to be sent, representing the number of milliseconds since Unix epoch (1970-01-01).
+ * @param value The value to be sent, representing the number of milliseconds since Unix epoch
+ * (1970-01-01).
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos);
+astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device,
+    const char *interface_name, const char *path, int64_t value, int qos);
 
 /**
  * @brief send a datetime value on a datastream endpoint with an explicit timestamp.
  *
- * @details This function sends a datetime value on a path of a given datastream interface. The datetime
- * represents the number of milliseconds since Unix epoch (1970-01-01).
+ * @details This function sends a datetime value on a path of a given datastream interface. The
+ * datetime represents the number of milliseconds since Unix epoch (1970-01-01).
  * @param device A started Astarte device handle.
  * @param interface_name A string containing the name of the interface.
  * @param path A string containing the path (beginning with /).
- * @param value The value to be sent, representing the number of milliseconds since Unix epoch (1970-01-01).
+ * @param value The value to be sent, representing the number of milliseconds since Unix epoch
+ * (1970-01-01).
  * @param ts_epoch_millis The timestamp of the datastream. This is useful only on mappings with
  * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
  * ASTARTE_INVALID_TIMESTAMP is ignored.
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
- * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note that this
- * just checks that the publish sequence correctly started, i.e. it doesn't wait for PUBACK for QoS 1 messages
- * or for PUBCOMP for QoS 2 messages
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_stream_datetime_with_timestamp(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, uint64_t ts_epoch_millis, int qos);
+astarte_err_t astarte_device_stream_datetime_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, int64_t value, uint64_t ts_epoch_millis, int qos);
 
 /**
  * @brief send an aggregate value on a datastream endpoint of an interface with object aggregation.
@@ -365,8 +385,7 @@ astarte_err_t astarte_device_stream_datetime_with_timestamp(astarte_device_handl
  * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
 astarte_err_t astarte_device_stream_aggregate(astarte_device_handle_t device,
-                                              const char *interface_name, const char *path_prefix,
-                                              const void *bson_document, int qos);
+    const char *interface_name, const char *path_prefix, const void *bson_document, int qos);
 
 /**
  * @brief send an aggregate value on a datastream endpoint of an interface with object aggregation
@@ -397,8 +416,8 @@ astarte_err_t astarte_device_stream_aggregate(astarte_device_handle_t device,
  * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
 astarte_err_t astarte_device_stream_aggregate_with_timestamp(astarte_device_handle_t device,
-                                                             const char *interface_name, const char *path_prefix,
-                                                             const void *bson_document, uint64_t ts_epoch_millis, int qos);
+    const char *interface_name, const char *path_prefix, const void *bson_document,
+    uint64_t ts_epoch_millis, int qos);
 
 /**
  * @brief send a double value on a properties endpoint.
@@ -412,9 +431,8 @@ astarte_err_t astarte_device_stream_aggregate_with_timestamp(astarte_device_hand
  * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
  * PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_set_double_property(astarte_device_handle_t device,
-                                                 const char *interface_name, const char *path,
-                                                 double value);
+astarte_err_t astarte_device_set_double_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, double value);
 
 /**
  * @brief send a 32 bit integer value on a properties endpoint.
@@ -428,9 +446,8 @@ astarte_err_t astarte_device_set_double_property(astarte_device_handle_t device,
  * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
  * PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_set_integer_property(astarte_device_handle_t device,
-                                                  const char *interface_name, const char *path,
-                                                  int32_t value);
+astarte_err_t astarte_device_set_integer_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, int32_t value);
 
 /**
  * @brief send a 64 bit integer value on a properties endpoint.
@@ -444,9 +461,8 @@ astarte_err_t astarte_device_set_integer_property(astarte_device_handle_t device
  * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
  * PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_set_longinteger_property(astarte_device_handle_t device,
-                                                      const char *interface_name, const char *path,
-                                                      int64_t value);
+astarte_err_t astarte_device_set_longinteger_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value);
 
 /**
  * @brief send a boolean value on a properties endpoint.
@@ -460,9 +476,8 @@ astarte_err_t astarte_device_set_longinteger_property(astarte_device_handle_t de
  * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
  * PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_set_boolean_property(astarte_device_handle_t device,
-                                                  const char *interface_name, const char *path,
-                                                  bool value);
+astarte_err_t astarte_device_set_boolean_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, bool value);
 
 /**
  * @brief send a UTF8 encoded string on a properties endpoint.
@@ -476,9 +491,8 @@ astarte_err_t astarte_device_set_boolean_property(astarte_device_handle_t device
  * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
  * PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_set_string_property(astarte_device_handle_t device,
-                                                 const char *interface_name, const char *path,
-                                                 char *value);
+astarte_err_t astarte_device_set_string_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, char *value);
 
 /**
  * @brief send a binary value on a properties endpoint.
@@ -494,8 +508,7 @@ astarte_err_t astarte_device_set_string_property(astarte_device_handle_t device,
  * PUBCOMP for QoS 2 messages
  */
 astarte_err_t astarte_device_set_binaryblob_property(astarte_device_handle_t device,
-                                                     const char *interface_name, const char *path,
-                                                     void *value, size_t size);
+    const char *interface_name, const char *path, void *value, size_t size);
 
 /**
  * @brief send a datetime value on a properties endpoint.
@@ -511,9 +524,8 @@ astarte_err_t astarte_device_set_binaryblob_property(astarte_device_handle_t dev
  * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
  * PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_set_datetime_property(astarte_device_handle_t device,
-                                                   const char *interface_name, const char *path,
-                                                   int64_t value);
+astarte_err_t astarte_device_set_datetime_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value);
 
 /**
  * @brief unset a path belonging to a properties interface.
@@ -527,8 +539,8 @@ astarte_err_t astarte_device_set_datetime_property(astarte_device_handle_t devic
  * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
  * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_unset_path(astarte_device_handle_t device, const char *interface_name,
-                                        const char *path);
+astarte_err_t astarte_device_unset_path(
+    astarte_device_handle_t device, const char *interface_name, const char *path);
 
 /**
  * @brief check if the device is connected.
@@ -542,8 +554,8 @@ bool astarte_device_is_connected(astarte_device_handle_t device);
 /**
  * @brief Get the encoded hardware ID of the device.
  *
- * @details Get the encoded hardware ID of the device. The string is owned by astarte_device_handle_t
- * and it is freed when the device is closed/freed.
+ * @details Get the encoded hardware ID of the device. The string is owned by
+ * astarte_device_handle_t and it is freed when the device is closed/freed.
  * @param device An Astarte device handle.
  * @return The string containing the encoded device ID.
  */

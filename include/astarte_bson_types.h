@@ -12,6 +12,8 @@
 #ifndef _ASTARTE_BSON_TYPES_H_
 #define _ASTARTE_BSON_TYPES_H_
 
+// clang-format off
+
 #define BSON_TYPE_DOUBLE    '\x01'
 #define BSON_TYPE_STRING    '\x02'
 #define BSON_TYPE_DOCUMENT  '\x03'
@@ -22,5 +24,7 @@
 #define BSON_TYPE_INT64     '\x12'
 
 #define BSON_SUBTYPE_DEFAULT_BINARY '\0'
+
+// clang-format on
 
 #endif
