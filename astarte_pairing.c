@@ -138,16 +138,16 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
     snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s/protocols/astarte_mqtt_v1/credentials",
         config->base_url, config->realm, config->hw_id);
 
-    esp_http_client_config_t http_config = {
-        .url = url,
-        .event_handler = http_event_handler,
-        .method = HTTP_METHOD_POST,
-        .buffer_size = 2048,
+    esp_http_client_config_t http_config
+        = {.url = url,
+              .event_handler = http_event_handler,
+              .method = HTTP_METHOD_POST,
+              .buffer_size = 2048,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
-        .buffer_size_tx = 2048,
+              .buffer_size_tx = 2048,
 #endif
-        .user_data = &resp,
-    };
+              .user_data = &resp,
+          };
 
     client = esp_http_client_init(&http_config);
     if (!client) {
@@ -263,16 +263,16 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
     snprintf(
         url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s", config->base_url, config->realm, config->hw_id);
 
-    esp_http_client_config_t http_config = {
-        .url = url,
-        .event_handler = http_event_handler,
-        .method = HTTP_METHOD_GET,
-        .buffer_size = 2048,
+    esp_http_client_config_t http_config
+        = {.url = url,
+              .event_handler = http_event_handler,
+              .method = HTTP_METHOD_GET,
+              .buffer_size = 2048,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
-        .buffer_size_tx = 2048,
+              .buffer_size_tx = 2048,
 #endif
-        .user_data = &resp,
-    };
+              .user_data = &resp,
+          };
 
     client = esp_http_client_init(&http_config);
     if (!client) {
@@ -368,16 +368,16 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
 
     snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/agent/devices", config->base_url, config->realm);
 
-    esp_http_client_config_t http_config = {
-        .url = url,
-        .event_handler = http_event_handler,
-        .method = HTTP_METHOD_POST,
-        .buffer_size = 2048,
+    esp_http_client_config_t http_config
+        = {.url = url,
+              .event_handler = http_event_handler,
+              .method = HTTP_METHOD_POST,
+              .buffer_size = 2048,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
-        .buffer_size_tx = 2048,
+              .buffer_size_tx = 2048,
 #endif
-        .user_data = &resp,
-    };
+              .user_data = &resp,
+          };
 
     client = esp_http_client_init(&http_config);
     if (!client) {

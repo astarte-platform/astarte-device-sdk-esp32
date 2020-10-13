@@ -6,8 +6,8 @@
 
 #include <astarte_hwid.h>
 
-#include <uuid.h>
 #include <string.h>
+#include <uuid.h>
 
 #include <esp_log.h>
 #include <esp_system.h>
