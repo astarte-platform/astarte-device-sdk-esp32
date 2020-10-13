@@ -29,7 +29,7 @@ static const char *extract_client_crt(cJSON *response);
 
 static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 {
-    switch(evt->event_id) {
+    switch (evt->event_id) {
         case HTTP_EVENT_ERROR:
             ESP_LOGD(TAG, "HTTP_EVENT_ERROR");
             break;
@@ -40,7 +40,8 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
             ESP_LOGD(TAG, "HTTP_EVENT_HEADER_SENT");
             break;
         case HTTP_EVENT_ON_HEADER:
-            ESP_LOGD(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
+            ESP_LOGD(
+                TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
             break;
         case HTTP_EVENT_ON_DATA: {
             ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
@@ -63,7 +64,8 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
-astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairing_config *config, char *out, size_t length)
+astarte_err_t astarte_pairing_get_credentials_secret(
+    const struct astarte_pairing_config *config, char *out, size_t length)
 {
     if (config->credentials_secret) {
         // We have an explicit credentials_secret in the config, we're done
@@ -101,7 +103,8 @@ astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairin
     return ASTARTE_OK;
 }
 
-astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairing_config *config, const char *csr, char *out, size_t length)
+astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
+    const struct astarte_pairing_config *config, const char *csr, char *out, size_t length)
 {
     astarte_err_t ret = ASTARTE_ERR;
     char *cred_secret = NULL;
@@ -132,7 +135,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
         goto exit;
     }
 
-    snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s/protocols/astarte_mqtt_v1/credentials", config->base_url, config->realm, config->hw_id);
+    snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s/protocols/astarte_mqtt_v1/credentials",
+        config->base_url, config->realm, config->hw_id);
 
     esp_http_client_config_t http_config = {
         .url = url,
@@ -176,8 +180,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
 
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
-        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d",
-                 status_code, esp_http_client_get_content_length(client));
+        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d", status_code,
+            esp_http_client_get_content_length(client));
 
         const char *client_crt = NULL;
         if (status_code == 201) {
@@ -186,7 +190,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
         } else {
             char *json_error = cJSON_Print(resp);
             if (json_error) {
-                ESP_LOGE(TAG, "Device credentials request failed with code %d: %s", status_code, json_error);
+                ESP_LOGE(TAG, "Device credentials request failed with code %d: %s", status_code,
+                    json_error);
                 free(json_error);
             } else {
                 ESP_LOGE(TAG, "Device credentials request failed with code %d", status_code);
@@ -224,7 +229,8 @@ exit:
     return ret;
 }
 
-astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairing_config *config, char *out, size_t length)
+astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
+    const struct astarte_pairing_config *config, char *out, size_t length)
 {
     astarte_err_t ret = ASTARTE_ERR;
     char *cred_secret = NULL;
@@ -254,7 +260,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairin
         goto exit;
     }
 
-    snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s", config->base_url, config->realm, config->hw_id);
+    snprintf(
+        url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s", config->base_url, config->realm, config->hw_id);
 
     esp_http_client_config_t http_config = {
         .url = url,
@@ -289,8 +296,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairin
 
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
-        ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %d",
-                 status_code, esp_http_client_get_content_length(client));
+        ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %d", status_code,
+            esp_http_client_get_content_length(client));
 
         const char *broker_url = NULL;
         if (status_code == 200) {
@@ -339,8 +346,9 @@ exit:
 astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_config *config)
 {
     if (!config->jwt || strlen(config->jwt) == 0) {
-        ESP_LOGE(TAG, "ASTARTE_PAIRING_JWT is not configured, device can't be registered. "
-                      "Configure it using make menuconfig");
+        ESP_LOGE(TAG,
+            "ASTARTE_PAIRING_JWT is not configured, device can't be registered. "
+            "Configure it using make menuconfig");
         return ASTARTE_ERR_NO_JWT;
     }
 
@@ -402,8 +410,8 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
 
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
-        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d",
-                 status_code, esp_http_client_get_content_length(client));
+        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d", status_code,
+            esp_http_client_get_content_length(client));
 
         const char *credentials_secret = NULL;
         if (status_code == 201) {
@@ -412,7 +420,8 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
         } else {
             char *json_error = cJSON_Print(resp);
             if (json_error) {
-                ESP_LOGE(TAG, "Device registration failed with code %d: %s", status_code, json_error);
+                ESP_LOGE(
+                    TAG, "Device registration failed with code %d: %s", status_code, json_error);
                 free(json_error);
             } else {
                 ESP_LOGE(TAG, "Device registration failed with code %d", status_code);
@@ -427,8 +436,9 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
                 ret = ASTARTE_ERR_API;
             }
         }
-        if (credentials_secret &&
-            astarte_credentials_set_stored_credentials_secret(credentials_secret) == ASTARTE_OK) {
+        if (credentials_secret
+            && astarte_credentials_set_stored_credentials_secret(credentials_secret)
+                == ASTARTE_OK) {
             ret = ASTARTE_OK;
         }
     } else {
