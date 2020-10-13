@@ -19,7 +19,8 @@ extern "C" {
 /**
  * @brief generate a UUIDv5.
  *
- * @details This function computes a deterministic UUID starting from a namespace UUID and binary data.
+ * @details This function computes a deterministic UUID starting from a namespace UUID and binary
+ * data.
  * @param ns The UUID to be used as namespace.
  * @param data A pointer to the data that will be hashed to produce the UUID.
  * @param len The lenght of the data.
