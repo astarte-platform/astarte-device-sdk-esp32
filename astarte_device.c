@@ -14,10 +14,10 @@
 
 #include <mqtt_client.h>
 
-#include <esp_log.h>
 #include <esp_http_client.h>
-#include <freertos/task.h>
+#include <esp_log.h>
 #include <freertos/semphr.h>
+#include <freertos/task.h>
 
 #define TAG "ASTARTE_DEVICE"
 
@@ -53,18 +53,20 @@ struct astarte_device_t
 };
 
 static void astarte_device_reinit_task(void *ctx);
-static astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, const char *encoded_hwid);
+static astarte_err_t astarte_device_init_connection(
+    astarte_device_handle_t device, const char *encoded_hwid);
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config);
 static astarte_err_t check_device(astarte_device_handle_t device);
-static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name, const char *path,
-                           const struct astarte_bson_serializer_t *bs, int qos);
+static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name,
+    const char *path, const struct astarte_bson_serializer_t *bs, int qos);
 static astarte_err_t publish_data(astarte_device_handle_t device, const char *interface_name,
-                                  const char *path, const void *data, size_t length, int qos);
+    const char *path, const void *data, size_t length, int qos);
 static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void on_connected(astarte_device_handle_t device, int session_present);
 static void on_disconnected(astarte_device_handle_t device);
-static void on_incoming(astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len);
+static void on_incoming(
+    astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len);
 static void on_certificate_error(astarte_device_handle_t device);
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
 static int has_connectivity();
@@ -83,7 +85,8 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         goto init_failed;
     }
 
-    xTaskCreate(astarte_device_reinit_task, "astarte_device_reinit_task", 6000, ret, tskIDLE_PRIORITY, &ret->reinit_task_handle);
+    xTaskCreate(astarte_device_reinit_task, "astarte_device_reinit_task", 6000, ret,
+        tskIDLE_PRIORITY, &ret->reinit_task_handle);
     if (!ret->reinit_task_handle) {
         ESP_LOGE(TAG, "Cannot start astarte_device_reinit_task");
         goto init_failed;
@@ -140,7 +143,8 @@ init_failed:
     return NULL;
 }
 
-static void astarte_device_reinit_task(void *ctx) {
+static void astarte_device_reinit_task(void *ctx)
+{
     // This task will just wait for a notification and if it receives one, it will
     // reinit the device. This is necessary to handle the device certificate expiration,
     // that can't be handled in the event callback since that's executed in the mqtt
@@ -150,56 +154,57 @@ static void astarte_device_reinit_task(void *ctx) {
 
     uint32_t notification_value;
     astarte_err_t res;
-    while(1) {
+    while (1) {
         notification_value = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         if (notification_value & NOTIFY_TERMINATE) {
             // Terminate the task
             vTaskDelete(NULL);
         } else if (notification_value & NOTIFY_REINIT) {
-          xSemaphoreTake(device->reinit_mutex, portMAX_DELAY);
-          ESP_LOGI(TAG, "Reinitializing the device");
-          // Delete the old certificate
-          astarte_credentials_delete_certificate();
-          // Retry until we succeed
-          bool reinitialized = true;
-          while ((res = astarte_device_init_connection(
-                      device, device->encoded_hwid)) != ASTARTE_OK) {
-            ESP_LOGE(TAG,
-                     "Cannot reinit Astarte device: %d, trying again in %d "
-                     "milliseconds",
-                     res, REINIT_RETRY_INTERVAL_MS);
-            vTaskDelay(REINIT_RETRY_INTERVAL_MS / portTICK_PERIOD_MS);
+            xSemaphoreTake(device->reinit_mutex, portMAX_DELAY);
+            ESP_LOGI(TAG, "Reinitializing the device");
+            // Delete the old certificate
+            astarte_credentials_delete_certificate();
+            // Retry until we succeed
+            bool reinitialized = true;
+            while ((res = astarte_device_init_connection(device, device->encoded_hwid))
+                != ASTARTE_OK) {
+                ESP_LOGE(TAG,
+                    "Cannot reinit Astarte device: %d, trying again in %d "
+                    "milliseconds",
+                    res, REINIT_RETRY_INTERVAL_MS);
+                vTaskDelay(REINIT_RETRY_INTERVAL_MS / portTICK_PERIOD_MS);
 
-            // We check if the device got connected again. If it has, then we
-            // can break away from the reinit process, since it was a false positive.
-            // We deleted the certificate but the device will just ask for a new one
-            // the next time it boots.
-            if (device->connected) {
-                ESP_LOGI(TAG, "Device reconnected, skipping device reinitialization");
-                reinitialized = false;
-                break;
+                // We check if the device got connected again. If it has, then we
+                // can break away from the reinit process, since it was a false positive.
+                // We deleted the certificate but the device will just ask for a new one
+                // the next time it boots.
+                if (device->connected) {
+                    ESP_LOGI(TAG, "Device reconnected, skipping device reinitialization");
+                    reinitialized = false;
+                    break;
+                }
             }
 
-          }
+            if (reinitialized) {
+                ESP_LOGI(TAG, "Device reinitialized, starting it again");
+                esp_mqtt_client_start(device->mqtt_client);
+            }
 
-          if (reinitialized) {
-              ESP_LOGI(TAG, "Device reinitialized, starting it again");
-              esp_mqtt_client_start(device->mqtt_client);
-          }
-
-          xSemaphoreGive(device->reinit_mutex);
+            xSemaphoreGive(device->reinit_mutex);
         }
     }
 }
 
-astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, const char *encoded_hwid)
+astarte_err_t astarte_device_init_connection(
+    astarte_device_handle_t device, const char *encoded_hwid)
 {
     astarte_err_t err;
     if (!astarte_credentials_is_initialized()) {
         // TODO: this should be manually called from main before initializing the device,
         // but we just print a warning to maintain backwards compatibility for now
-        ESP_LOGW(TAG, "You should manually call astarte_credentials_init before calling "
-                      "astarte_device_init");
+        ESP_LOGW(TAG,
+            "You should manually call astarte_credentials_init before calling "
+            "astarte_device_init");
         err = astarte_credentials_init();
         if (err != ASTARTE_OK) {
             ESP_LOGE(TAG, "Error in astarte_credentials_init");
@@ -236,7 +241,8 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
     }
 
     char credentials_secret[CREDENTIALS_SECRET_LENGTH];
-    err = astarte_pairing_get_credentials_secret(&pairing_config, credentials_secret, CREDENTIALS_SECRET_LENGTH);
+    err = astarte_pairing_get_credentials_secret(
+        &pairing_config, credentials_secret, CREDENTIALS_SECRET_LENGTH);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_credentials_secret");
         return err;
@@ -287,7 +293,8 @@ astarte_err_t astarte_device_init_connection(astarte_device_handle_t device, con
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto init_failed;
     }
-    err = astarte_credentials_get_certificate_common_name(client_cert_pem, client_cert_cn, CN_LENGTH);
+    err = astarte_credentials_get_certificate_common_name(
+        client_cert_pem, client_cert_cn, CN_LENGTH);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_certificate_common_name");
         goto init_failed;
@@ -354,7 +361,8 @@ void astarte_device_destroy(astarte_device_handle_t device)
     free(device);
 }
 
-astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const char *interface_name, int major_version, int minor_version)
+astarte_err_t astarte_device_add_interface(astarte_device_handle_t device,
+    const char *interface_name, int major_version, int minor_version)
 {
     if (xSemaphoreTake(device->reinit_mutex, (TickType_t) 10) == pdFALSE) {
         ESP_LOGE(TAG, "Trying to add an interface to a device that is being reinitialized");
@@ -362,7 +370,8 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const
     }
 
     char new_interface[INTROSPECTION_INTERFACE_LENGTH];
-    snprintf(new_interface, INTROSPECTION_INTERFACE_LENGTH, "%s:%d:%d", interface_name, major_version, minor_version);
+    snprintf(new_interface, INTROSPECTION_INTERFACE_LENGTH, "%s:%d:%d", interface_name,
+        major_version, minor_version);
 
     if (!device->introspection_string) {
         device->introspection_string = strdup(new_interface);
@@ -381,7 +390,8 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device, const
             return ASTARTE_ERR_OUT_OF_MEMORY;
         }
 
-        snprintf(new_introspection_string, len, "%s;%s", device->introspection_string, new_interface);
+        snprintf(
+            new_introspection_string, len, "%s;%s", device->introspection_string, new_interface);
         free(device->introspection_string);
         device->introspection_string = new_introspection_string;
     }
@@ -401,8 +411,8 @@ void astarte_device_start(astarte_device_handle_t device)
     xSemaphoreGive(device->reinit_mutex);
 }
 
-static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name, const char *path,
-                           const struct astarte_bson_serializer_t *bs, int qos)
+static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name,
+    const char *path, const struct astarte_bson_serializer_t *bs, int qos)
 {
     int len;
     const void *data = astarte_bson_serializer_get_document(bs, &len);
@@ -415,7 +425,7 @@ static astarte_err_t publish_bson(astarte_device_handle_t device, const char *in
 }
 
 static astarte_err_t publish_data(astarte_device_handle_t device, const char *interface_name,
-                           const char *path, const void *data, size_t length, int qos)
+    const char *path, const void *data, size_t length, int qos)
 {
     if (path[0] != '/') {
         ESP_LOGE(TAG, "Invalid path: %s (must be start with /)", path);
@@ -449,7 +459,8 @@ static astarte_err_t publish_data(astarte_device_handle_t device, const char *in
     return ASTARTE_OK;
 }
 
-astarte_err_t astarte_device_stream_double(astarte_device_handle_t device, const char *interface_name, const char *path, double value, int qos)
+astarte_err_t astarte_device_stream_double(astarte_device_handle_t device,
+    const char *interface_name, const char *path, double value, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
@@ -462,7 +473,8 @@ astarte_err_t astarte_device_stream_double(astarte_device_handle_t device, const
     return exit_code;
 }
 
-astarte_err_t astarte_device_stream_integer(astarte_device_handle_t device, const char *interface_name, const char *path, int32_t value, int qos)
+astarte_err_t astarte_device_stream_integer(astarte_device_handle_t device,
+    const char *interface_name, const char *path, int32_t value, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
@@ -475,7 +487,8 @@ astarte_err_t astarte_device_stream_integer(astarte_device_handle_t device, cons
     return exit_code;
 }
 
-astarte_err_t astarte_device_stream_longinteger(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos)
+astarte_err_t astarte_device_stream_longinteger(astarte_device_handle_t device,
+    const char *interface_name, const char *path, int64_t value, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
@@ -488,7 +501,8 @@ astarte_err_t astarte_device_stream_longinteger(astarte_device_handle_t device, 
     return exit_code;
 }
 
-astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, const char *interface_name, const char *path, bool value, int qos)
+astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device,
+    const char *interface_name, const char *path, bool value, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
@@ -501,7 +515,8 @@ astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device, cons
     return exit_code;
 }
 
-astarte_err_t astarte_device_stream_string(astarte_device_handle_t device, const char *interface_name, const char *path, char *value, int qos)
+astarte_err_t astarte_device_stream_string(astarte_device_handle_t device,
+    const char *interface_name, const char *path, char *value, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
@@ -514,8 +529,8 @@ astarte_err_t astarte_device_stream_string(astarte_device_handle_t device, const
     return exit_code;
 }
 
-astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device, const char *interface_name, const char *path, void *value,
-                                               size_t size, int qos)
+astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device,
+    const char *interface_name, const char *path, void *value, size_t size, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
@@ -528,7 +543,8 @@ astarte_err_t astarte_device_stream_binaryblob(astarte_device_handle_t device, c
     return exit_code;
 }
 
-astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value, int qos)
+astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device,
+    const char *interface_name, const char *path, int64_t value, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
@@ -541,57 +557,50 @@ astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device, con
     return exit_code;
 }
 
-astarte_err_t astarte_device_set_double_property(astarte_device_handle_t device,
-                                                 const char *interface_name, const char *path,
-                                                 double value)
+astarte_err_t astarte_device_set_double_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, double value)
 {
     return astarte_device_stream_double(device, interface_name, path, value, 2);
 }
 
-astarte_err_t astarte_device_set_integer_property(astarte_device_handle_t device,
-                                                  const char *interface_name, const char *path,
-                                                  int32_t value)
+astarte_err_t astarte_device_set_integer_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, int32_t value)
 {
     return astarte_device_stream_integer(device, interface_name, path, value, 2);
 }
 
-astarte_err_t astarte_device_set_longinteger_property(astarte_device_handle_t device,
-                                                      const char *interface_name, const char *path,
-                                                      int64_t value)
+astarte_err_t astarte_device_set_longinteger_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value)
 {
     return astarte_device_stream_longinteger(device, interface_name, path, value, 2);
 }
 
-astarte_err_t astarte_device_set_boolean_property(astarte_device_handle_t device,
-                                                  const char *interface_name, const char *path,
-                                                  bool value)
+astarte_err_t astarte_device_set_boolean_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, bool value)
 {
     return astarte_device_stream_boolean(device, interface_name, path, value, 2);
 }
 
-astarte_err_t astarte_device_set_string_property(astarte_device_handle_t device,
-                                                 const char *interface_name, const char *path,
-                                                 char *value)
+astarte_err_t astarte_device_set_string_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, char *value)
 {
     return astarte_device_stream_string(device, interface_name, path, value, 2);
 }
 
 astarte_err_t astarte_device_set_binaryblob_property(astarte_device_handle_t device,
-                                                     const char *interface_name, const char *path,
-                                                     void *value, size_t size)
+    const char *interface_name, const char *path, void *value, size_t size)
 {
     return astarte_device_stream_binaryblob(device, interface_name, path, value, size, 2);
 }
 
-astarte_err_t astarte_device_set_datetime_property(astarte_device_handle_t device,
-                                                   const char *interface_name, const char *path,
-                                                   int64_t value)
+astarte_err_t astarte_device_set_datetime_property(
+    astarte_device_handle_t device, const char *interface_name, const char *path, int64_t value)
 {
     return astarte_device_stream_datetime(device, interface_name, path, value, 2);
 }
 
-astarte_err_t astarte_device_unset_path(astarte_device_handle_t device, const char *interface_name,
-                                        const char *path)
+astarte_err_t astarte_device_unset_path(
+    astarte_device_handle_t device, const char *interface_name, const char *path)
 {
     return publish_data(device, interface_name, path, "", 0, 2);
 }
@@ -601,7 +610,7 @@ bool astarte_device_is_connected(astarte_device_handle_t device)
     return device->connected;
 }
 
-char* astarte_device_get_encoded_id(astarte_device_handle_t device)
+char *astarte_device_get_encoded_id(astarte_device_handle_t device)
 {
     return device->encoded_hwid;
 }
@@ -705,12 +714,14 @@ static void setup_subscriptions(astarte_device_handle_t device)
     int interface_name_len = interface_name_end - interface_name_begin;
     while (interface_name_begin != NULL) {
         // Subscribe to interface root topic
-        snprintf(topic, TOPIC_LENGTH, "%s/%.*s", device->device_topic, interface_name_len, interface_name_begin);
+        snprintf(topic, TOPIC_LENGTH, "%s/%.*s", device->device_topic, interface_name_len,
+            interface_name_begin);
         ESP_LOGI(TAG, "Subscribing to %s", topic);
         esp_mqtt_client_subscribe(mqtt, topic, 2);
 
         // Subscribe to all interface subtopics
-        snprintf(topic, TOPIC_LENGTH, "%s/%.*s/#", device->device_topic, interface_name_len, interface_name_begin);
+        snprintf(topic, TOPIC_LENGTH, "%s/%.*s/#", device->device_topic, interface_name_len,
+            interface_name_begin);
         ESP_LOGI(TAG, "Subscribing to %s", topic);
         esp_mqtt_client_subscribe(mqtt, topic, 2);
 
@@ -742,7 +753,8 @@ static void on_disconnected(astarte_device_handle_t device)
     device->connected = false;
 }
 
-static void on_incoming(astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len)
+static void on_incoming(
+    astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len)
 {
     if (check_device(device) != ASTARTE_OK) {
         return;
@@ -770,7 +782,8 @@ static void on_incoming(astarte_device_handle_t device, char *topic, int topic_l
     }
 
     // Data message
-    if (topic_len < device->device_topic_len + strlen("/") || topic[device->device_topic_len] != '/') {
+    if (topic_len < device->device_topic_len + strlen("/")
+        || topic[device->device_topic_len] != '/') {
         ESP_LOGE(TAG, "No / after device_topic, can't find interface: %s", topic);
         return;
     }
@@ -835,7 +848,8 @@ static int has_connectivity()
     return res;
 }
 
-static void on_certificate_error(astarte_device_handle_t device) {
+static void on_certificate_error(astarte_device_handle_t device)
+{
     if (has_connectivity()) {
         ESP_LOGW(TAG, "Certificate error, notifying the reinit task");
         xTaskNotify(device->reinit_task_handle, NOTIFY_REINIT, eSetBits);

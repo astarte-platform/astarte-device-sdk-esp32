@@ -20,7 +20,8 @@
 #define TAG "uuid"
 
 // Helper struct to make it easier to access UUID fields
-struct uuid {
+struct uuid
+{
     uint32_t time_low;
     uint16_t time_mid;
     uint16_t time_hi_and_version;
@@ -104,11 +105,10 @@ void uuid_to_string(const uuid_t uuid, char *out)
     struct uuid uuid_struct;
 
     uuid_to_struct(uuid, &uuid_struct);
-    sprintf(out, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-            uuid_struct.time_low, uuid_struct.time_mid, uuid_struct.time_hi_and_version,
-            uuid_struct.clock_seq_hi_res, uuid_struct.clock_seq_low,
-            uuid_struct.node[0], uuid_struct.node[1], uuid_struct.node[2],
-            uuid_struct.node[3], uuid_struct.node[4], uuid_struct.node[5]);
+    sprintf(out, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", uuid_struct.time_low,
+        uuid_struct.time_mid, uuid_struct.time_hi_and_version, uuid_struct.clock_seq_hi_res,
+        uuid_struct.clock_seq_low, uuid_struct.node[0], uuid_struct.node[1], uuid_struct.node[2],
+        uuid_struct.node[3], uuid_struct.node[4], uuid_struct.node[5]);
 }
 
 int uuid_from_string(const char *in, uuid_t uuid)
@@ -132,8 +132,7 @@ int uuid_from_string(const char *in, uuid_t uuid)
         }
 
         // Check that everything else is an hexadecimal digit
-        if (!((c >= '0') && (c <= '9'))
-            && !((c >= 'a') && (c <= 'f'))
+        if (!((c >= '0') && (c <= '9')) && !((c >= 'a') && (c <= 'f'))
             && !((c >= 'A') && (c <= 'F'))) {
             ESP_LOGW(TAG, "Found invalid character %c in position %d", c, i);
             return -1;

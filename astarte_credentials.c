@@ -14,10 +14,10 @@
 #include <nvs.h>
 
 #include <mbedtls/ctr_drbg.h>
+#include <mbedtls/ecp.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/oid.h>
 #include <mbedtls/pk.h>
-#include <mbedtls/ecp.h>
 #include <mbedtls/x509_crt.h>
 #include <mbedtls/x509_csr.h>
 
@@ -29,12 +29,12 @@
 
 #define TAG "ASTARTE_CREDENTIALS"
 
-#define PARTITION_NAME          "astarte"
-#define CREDENTIALS_MOUNTPOINT  "/astarte"
-#define CREDENTIALS_DIR_PATH    CREDENTIALS_MOUNTPOINT "/ast_cred"
-#define PRIVKEY_PATH            CREDENTIALS_DIR_PATH "/device.key"
-#define CSR_PATH                CREDENTIALS_DIR_PATH "/device.csr"
-#define CRT_PATH                CREDENTIALS_DIR_PATH "/device.crt"
+#define PARTITION_NAME "astarte"
+#define CREDENTIALS_MOUNTPOINT "/astarte"
+#define CREDENTIALS_DIR_PATH CREDENTIALS_MOUNTPOINT "/ast_cred"
+#define PRIVKEY_PATH CREDENTIALS_DIR_PATH "/device.key"
+#define CSR_PATH CREDENTIALS_DIR_PATH "/device.csr"
+#define CRT_PATH CREDENTIALS_DIR_PATH "/device.crt"
 
 #define KEY_SIZE 2048
 #define EXPONENT 65537
@@ -109,7 +109,8 @@ astarte_err_t astarte_credentials_init()
     }
 
     TaskHandle_t task_handle;
-    xTaskCreate(credentials_init_task, "credentials_init_task", 16384, NULL, tskIDLE_PRIORITY, &task_handle);
+    xTaskCreate(credentials_init_task, "credentials_init_task", 16384, NULL, tskIDLE_PRIORITY,
+        &task_handle);
     if (!task_handle) {
         ESP_LOGE(TAG, "Cannot create credentials_init_task");
         return ASTARTE_ERR;
@@ -134,15 +135,15 @@ int astarte_credentials_is_initialized()
 static astarte_err_t ensure_mounted()
 {
     const esp_vfs_fat_mount_config_t mount_config = {
-            .max_files = 4,
-            .format_if_mount_failed = true,
-            .allocation_unit_size = CONFIG_WL_SECTOR_SIZE,
+        .max_files = 4,
+        .format_if_mount_failed = true,
+        .allocation_unit_size = CONFIG_WL_SECTOR_SIZE,
     };
     esp_err_t err = ESP_OK;
     if (s_wl_handle == WL_INVALID_HANDLE) {
         ESP_LOGI(TAG, "Mounting FAT filesystem for credentials");
-        err = esp_vfs_fat_spiflash_mount(CREDENTIALS_MOUNTPOINT, PARTITION_NAME, &mount_config,
-                                         &s_wl_handle);
+        err = esp_vfs_fat_spiflash_mount(
+            CREDENTIALS_MOUNTPOINT, PARTITION_NAME, &mount_config, &s_wl_handle);
     }
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to mount FATFS (%s)", esp_err_to_name(err));
@@ -170,7 +171,9 @@ astarte_err_t astarte_credentials_create_key()
 
     int ret = 0;
     ESP_LOGI(TAG, "Initializing entropy");
-    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers, strlen(pers))) != 0) {
+    if ((ret = mbedtls_ctr_drbg_seed(
+             &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, strlen(pers)))
+        != 0) {
         ESP_LOGE(TAG, "mbedtls_ctr_drbg_seed returned %d", ret);
         goto exit;
     }
@@ -182,8 +185,9 @@ astarte_err_t astarte_credentials_create_key()
         goto exit;
     }
 
-    if ((ret = mbedtls_ecp_gen_key(MBEDTLS_ECP_DP_SECP256R1, mbedtls_pk_ec(key),
-                                   mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+    if ((ret = mbedtls_ecp_gen_key(
+             MBEDTLS_ECP_DP_SECP256R1, mbedtls_pk_ec(key), mbedtls_ctr_drbg_random, &ctr_drbg))
+        != 0) {
         ESP_LOGE(TAG, "mbedtls_ecp_gen_key returned %d", ret);
         goto exit;
     }
@@ -270,7 +274,9 @@ astarte_err_t astarte_credentials_create_csr()
     }
 
     ESP_LOGI(TAG, "Initializing entropy");
-    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers, strlen(pers))) != 0) {
+    if ((ret = mbedtls_ctr_drbg_seed(
+             &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, strlen(pers)))
+        != 0) {
         ESP_LOGE(TAG, "mbedtls_ctr_drbg_seed returned %d", ret);
         goto exit;
     }
@@ -290,7 +296,9 @@ astarte_err_t astarte_credentials_create_csr()
         goto exit;
     }
 
-    if ((ret = mbedtls_x509write_csr_pem(&req, csr_buffer, CSR_BUFFER_LENGTH, mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+    if ((ret = mbedtls_x509write_csr_pem(
+             &req, csr_buffer, CSR_BUFFER_LENGTH, mbedtls_ctr_drbg_random, &ctr_drbg))
+        != 0) {
         ESP_LOGE(TAG, "mbedtls_x509write_csr_pem returned %d", ret);
         goto exit;
     }
@@ -322,10 +330,10 @@ exit:
         fclose(fcsr);
     }
 
-    mbedtls_x509write_csr_free( &req );
-    mbedtls_pk_free( &key );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
+    mbedtls_x509write_csr_free(&req);
+    mbedtls_pk_free(&key);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
 
     return exit_code;
 }
@@ -404,7 +412,8 @@ astarte_err_t astarte_credentials_get_certificate(char *out, size_t length)
     return ASTARTE_OK;
 }
 
-astarte_err_t astarte_credentials_get_certificate_common_name(const char *cert_pem, char *out, size_t length)
+astarte_err_t astarte_credentials_get_certificate_common_name(
+    const char *cert_pem, char *out, size_t length)
 {
     astarte_err_t exit_code = ASTARTE_ERR_MBED_TLS;
     mbedtls_x509_crt crt;
@@ -470,7 +479,8 @@ astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_
             ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
             return ASTARTE_ERR_NVS_NOT_INITIALIZED;
         default:
-            ESP_LOGE(TAG, "nvs_open error while reading credentials_secret: %s", esp_err_to_name(err));
+            ESP_LOGE(
+                TAG, "nvs_open error while reading credentials_secret: %s", esp_err_to_name(err));
             return ASTARTE_ERR_NVS;
     }
 
@@ -505,8 +515,8 @@ astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *cred
             ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
             return ASTARTE_ERR_NVS_NOT_INITIALIZED;
         default:
-            ESP_LOGE(TAG, "nvs_open error while reading credentials_secret: %s",
-                     esp_err_to_name(err));
+            ESP_LOGE(
+                TAG, "nvs_open error while reading credentials_secret: %s", esp_err_to_name(err));
             return ASTARTE_ERR_NVS;
     }
 
@@ -514,8 +524,8 @@ astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *cred
     nvs_close(nvs);
 
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "nvs_set_str error while saving credentials_secret: %s",
-                 esp_err_to_name(err));
+        ESP_LOGE(
+            TAG, "nvs_set_str error while saving credentials_secret: %s", esp_err_to_name(err));
         return ASTARTE_ERR_NVS;
     }
 
@@ -534,8 +544,8 @@ astarte_err_t astarte_credentials_erase_stored_credentials_secret()
             ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
             return ASTARTE_ERR_NVS_NOT_INITIALIZED;
         default:
-            ESP_LOGE(TAG, "nvs_open error while reading credentials_secret: %s",
-                     esp_err_to_name(err));
+            ESP_LOGE(
+                TAG, "nvs_open error while reading credentials_secret: %s", esp_err_to_name(err));
             return ASTARTE_ERR_NVS;
     }
 

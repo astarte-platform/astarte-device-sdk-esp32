@@ -18,11 +18,11 @@
 
 struct astarte_pairing_config
 {
-    const char* base_url;
-    const char* jwt;
-    const char* realm;
-    const char* hw_id;
-    const char* credentials_secret;
+    const char *base_url;
+    const char *jwt;
+    const char *realm;
+    const char *hw_id;
+    const char *credentials_secret;
 };
 
 #ifdef __cplusplus
@@ -32,13 +32,15 @@ extern "C" {
 /**
  * @brief get the credentials secret.
  *
- * @details Get the credentials secret from NVS. If it isn't present, register the device to obtain it, save it and return it.
+ * @details Get the credentials secret from NVS. If it isn't present, register the device to obtain
+ * it, save it and return it.
  * @param config A struct containing the pairing configuration.
  * @param out A pointer to an allocated string which the credentials secret will be written to.
  * @param length The length of the out buffer.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
  */
-astarte_err_t astarte_pairing_get_credentials_secret(const struct astarte_pairing_config *config, char *out, size_t length);
+astarte_err_t astarte_pairing_get_credentials_secret(
+    const struct astarte_pairing_config *config, char *out, size_t length);
 
 /**
  * @brief register a device.
@@ -59,7 +61,8 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
  * @param length The length of the out buffer.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
  */
-astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairing_config *config, const char *csr, char *out, size_t length);
+astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
+    const struct astarte_pairing_config *config, const char *csr, char *out, size_t length);
 
 /**
  * @brief get the Astarte MQTT v1 broker URL.
@@ -70,7 +73,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(const struct astarte_pairi
  * @param length The length of the out buffer.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
  */
-astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(const struct astarte_pairing_config *config, char *out, size_t length);
+astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
+    const struct astarte_pairing_config *config, char *out, size_t length);
 
 #ifdef __cplusplus
 }

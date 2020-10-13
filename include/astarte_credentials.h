@@ -23,7 +23,8 @@ extern "C" {
 /**
  * @brief initialize Astarte credentials.
  *
- * @details This function has to be called to initialize the private key and CSR needed for the MQTT transport.
+ * @details This function has to be called to initialize the private key and CSR needed for the MQTT
+ * transport.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
  */
 astarte_err_t astarte_credentials_init();
@@ -38,9 +39,10 @@ int astarte_credentials_is_initialized();
 /**
  * @brief create Astarte private key.
  *
- * @details This function creates the private key and saves it on the FAT filesystem on the SPI flash. It requires
- * a mounted FAT on the /spiflash mountpoint. This function is called from astarte_credentials_init() if the key
- * doesn't exist, but can also be called manually to generate a new key.
+ * @details This function creates the private key and saves it on the FAT filesystem on the SPI
+ * flash. It requires a mounted FAT on the /spiflash mountpoint. This function is called from
+ * astarte_credentials_init() if the key doesn't exist, but can also be called manually to generate
+ * a new key.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
  */
 astarte_err_t astarte_credentials_create_key();
@@ -48,9 +50,10 @@ astarte_err_t astarte_credentials_create_key();
 /**
  * @brief create Astarte CSR to be sent to Pairing API.
  *
- * @details This function creates the CSR to be signed by Pairing API and saves it on the FAT filesystem on the
- * SPI flash. It requires a mounted FAT on the /spiflash mountpoint. This function is called from
- * astarte_credentials_init() if the CSR doesn't exist, but can also be called manually to generate a new CSR.
+ * @details This function creates the CSR to be signed by Pairing API and saves it on the FAT
+ * filesystem on the SPI flash. It requires a mounted FAT on the /spiflash mountpoint. This function
+ * is called from astarte_credentials_init() if the CSR doesn't exist, but can also be called
+ * manually to generate a new CSR.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
  */
 astarte_err_t astarte_credentials_create_csr();
@@ -58,17 +61,21 @@ astarte_err_t astarte_credentials_create_csr();
 /**
  * @brief save the certificate to connect with the Astarte MQTT v1 protocol
  *
- * @details Save the certificate in the credentials folder. This requires a mounted FAT on the /spiflash mountpoint
+ * @details Save the certificate in the credentials folder. This requires a mounted FAT on the
+ * /spiflash mountpoint
  * @param cert_pem The buffer containing a NULL-terminated certificate in PEM form.
- * @return The status code, ASTARTE_OK if the certificate was correctly saved, otherwise an error code is returned.
+ * @return The status code, ASTARTE_OK if the certificate was correctly saved, otherwise an error
+ * code is returned.
  */
 astarte_err_t astarte_credentials_save_certificate(const char *cert_pem);
 
 /**
  * @brief delets the saved certificate used to connect with the Astarte MQTT v1 protocol
  *
- * @details Delete the certificate from the credentials folder. This requires a mounted FAT on the /spiflash mountpoint
- * @return The status code, ASTARTE_OK if the certificate was correctly deleted, otherwise an error code is returned.
+ * @details Delete the certificate from the credentials folder. This requires a mounted FAT on the
+ * /spiflash mountpoint
+ * @return The status code, ASTARTE_OK if the certificate was correctly deleted, otherwise an error
+ * code is returned.
  */
 astarte_err_t astarte_credentials_delete_certificate();
 
@@ -78,7 +85,8 @@ astarte_err_t astarte_credentials_delete_certificate();
  * @details Get the CSR, writing it to the out buffer, if it is present.
  * @param out A pointer to an allocated buffer where the CSR will be written.
  * @param length The length of the out buffer.
- * @return The status code, ASTARTE_OK if the certificate was correctly written, otherwise an error code is returned.
+ * @return The status code, ASTARTE_OK if the certificate was correctly written, otherwise an error
+ * code is returned.
  */
 astarte_err_t astarte_credentials_get_csr(char *out, size_t length);
 
@@ -88,7 +96,8 @@ astarte_err_t astarte_credentials_get_csr(char *out, size_t length);
  * @details Get the certificate, writing it to the out buffer, if it is present.
  * @param out A pointer to an allocated buffer where the certificate will be written.
  * @param length The length of the out buffer.
- * @return The status code, ASTARTE_OK if the certificate was correctly written, otherwise an error code is returned.
+ * @return The status code, ASTARTE_OK if the certificate was correctly written, otherwise an error
+ * code is returned.
  */
 astarte_err_t astarte_credentials_get_certificate(char *out, size_t length);
 
@@ -102,7 +111,8 @@ astarte_err_t astarte_credentials_get_certificate(char *out, size_t length);
  * @return The status code, ASTARTE_OK if the certificate was correctly written,
  * otherwise an error code is returned.
  */
-astarte_err_t astarte_credentials_get_certificate_common_name(const char *cert_pem, char *out, size_t length);
+astarte_err_t astarte_credentials_get_certificate_common_name(
+    const char *cert_pem, char *out, size_t length);
 
 /**
  * @brief get the private key to connect with the Astarte MQTT v1 protocol
@@ -110,26 +120,28 @@ astarte_err_t astarte_credentials_get_certificate_common_name(const char *cert_p
  * @details Get the private key, writing it to the out buffer, if it is present.
  * @param out A pointer to an allocated buffer where the key will be written.
  * @param length The length of the out buffer.
- * @return The status code, ASTARTE_OK if the certificate was correctly written, otherwise an error code is returned.
+ * @return The status code, ASTARTE_OK if the certificate was correctly written, otherwise an error
+ * code is returned.
  */
 astarte_err_t astarte_credentials_get_key(char *out, size_t length);
 
 /**
  * @brief get the stored credentials_secret
  *
- * @details Get the credentials_secret stored in the NVS, writing it to the out buffer, if it is present.
+ * @details Get the credentials_secret stored in the NVS, writing it to the out buffer, if it is
+ * present.
  * @param out A pointer to an allocated buffer where the credentials_secret will be written.
  * @param length The length of the out buffer.
- * @return The status code, ASTARTE_OK if the credentials_secret was found, ASTARTE_ERR_NOT_FOUND if the
- * credentials secret is not present in the NVS, another astarte_err_t if an error occurs.
+ * @return The status code, ASTARTE_OK if the credentials_secret was found, ASTARTE_ERR_NOT_FOUND if
+ * the credentials secret is not present in the NVS, another astarte_err_t if an error occurs.
  */
 astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_t length);
 
 /**
  * @brief save the credentials_secret in the NVS
  *
- * @details Save the credentials_secret in the NVS, where it can be used internally by Astarte Pairing
- * to obtain Astarte MQTT v1 credentials.
+ * @details Save the credentials_secret in the NVS, where it can be used internally by Astarte
+ * Pairing to obtain Astarte MQTT v1 credentials.
  * @param credentials_secret A pointer to the buffer that contains the credentials_secret.
  * @return The status code, ASTARTE_OK if the credentials_secret was correctly written, otherwise an
  * error code is returned.

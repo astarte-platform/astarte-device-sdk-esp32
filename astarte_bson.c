@@ -8,9 +8,9 @@
 
 #include <astarte_bson_types.h>
 
+#include <endian.h>
 #include <stdio.h>
 #include <string.h>
-#include <endian.h>
 
 #include <esp_log.h>
 
@@ -19,16 +19,20 @@
 static uint32_t read_uint32(const void *u)
 {
     const unsigned char *b = (const unsigned char *) u;
-    return le32toh(((uint32_t) b[0]) | (((uint32_t) b[1]) << 8) | (((uint32_t) b[2]) << 16) | (((uint32_t) b[3]) << 24));
+    return le32toh(((uint32_t) b[0]) | (((uint32_t) b[1]) << 8) | (((uint32_t) b[2]) << 16)
+        | (((uint32_t) b[3]) << 24));
 }
 
 static uint64_t read_uint64(const void *u)
 {
     const unsigned char *b = (const unsigned char *) u;
-    return le64toh((uint64_t) b[0] | ((uint64_t) b[1] << 8) | ((uint64_t) b[2] << 16) | ((uint64_t) b[3] << 24) | ((uint64_t) b[4] << 32) | ((uint64_t) b[5] << 40) | ((uint64_t) b[6] << 48) | ((uint64_t) b[7] << 56));
+    return le64toh((uint64_t) b[0] | ((uint64_t) b[1] << 8) | ((uint64_t) b[2] << 16)
+        | ((uint64_t) b[3] << 24) | ((uint64_t) b[4] << 32) | ((uint64_t) b[5] << 40)
+        | ((uint64_t) b[6] << 48) | ((uint64_t) b[7] << 56));
 }
 
-static unsigned int astarte_bson_next_item_offset(unsigned int offset, unsigned int keyLen, const void *document)
+static unsigned int astarte_bson_next_item_offset(
+    unsigned int offset, unsigned int keyLen, const void *document)
 {
     const char *docBytes = (const char *) document;
     uint8_t elementType = (uint8_t) docBytes[offset];
@@ -40,37 +44,37 @@ static unsigned int astarte_bson_next_item_offset(unsigned int offset, unsigned 
         case BSON_TYPE_STRING: {
             uint32_t stringLen = read_uint32(docBytes + offset);
             offset += stringLen + 4;
+            break;
         }
-        break;
 
         case BSON_TYPE_DOCUMENT: {
             uint32_t docLen = read_uint32(docBytes + offset);
             offset += docLen;
+            break;
         }
-        break;
 
         case BSON_TYPE_BINARY: {
             uint32_t binLen = read_uint32(docBytes + offset);
             offset += 4 + 1 + binLen; /* int32 (len) + byte (subtype) + binLen */
+            break;
         }
-        break;
 
         case BSON_TYPE_INT32: {
-           offset += sizeof(int32_t);
+            offset += sizeof(int32_t);
+            break;
         }
-        break;
 
         case BSON_TYPE_DOUBLE:
         case BSON_TYPE_DATETIME:
         case BSON_TYPE_INT64: {
             offset += sizeof(int64_t);
+            break;
         }
-        break;
 
         case BSON_TYPE_BOOLEAN: {
             offset += 1;
+            break;
         }
-        break;
 
         default: {
             ESP_LOGW(TAG, "unrecognized BSON type: %i", (int) elementType);
@@ -90,21 +94,21 @@ const void *astarte_bson_key_lookup(const char *key, const void *document, uint8
 
     unsigned int offset = 4;
     while (offset + 1 < docLen) {
-       uint8_t elementType = (uint8_t) docBytes[offset];
-       int keyLen = strnlen(docBytes + offset + 1, docLen - offset);
+        uint8_t elementType = (uint8_t) docBytes[offset];
+        int keyLen = strnlen(docBytes + offset + 1, docLen - offset);
 
-       if (!strncmp(key, docBytes + offset + 1, docLen - offset)) {
-           if (type) {
-               *type = elementType;
-           }
-           return (void *) (docBytes + offset + 1 + keyLen + 1);
-       }
+        if (!strncmp(key, docBytes + offset + 1, docLen - offset)) {
+            if (type) {
+                *type = elementType;
+            }
+            return (void *) (docBytes + offset + 1 + keyLen + 1);
+        }
 
-       unsigned int newOffset = astarte_bson_next_item_offset(offset, keyLen, document);
-       if (!newOffset) {
-           return NULL;
-       }
-       offset = newOffset;
+        unsigned int newOffset = astarte_bson_next_item_offset(offset, keyLen, document);
+        if (!newOffset) {
+            return NULL;
+        }
+        offset = newOffset;
     }
 
     return NULL;
@@ -198,7 +202,8 @@ int64_t astarte_bson_value_to_int64(const void *valuePtr)
 
 double astarte_bson_value_to_double(const void *valuePtr)
 {
-    union data64 {
+    union data64
+    {
         uint64_t u64value;
         double dvalue;
     } v;
@@ -228,7 +233,8 @@ int astarte_bson_check_validity(const void *document, unsigned int fileSize)
     }
 
     if (docLen > fileSize) {
-        ESP_LOGW(TAG, "BSON document is bigger than data: data: %ui document: %i", fileSize, (int) docLen);
+        ESP_LOGW(TAG, "BSON document is bigger than data: data: %ui document: %i", fileSize,
+            (int) docLen);
         return 0;
     }
 
@@ -239,19 +245,19 @@ int astarte_bson_check_validity(const void *document, unsigned int fileSize)
 
     offset = 4;
     switch (docBytes[offset]) {
-       case BSON_TYPE_DOUBLE:
-       case BSON_TYPE_STRING:
-       case BSON_TYPE_DOCUMENT:
-       case BSON_TYPE_BINARY:
-       case BSON_TYPE_BOOLEAN:
-       case BSON_TYPE_DATETIME:
-       case BSON_TYPE_INT32:
-       case BSON_TYPE_INT64:
-       break;
+        case BSON_TYPE_DOUBLE:
+        case BSON_TYPE_STRING:
+        case BSON_TYPE_DOCUMENT:
+        case BSON_TYPE_BINARY:
+        case BSON_TYPE_BOOLEAN:
+        case BSON_TYPE_DATETIME:
+        case BSON_TYPE_INT32:
+        case BSON_TYPE_INT64:
+            break;
 
-       default:
-           ESP_LOGW(TAG, "Unrecognized BSON document first type\n");
-           return 0;
+        default:
+            ESP_LOGW(TAG, "Unrecognized BSON document first type\n");
+            return 0;
     }
 
     return 1;

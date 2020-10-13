@@ -17,6 +17,8 @@
 #define ASTARTE_DEVICE_SDK_MINOR 11
 #define ASTARTE_DEVICE_SDK_PATCH 1
 
+// clang-format off
+
 /**
  * @brief Astarte return codes.
  *
@@ -45,6 +47,8 @@ enum astarte_err_t
     ASTARTE_ERR_PUBLISH = 18, /**< An error occurred while publishing data on MQTT */
     ASTARTE_ERR_INVALID_INTROSPECTION = 19 /**< The introspection is not valid or empty */
 };
+
+// clang-format on
 
 typedef enum astarte_err_t astarte_err_t;
 
