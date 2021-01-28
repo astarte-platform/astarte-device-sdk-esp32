@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   If you need to keep the old device id, disable `Use UUIDv5 to derive the hardware ID` in the
   Astarte SDK settings with `make menuconfig`.
 
+## [0.11.4] - 2021-01-26
+
 ## [0.11.2] - 2020-08-31
 ### Added
 - Add device hardware id getter.
