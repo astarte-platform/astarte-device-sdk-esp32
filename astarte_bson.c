@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016, Ispirata Srl, info@ispirata.com.
+ * (C) Copyright 2016-2021, Ispirata Srl, info@ispirata.com.
  *
  * SPDX-License-Identifier: LGPL-2.1+ OR Apache-2.0
  */
