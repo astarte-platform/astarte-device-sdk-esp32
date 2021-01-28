@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018, Ispirata Srl, info@ispirata.com.
+ * (C) Copyright 2018-2021, Ispirata Srl, info@ispirata.com.
  *
  * SPDX-License-Identifier: LGPL-2.1+ OR Apache-2.0
  */
@@ -14,8 +14,8 @@
 
 // Version information
 #define ASTARTE_DEVICE_SDK_MAJOR 0
-#define ASTARTE_DEVICE_SDK_MINOR 11
-#define ASTARTE_DEVICE_SDK_PATCH 4
+#define ASTARTE_DEVICE_SDK_MINOR 99
+#define ASTARTE_DEVICE_SDK_PATCH 0
 
 // clang-format off
 
