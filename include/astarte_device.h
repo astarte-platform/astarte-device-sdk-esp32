@@ -109,6 +109,14 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device,
 void astarte_device_start(astarte_device_handle_t device);
 
 /**
+ * @brief stop Astarte device.
+ *
+ * @details This function stops the device, making it disconnect from the broker.
+ * @param device A valid Astarte device handle.
+ */
+void astarte_device_stop(astarte_device_handle_t device);
+
+/**
  * @brief send a double value on a datastream endpoint.
  *
  * @details This function sends a double value on a path of a given datastream interface.

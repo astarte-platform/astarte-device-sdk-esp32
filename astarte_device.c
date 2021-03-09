@@ -412,6 +412,11 @@ void astarte_device_start(astarte_device_handle_t device)
     xSemaphoreGive(device->reinit_mutex);
 }
 
+void astarte_device_stop(astarte_device_handle_t device)
+{
+    //TODO: implement this
+}
+
 static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name,
     const char *path, const struct astarte_bson_serializer_t *bs, int qos)
 {
