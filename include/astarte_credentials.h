@@ -14,11 +14,52 @@
 
 #include "astarte.h"
 
+#include <stdbool.h>
 #include <string.h>
+
+#define ASTARTE_CREDENTIALS_DEFAULT_NVS_PARTITION NULL
+
+enum credential_type_t
+{
+    ASTARTE_CREDENTIALS_CSR = 1,
+    ASTARTE_CREDENTIALS_KEY,
+    ASTARTE_CREDENTIALS_CERTIFICATE
+};
+
+typedef astarte_err_t (*astarte_credentials_store_t)(
+    void *opaque, enum credential_type_t cred_type, const void *credential, size_t length);
+typedef astarte_err_t (*astarte_credentials_fetch_t)(
+    void *opaque, enum credential_type_t cred_type, char *out, size_t length);
+typedef bool (*astarte_credentials_exists_t)(void *opaque, enum credential_type_t cred_type);
+typedef astarte_err_t (*astarte_credentials_remove_t)(
+    void *opaque, enum credential_type_t cred_type);
+
+typedef struct
+{
+    astarte_credentials_store_t astarte_credentials_store;
+    astarte_credentials_fetch_t astarte_credentials_fetch;
+    astarte_credentials_exists_t astarte_credentials_exists;
+    astarte_credentials_remove_t astarte_credentials_remove;
+} astarte_credentials_storage_functions_t;
+
+typedef struct
+{
+    const astarte_credentials_storage_functions_t *functions;
+    void *opaque;
+} astarte_credentials_context_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief replace credentials context.
+ *
+ * @details This function has to be called before initialize when a storage different than internal
+ * flash has to be used.
+ * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
+ */
+astarte_err_t astarte_credentials_set_storage_context(astarte_credentials_context_t *creds_context);
 
 /**
  * @brief initialize Astarte credentials.
@@ -182,6 +223,36 @@ int astarte_credentials_has_csr();
  * @return 1 if the file exists and is readable, 0 otherwise.
  */
 int astarte_credentials_has_key();
+
+/*
+ * @brief store a credential using filesystem storage
+ *
+ * @details this API might change in future versions.
+ */
+astarte_err_t astarte_credentials_store(
+    void *opaque, enum credential_type_t cred_type, const void *credential, size_t length);
+
+/*
+ * @brief fetch a credential using filesystem storage
+ *
+ * @details this API might change in future versions.
+ */
+astarte_err_t astarte_credentials_fetch(
+    void *opaque, enum credential_type_t cred_type, char *out, size_t length);
+
+/*
+ * @brief return true whether a credential exists on fileystem storage
+ *
+ * @details this API might change in future versions.
+ */
+bool astarte_credentials_exists(void *opaque, enum credential_type_t cred_type);
+
+/*
+ * @brief remove a credential from filesystem storage
+ *
+ * @details this API might change in future versions.
+ */
+astarte_err_t astarte_credentials_remove(void *opaque, enum credential_type_t cred_type);
 
 #ifdef __cplusplus
 }
