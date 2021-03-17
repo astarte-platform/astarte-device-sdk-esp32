@@ -405,15 +405,24 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device,
     return ASTARTE_OK;
 }
 
-void astarte_device_start(astarte_device_handle_t device)
+astarte_err_t astarte_device_start(astarte_device_handle_t device)
 {
     if (xSemaphoreTake(device->reinit_mutex, (TickType_t) 10) == pdFALSE) {
         ESP_LOGE(TAG, "Trying to start device that is being reinitialized");
-        return;
+        return ASTARTE_ERR_DEVICE_NOT_READY;
     }
 
-    esp_mqtt_client_start(device->mqtt_client);
+    astarte_err_t ret = ASTARTE_OK;
+
+    esp_err_t err = esp_mqtt_client_start(device->mqtt_client);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to stop MQTT client: %s", esp_err_to_name(err));
+        ret = ASTARTE_ERR;
+    }
+
     xSemaphoreGive(device->reinit_mutex);
+
+    return ret;
 }
 
 astarte_err_t astarte_device_stop(astarte_device_handle_t device)
