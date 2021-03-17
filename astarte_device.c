@@ -47,6 +47,8 @@ struct astarte_device_t
     char *key_pem;
     bool connected;
     astarte_device_data_event_callback_t data_event_callback;
+    astarte_device_connection_event_callback_t connection_event_callback;
+    astarte_device_disconnection_event_callback_t disconnection_event_callback;
     esp_mqtt_client_handle_t mqtt_client;
     TaskHandle_t reinit_task_handle;
     SemaphoreHandle_t reinit_mutex;
@@ -123,6 +125,8 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
     }
 
     ret->data_event_callback = cfg->data_event_callback;
+    ret->connection_event_callback = cfg->connection_event_callback;
+    ret->disconnection_event_callback = cfg->disconnection_event_callback;
 
     return ret;
 
@@ -428,6 +432,12 @@ astarte_err_t astarte_device_stop(astarte_device_handle_t device)
     }
 
     xSemaphoreGive(device->reinit_mutex);
+
+    if (ret == ASTARTE_OK) {
+        // If we succesfully disconnected, call on_disconnected since
+        // MQTT_EVENT_DISCONNECTED is not triggered for manual disconnections
+        on_disconnected(device);
+    }
 
     return ret;
 }
@@ -848,6 +858,13 @@ static void on_connected(astarte_device_handle_t device, int session_present)
 {
     device->connected = true;
 
+    if (device->connection_event_callback) {
+        astarte_device_connection_event_t event
+            = { .device = device, .session_present = session_present };
+
+        device->connection_event_callback(&event);
+    }
+
     if (session_present) {
         return;
     }
@@ -859,6 +876,14 @@ static void on_connected(astarte_device_handle_t device, int session_present)
 static void on_disconnected(astarte_device_handle_t device)
 {
     device->connected = false;
+
+    if (device->disconnection_event_callback) {
+        astarte_device_disconnection_event_t event = {
+            .device = device,
+        };
+
+        device->disconnection_event_callback(&event);
+    }
 }
 
 static void on_incoming(

@@ -35,7 +35,27 @@ typedef void (*astarte_device_data_event_callback_t)(astarte_device_data_event_t
 
 typedef struct
 {
+    astarte_device_handle_t device;
+    int session_present;
+} astarte_device_connection_event_t;
+
+typedef void (*astarte_device_connection_event_callback_t)(
+    astarte_device_connection_event_t *event);
+
+typedef struct
+{
+    astarte_device_handle_t device;
+    int session_present;
+} astarte_device_disconnection_event_t;
+
+typedef void (*astarte_device_disconnection_event_callback_t)(
+    astarte_device_disconnection_event_t *event);
+
+typedef struct
+{
     astarte_device_data_event_callback_t data_event_callback;
+    astarte_device_connection_event_callback_t connection_event_callback;
+    astarte_device_disconnection_event_callback_t disconnection_event_callback;
     const char *hwid;
     const char *credentials_secret;
 } astarte_device_config_t;

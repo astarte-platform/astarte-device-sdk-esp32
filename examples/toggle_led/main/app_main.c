@@ -125,6 +125,16 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
     }
 }
 
+static void astarte_connection_events_handler(astarte_device_connection_event_t *event)
+{
+    ESP_LOGI(TAG, "Astarte device connected, session_present: %d", event->session_present);
+}
+
+static void astarte_disconnection_events_handler(astarte_device_disconnection_event_t *event)
+{
+    ESP_LOGI(TAG, "Astarte device disconnected");
+}
+
 static void astarte_example_task(void *ctx)
 {
     /*
@@ -134,6 +144,8 @@ static void astarte_example_task(void *ctx)
      */
     astarte_device_config_t cfg = {
         .data_event_callback = astarte_data_events_handler,
+        .connection_event_callback = astarte_connection_events_handler,
+        .disconnection_event_callback = astarte_disconnection_events_handler,
     };
 
     astarte_device_handle_t device = astarte_device_init(&cfg);
