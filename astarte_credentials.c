@@ -60,6 +60,13 @@ static const astarte_credentials_storage_functions_t storage_funcs = {
     .astarte_credentials_remove = astarte_credentials_remove,
 };
 
+static const astarte_credentials_storage_functions_t nvs_storage_funcs = {
+    .astarte_credentials_store = astarte_credentials_nvs_store,
+    .astarte_credentials_fetch = astarte_credentials_nvs_fetch,
+    .astarte_credentials_exists = astarte_credentials_nvs_exists,
+    .astarte_credentials_remove = astarte_credentials_nvs_remove,
+};
+
 static astarte_credentials_context_t creds_ctx = {
     .functions = &storage_funcs,
     .opaque = NULL,
@@ -140,6 +147,18 @@ astarte_err_t astarte_credentials_set_storage_context(astarte_credentials_contex
 {
     creds_ctx.functions = creds_context->functions;
     creds_ctx.opaque = creds_context->opaque;
+
+    return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_use_nvs_storage(const char *partition_label)
+{
+    creds_ctx.functions = &nvs_storage_funcs;
+    if (partition_label) {
+        creds_ctx.opaque = strdup(partition_label);
+    } else {
+        creds_ctx.opaque = NVS_DEFAULT_PART_NAME;
+    }
 
     return ASTARTE_OK;
 }
@@ -259,6 +278,163 @@ static astarte_err_t ensure_mounted()
     }
 
     return ASTARTE_OK;
+}
+
+astarte_err_t astarte_nvs_open_err_to_astarte(esp_err_t err)
+{
+    switch (err) {
+        // NVS_NOT_FOUND is ok if we don't have credentials_secret yet
+        case ESP_ERR_NVS_NOT_FOUND:
+        case ESP_OK:
+            return ASTARTE_OK;
+        case ESP_ERR_NVS_NOT_INITIALIZED:
+            ESP_LOGE(TAG, "Non-volatile storage not initialized");
+            ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
+            return ASTARTE_ERR_NVS_NOT_INITIALIZED;
+        default:
+            ESP_LOGE(
+                TAG, "nvs_open error while reading credentials_secret: %s", esp_err_to_name(err));
+            return ASTARTE_ERR_NVS;
+    }
+}
+
+astarte_err_t astarte_nvs_rw_err_to_astarte(esp_err_t err)
+{
+    switch (err) {
+        case ESP_OK:
+            // Got it
+            return ASTARTE_OK;
+
+        // Here we come from NVS_NOT_FOUND above
+        case ESP_ERR_NVS_INVALID_HANDLE:
+        case ESP_ERR_NVS_NOT_FOUND:
+            return ASTARTE_ERR_NOT_FOUND;
+
+        default:
+            ESP_LOGE(TAG, "nvs_get_str error: %s", esp_err_to_name(err));
+            return ASTARTE_ERR_NVS;
+    }
+}
+
+static const char *astarte_credentials_nvs_key(enum credential_type_t cred_type)
+{
+    switch (cred_type) {
+        case ASTARTE_CREDENTIALS_CSR:
+            return "device.csr";
+        case ASTARTE_CREDENTIALS_KEY:
+            return "device.key";
+        case ASTARTE_CREDENTIALS_CERTIFICATE:
+            return "device.crt";
+        default:
+            return NULL;
+    }
+}
+
+astarte_err_t astarte_credentials_nvs_store(
+    void *opaque, enum credential_type_t cred_type, const void *credential, size_t length)
+{
+    astarte_err_t res;
+
+    const char *partition_label = opaque;
+    const char *key = astarte_credentials_nvs_key(cred_type);
+    if (!key) {
+        return ASTARTE_ERR;
+    }
+
+    nvs_handle nvs;
+    res = astarte_nvs_open_err_to_astarte(
+        nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs));
+    if (res != ASTARTE_OK) {
+        goto err;
+    }
+
+    res = astarte_nvs_rw_err_to_astarte(nvs_set_str(nvs, key, credential));
+    nvs_close(nvs);
+
+err:
+    if (res != ASTARTE_OK) {
+        ESP_LOGE(TAG, "error while saving %s to NVS: %i", key, (int) res);
+        return ASTARTE_ERR_NVS;
+    }
+
+    return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_nvs_fetch(
+    void *opaque, enum credential_type_t cred_type, char *out, size_t length)
+{
+    astarte_err_t res;
+
+    const char *partition_label = opaque;
+    const char *key = astarte_credentials_nvs_key(cred_type);
+    if (!key) {
+        return ASTARTE_ERR;
+    }
+
+    nvs_handle nvs;
+    res = astarte_nvs_open_err_to_astarte(
+        nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READONLY, &nvs));
+    if (res != ASTARTE_OK) {
+        goto err;
+    }
+
+    size_t len;
+    nvs_get_str(nvs, key, NULL, &len);
+
+    res = astarte_nvs_rw_err_to_astarte(nvs_get_str(nvs, key, out, &length));
+
+err:
+    nvs_close(nvs);
+    return res;
+}
+
+bool astarte_credentials_nvs_exists(void *opaque, enum credential_type_t cred_type)
+{
+    astarte_err_t res;
+
+    const char *partition_label = opaque;
+    const char *key = astarte_credentials_nvs_key(cred_type);
+    if (!key) {
+        return false;
+    }
+
+    nvs_handle nvs;
+    res = astarte_nvs_open_err_to_astarte(
+        nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READONLY, &nvs));
+    if (res != ASTARTE_OK) {
+        goto err;
+    }
+
+    size_t length;
+    res = astarte_nvs_rw_err_to_astarte(nvs_get_str(nvs, key, NULL, &length));
+
+err:
+    nvs_close(nvs);
+    return res == ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_nvs_remove(void *opaque, enum credential_type_t cred_type)
+{
+    astarte_err_t res;
+
+    const char *partition_label = opaque;
+    const char *key = astarte_credentials_nvs_key(cred_type);
+    if (!key) {
+        return ASTARTE_ERR;
+    }
+
+    nvs_handle nvs;
+    res = astarte_nvs_open_err_to_astarte(
+        nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs));
+    if (res != ASTARTE_OK) {
+        goto err;
+    }
+
+    res = nvs_erase_key(nvs, key);
+
+err:
+    nvs_close(nvs);
+    return res;
 }
 
 astarte_err_t astarte_credentials_create_key()

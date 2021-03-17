@@ -62,6 +62,17 @@ extern "C" {
 astarte_err_t astarte_credentials_set_storage_context(astarte_credentials_context_t *creds_context);
 
 /**
+ * @brief use a NVS partition as credentials context.
+ *
+ * @details This function has to be called before any other astarte_credentials function when NVS
+ * storage is required as credentials storage.
+ * @param partition_label the NVS partion label. Use ASTARTE_CREDENTIALS_DEFAULT_NVS_PARTITION when
+ * default must be used.
+ * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
+ */
+astarte_err_t astarte_credentials_use_nvs_storage(const char *partition_label);
+
+/**
  * @brief initialize Astarte credentials.
  *
  * @details This function has to be called to initialize the private key and CSR needed for the MQTT
@@ -253,6 +264,36 @@ bool astarte_credentials_exists(void *opaque, enum credential_type_t cred_type);
  * @details this API might change in future versions.
  */
 astarte_err_t astarte_credentials_remove(void *opaque, enum credential_type_t cred_type);
+
+/*
+ * @brief store a credential using NVS
+ *
+ * @details this API might change in future versions.
+ */
+astarte_err_t astarte_credentials_nvs_store(
+    void *opaque, enum credential_type_t cred_type, const void *credential, size_t length);
+
+/*
+ * @brief fetch a credential using NVS
+ *
+ * @details this API might change in future versions.
+ */
+astarte_err_t astarte_credentials_nvs_fetch(
+    void *opaque, enum credential_type_t cred_type, char *out, size_t length);
+
+/*
+ * @brief return true whether a credential exists on NVS
+ *
+ * @details this API might change in future versions.
+ */
+bool astarte_credentials_nvs_exists(void *opaque, enum credential_type_t cred_type);
+
+/*
+ * @brief remove a credential from NVS
+ *
+ * @details this API might change in future versions.
+ */
+astarte_err_t astarte_credentials_nvs_remove(void *opaque, enum credential_type_t cred_type);
 
 #ifdef __cplusplus
 }
