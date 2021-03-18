@@ -65,7 +65,8 @@ astarte_err_t astarte_credentials_set_storage_context(astarte_credentials_contex
  * @brief use a NVS partition as credentials context.
  *
  * @details This function has to be called before any other astarte_credentials function when NVS
- * storage is required as credentials storage.
+ * storage is required as credentials storage. This function will also change the partition used
+ * for storing credential secret.
  * @param partition_label the NVS partion label. Use ASTARTE_CREDENTIALS_DEFAULT_NVS_PARTITION when
  * default must be used.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.

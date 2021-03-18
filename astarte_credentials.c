@@ -53,6 +53,8 @@ static QueueHandle_t s_init_result_queue = NULL;
 
 static astarte_err_t ensure_mounted();
 
+static char *s_credentials_secret_partition_label = NVS_DEFAULT_PART_NAME;
+
 static const astarte_credentials_storage_functions_t storage_funcs = {
     .astarte_credentials_store = astarte_credentials_store,
     .astarte_credentials_fetch = astarte_credentials_fetch,
@@ -156,6 +158,8 @@ astarte_err_t astarte_credentials_use_nvs_storage(const char *partition_label)
     creds_ctx.functions = &nvs_storage_funcs;
     if (partition_label) {
         creds_ctx.opaque = strdup(partition_label);
+        // Use the partition label also for the credentials secret
+        s_credentials_secret_partition_label = creds_ctx.opaque;
     } else {
         creds_ctx.opaque = NVS_DEFAULT_PART_NAME;
     }
@@ -710,7 +714,8 @@ astarte_err_t astarte_credentials_get_key(char *out, size_t length)
 astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_t length)
 {
     nvs_handle nvs;
-    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READONLY, &nvs);
+    esp_err_t err = nvs_open_from_partition(
+        s_credentials_secret_partition_label, PAIRING_NAMESPACE, NVS_READONLY, &nvs);
     switch (err) {
         // NVS_NOT_FOUND is ok if we don't have credentials_secret yet
         case ESP_ERR_NVS_NOT_FOUND:
@@ -748,7 +753,8 @@ astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_
 astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *credentials_secret)
 {
     nvs_handle nvs;
-    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
+    esp_err_t err = nvs_open_from_partition(
+        s_credentials_secret_partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
     switch (err) {
         case ESP_OK:
             break;
@@ -777,7 +783,8 @@ astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *cred
 astarte_err_t astarte_credentials_erase_stored_credentials_secret()
 {
     nvs_handle nvs;
-    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
+    esp_err_t err = nvs_open_from_partition(
+        s_credentials_secret_partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
     switch (err) {
         case ESP_OK:
             break;
