@@ -111,9 +111,8 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
     ESP_LOGI(TAG, "Got Astarte data event, interface_name: %s, path: %s, bson_type: %d",
         event->interface_name, event->path, event->bson_value_type);
 
-    if (strcmp(event->interface_name, "org.astarteplatform.esp32.ServerDatastream") == 0 &&
-            strcmp(event->path, "/led") == 0 &&
-            event->bson_value_type == BSON_TYPE_BOOLEAN) {
+    if (strcmp(event->interface_name, "org.astarteplatform.esp32.ServerDatastream") == 0
+        && strcmp(event->path, "/led") == 0 && event->bson_value_type == BSON_TYPE_BOOLEAN) {
         int led_state = astarte_bson_value_to_int8(event->bson_value);
         if (led_state) {
             ESP_LOGI(TAG, "Turning led on");
@@ -125,6 +124,16 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
     }
 }
 
+static void astarte_connection_events_handler(astarte_device_connection_event_t *event)
+{
+    ESP_LOGI(TAG, "Astarte device connected, session_present: %d", event->session_present);
+}
+
+static void astarte_disconnection_events_handler(astarte_device_disconnection_event_t *event)
+{
+    ESP_LOGI(TAG, "Astarte device disconnected");
+}
+
 static void astarte_example_task(void *ctx)
 {
     /*
@@ -134,6 +143,8 @@ static void astarte_example_task(void *ctx)
      */
     astarte_device_config_t cfg = {
         .data_event_callback = astarte_data_events_handler,
+        .connection_event_callback = astarte_connection_events_handler,
+        .disconnection_event_callback = astarte_disconnection_events_handler,
     };
 
     astarte_device_handle_t device = astarte_device_init(&cfg);
@@ -144,7 +155,10 @@ static void astarte_example_task(void *ctx)
 
     astarte_device_add_interface(device, "org.astarteplatform.esp32.DeviceDatastream", 0, 2);
     astarte_device_add_interface(device, "org.astarteplatform.esp32.ServerDatastream", 0, 1);
-    astarte_device_start(device);
+    if (astarte_device_start(device) != ASTARTE_OK) {
+        ESP_LOGE(TAG, "Failed to start astarte device");
+        return;
+    }
 
     ESP_LOGI(TAG, "[APP] Encoded device ID: %s", astarte_device_get_encoded_id(device));
 
@@ -153,9 +167,11 @@ static void astarte_example_task(void *ctx)
         if (xQueueReceive(button_evt_queue, &io_num, portMAX_DELAY)) {
             if (io_num == BUTTON_GPIO) {
                 // Button pressed, send 1 and current uptime
-                astarte_device_stream_boolean(device, "org.astarteplatform.esp32.DeviceDatastream", "/userButton", 1, 0);
+                astarte_device_stream_boolean(
+                    device, "org.astarteplatform.esp32.DeviceDatastream", "/userButton", 1, 0);
                 int uptimeSeconds = (xTaskGetTickCount() * portTICK_PERIOD_MS) / 1000;
-                astarte_device_stream_integer(device, "org.astarteplatform.esp32.DeviceDatastream", "/uptimeSeconds", uptimeSeconds, 0);
+                astarte_device_stream_integer(device, "org.astarteplatform.esp32.DeviceDatastream",
+                    "/uptimeSeconds", uptimeSeconds, 0);
             }
         }
     }

@@ -35,7 +35,27 @@ typedef void (*astarte_device_data_event_callback_t)(astarte_device_data_event_t
 
 typedef struct
 {
+    astarte_device_handle_t device;
+    int session_present;
+} astarte_device_connection_event_t;
+
+typedef void (*astarte_device_connection_event_callback_t)(
+    astarte_device_connection_event_t *event);
+
+typedef struct
+{
+    astarte_device_handle_t device;
+    int session_present;
+} astarte_device_disconnection_event_t;
+
+typedef void (*astarte_device_disconnection_event_callback_t)(
+    astarte_device_disconnection_event_t *event);
+
+typedef struct
+{
     astarte_device_data_event_callback_t data_event_callback;
+    astarte_device_connection_event_callback_t connection_event_callback;
+    astarte_device_disconnection_event_callback_t disconnection_event_callback;
     const char *hwid;
     const char *credentials_secret;
 } astarte_device_config_t;
@@ -105,8 +125,18 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device,
  *
  * @details This function starts the device, making it connect to the broker and perform its work.
  * @param device A valid Astarte device handle.
+ * @return ASTARTE_OK if the device was succesfully started, another astarte_err_t otherwise.
  */
-void astarte_device_start(astarte_device_handle_t device);
+astarte_err_t astarte_device_start(astarte_device_handle_t device);
+
+/**
+ * @brief stop Astarte device.
+ *
+ * @details This function stops the device, making it disconnect from the broker.
+ * @param device A valid Astarte device handle.
+ * @return ASTARTE_OK if the device was succesfully stopped, another astarte_err_t otherwise.
+ */
+astarte_err_t astarte_device_stop(astarte_device_handle_t device);
 
 /**
  * @brief send a double value on a datastream endpoint.
