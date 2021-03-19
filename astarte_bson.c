@@ -211,7 +211,7 @@ double astarte_bson_value_to_double(const void *valuePtr)
     return v.dvalue;
 }
 
-int astarte_bson_check_validity(const void *document, unsigned int fileSize)
+bool astarte_bson_check_validity(const void *document, unsigned int fileSize)
 {
     const char *docBytes = (const char *) document;
     uint32_t docLen = read_uint32(document);
@@ -219,28 +219,28 @@ int astarte_bson_check_validity(const void *document, unsigned int fileSize)
 
     if (!fileSize) {
         ESP_LOGW(TAG, "Empty buffer: no BSON document found");
-        return 0;
+        return false;
     }
 
     if ((docLen == 5) && (fileSize >= 5) && (docBytes[4] == 0)) {
         // empty document
-        return 1;
+        return true;
     }
 
     if (fileSize < 4 + 1 + 2 + 1) {
         ESP_LOGW(TAG, "BSON data too small");
-        return 0;
+        return false;
     }
 
     if (docLen > fileSize) {
         ESP_LOGW(TAG, "BSON document is bigger than data: data: %ui document: %i", fileSize,
             (int) docLen);
-        return 0;
+        return false;
     }
 
     if (docBytes[docLen - 1] != 0) {
         ESP_LOGW(TAG, "BSON document is not terminated by null byte.");
-        return 0;
+        return false;
     }
 
     offset = 4;
@@ -257,10 +257,10 @@ int astarte_bson_check_validity(const void *document, unsigned int fileSize)
 
         default:
             ESP_LOGW(TAG, "Unrecognized BSON document first type\n");
-            return 0;
+            return false;
     }
 
-    return 1;
+    return true;
 }
 
 int32_t astarte_bson_document_size(const void *document)
