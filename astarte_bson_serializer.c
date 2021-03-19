@@ -230,7 +230,7 @@ void astarte_bson_serializer_append_datetime(
 }
 
 void astarte_bson_serializer_append_boolean(
-    struct astarte_bson_serializer_t *bs, const char *name, int value)
+    struct astarte_bson_serializer_t *bs, const char *name, bool value)
 {
     astarte_byte_array_append_byte(&bs->ba, BSON_TYPE_BOOLEAN);
     astarte_byte_array_append(&bs->ba, name, strlen(name) + 1);

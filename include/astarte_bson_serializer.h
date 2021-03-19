@@ -14,6 +14,7 @@
 
 #include "astarte.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -174,7 +175,7 @@ void astarte_bson_serializer_append_datetime(
  * @param value 0 as false value, not 0 as true value.
  */
 void astarte_bson_serializer_append_boolean(
-    struct astarte_bson_serializer_t *bs, const char *name, int value);
+    struct astarte_bson_serializer_t *bs, const char *name, bool value);
 
 /**
  * @brief append a sub-BSON document.
