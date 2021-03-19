@@ -131,14 +131,14 @@ astarte_err_t astarte_credentials_init()
     return result;
 }
 
-int astarte_credentials_is_initialized()
+bool astarte_credentials_is_initialized()
 {
     // use automount when using default storage functions
     if (creds_ctx.functions == &storage_funcs) {
         // automount must be kept for compatibility reasons
         astarte_err_t err = ensure_mounted();
         if (err != ASTARTE_OK) {
-            return 0;
+            return false;
         }
     }
 
@@ -818,19 +818,19 @@ astarte_err_t astarte_credentials_erase_stored_credentials_secret()
     return ASTARTE_OK;
 }
 
-int astarte_credentials_has_certificate()
+bool astarte_credentials_has_certificate()
 {
     CREDS_STORAGE_FUNCS(funcs);
     return funcs->astarte_credentials_exists(creds_ctx.opaque, ASTARTE_CREDENTIALS_CERTIFICATE);
 }
 
-int astarte_credentials_has_csr()
+bool astarte_credentials_has_csr()
 {
     CREDS_STORAGE_FUNCS(funcs);
     return funcs->astarte_credentials_exists(creds_ctx.opaque, ASTARTE_CREDENTIALS_CSR);
 }
 
-int astarte_credentials_has_key()
+bool astarte_credentials_has_key()
 {
     CREDS_STORAGE_FUNCS(funcs);
     return funcs->astarte_credentials_exists(creds_ctx.opaque, ASTARTE_CREDENTIALS_KEY);
