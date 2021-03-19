@@ -45,25 +45,38 @@
 #define PAIRING_NAMESPACE "astarte_pairing"
 #define CRED_SECRET_KEY "cred_secret"
 
+#define CREDS_STORAGE_FUNCS(NAME)                                                                  \
+    const astarte_credentials_storage_functions_t *NAME = creds_ctx.functions;
+
 static wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
 static QueueHandle_t s_init_result_queue = NULL;
 
 static astarte_err_t ensure_mounted();
 
+static char *s_credentials_secret_partition_label = NVS_DEFAULT_PART_NAME;
+
+static const astarte_credentials_storage_functions_t storage_funcs = {
+    .astarte_credentials_store = astarte_credentials_store,
+    .astarte_credentials_fetch = astarte_credentials_fetch,
+    .astarte_credentials_exists = astarte_credentials_exists,
+    .astarte_credentials_remove = astarte_credentials_remove,
+};
+
+static const astarte_credentials_storage_functions_t nvs_storage_funcs = {
+    .astarte_credentials_store = astarte_credentials_nvs_store,
+    .astarte_credentials_fetch = astarte_credentials_nvs_fetch,
+    .astarte_credentials_exists = astarte_credentials_nvs_exists,
+    .astarte_credentials_remove = astarte_credentials_nvs_remove,
+};
+
+static astarte_credentials_context_t creds_ctx = {
+    .functions = &storage_funcs,
+    .opaque = NULL,
+};
+
 void credentials_init_task(void *ctx)
 {
-    struct stat st;
     astarte_err_t res = ASTARTE_ERR;
-    if (stat(CREDENTIALS_DIR_PATH, &st) < 0) {
-        ESP_LOGI(TAG, "Directory %s doesn't exist, creating it", CREDENTIALS_DIR_PATH);
-        if (mkdir(CREDENTIALS_DIR_PATH, 0700) < 0) {
-            ESP_LOGE(TAG, "Cannot create %s directory", CREDENTIALS_DIR_PATH);
-            xQueueSend(s_init_result_queue, &res, portMAX_DELAY);
-            vTaskDelete(NULL);
-            return;
-        }
-    }
-
     if (!astarte_credentials_has_key()) {
         ESP_LOGI(TAG, "Private key not found, creating it.");
         res = astarte_credentials_create_key();
@@ -91,13 +104,9 @@ void credentials_init_task(void *ctx)
 
 astarte_err_t astarte_credentials_init()
 {
+    // astarte_credentials_is_initialized may mount filesystem as side effect
     if (astarte_credentials_is_initialized()) {
         return ASTARTE_OK;
-    }
-
-    astarte_err_t err = ensure_mounted();
-    if (err != ASTARTE_OK) {
-        return err;
     }
 
     if (!s_init_result_queue) {
@@ -124,12 +133,124 @@ astarte_err_t astarte_credentials_init()
 
 int astarte_credentials_is_initialized()
 {
-    astarte_err_t err = ensure_mounted();
-    if (err != ASTARTE_OK) {
-        return 0;
+    // use automount when using default storage functions
+    if (creds_ctx.functions == &storage_funcs) {
+        // automount must be kept for compatibility reasons
+        astarte_err_t err = ensure_mounted();
+        if (err != ASTARTE_OK) {
+            return 0;
+        }
     }
 
     return astarte_credentials_has_key() && astarte_credentials_has_csr();
+}
+
+astarte_err_t astarte_credentials_set_storage_context(astarte_credentials_context_t *creds_context)
+{
+    creds_ctx.functions = creds_context->functions;
+    creds_ctx.opaque = creds_context->opaque;
+
+    return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_use_nvs_storage(const char *partition_label)
+{
+    creds_ctx.functions = &nvs_storage_funcs;
+    if (partition_label) {
+        creds_ctx.opaque = strdup(partition_label);
+        // Use the partition label also for the credentials secret
+        s_credentials_secret_partition_label = creds_ctx.opaque;
+    } else {
+        creds_ctx.opaque = NVS_DEFAULT_PART_NAME;
+    }
+
+    return ASTARTE_OK;
+}
+
+static const char *astarte_credentials_filesystem_path(enum credential_type_t cred_type)
+{
+    switch (cred_type) {
+        case ASTARTE_CREDENTIALS_CSR:
+            return CSR_PATH;
+        case ASTARTE_CREDENTIALS_KEY:
+            return PRIVKEY_PATH;
+        case ASTARTE_CREDENTIALS_CERTIFICATE:
+            return CRT_PATH;
+        default:
+            return NULL;
+    }
+}
+
+astarte_err_t astarte_credentials_store(
+    void *opaque, enum credential_type_t cred_type, const void *credential, size_t length)
+{
+    const char *path = astarte_credentials_filesystem_path(cred_type);
+    if (!path) {
+        return ASTARTE_ERR;
+    }
+
+    FILE *outf = fopen(path, "wb+");
+    if (!outf) {
+        ESP_LOGE(TAG, "Cannot open %s for writing", path);
+        return ASTARTE_ERR_IO;
+    }
+
+    int written = fwrite(credential, sizeof(unsigned char), length, outf);
+    if (written != length) {
+        ESP_LOGE(TAG, "Cannot write credential to %s (len: %i, written: %i)", path, (int) length,
+            written);
+        return ASTARTE_ERR_IO;
+    }
+
+    if (fclose(outf) != 0) {
+        ESP_LOGE(TAG, "Cannot close %s", path);
+        return ASTARTE_ERR_IO;
+    }
+
+    return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_fetch(
+    void *opaque, enum credential_type_t cred_type, char *out, size_t length)
+{
+    const char *path = astarte_credentials_filesystem_path(cred_type);
+    if (!path) {
+        return ASTARTE_ERR;
+    }
+
+    FILE *infile = fopen(path, "rb");
+    if (!infile) {
+        ESP_LOGE(TAG, "Cannot open %s", path);
+        return ASTARTE_ERR_NOT_FOUND;
+    }
+
+    int ret;
+    if ((ret = fread(out, 1, length, infile)) < 0) {
+        ESP_LOGE(TAG, "fread on %s returned %d", path, ret);
+        fclose(infile);
+        return ASTARTE_ERR_IO;
+    }
+
+    fclose(infile);
+    return ASTARTE_OK;
+}
+
+bool astarte_credentials_exists(void *opaque, enum credential_type_t cred_type)
+{
+    const char *path = astarte_credentials_filesystem_path(cred_type);
+    if (!path) {
+        return false;
+    }
+    return access(path, R_OK) == 0;
+}
+
+astarte_err_t astarte_credentials_remove(void *opaque, enum credential_type_t cred_type)
+{
+    const char *path = astarte_credentials_filesystem_path(cred_type);
+    if (!path) {
+        return ASTARTE_ERR;
+    }
+    return remove(path) == 0 ? ASTARTE_OK : ASTARTE_ERR;
 }
 
 static astarte_err_t ensure_mounted()
@@ -151,7 +272,173 @@ static astarte_err_t ensure_mounted()
         return ASTARTE_ERR_PARTITION_SCHEME;
     }
 
+    struct stat st;
+    if (stat(CREDENTIALS_DIR_PATH, &st) < 0) {
+        ESP_LOGI(TAG, "Directory %s doesn't exist, creating it", CREDENTIALS_DIR_PATH);
+        if (mkdir(CREDENTIALS_DIR_PATH, 0700) < 0) {
+            ESP_LOGE(TAG, "Cannot create %s directory", CREDENTIALS_DIR_PATH);
+            return ASTARTE_ERR_IO;
+        }
+    }
+
     return ASTARTE_OK;
+}
+
+astarte_err_t astarte_nvs_open_err_to_astarte(esp_err_t err)
+{
+    switch (err) {
+        // NVS_NOT_FOUND is ok if we don't have credentials_secret yet
+        case ESP_ERR_NVS_NOT_FOUND:
+        case ESP_OK:
+            return ASTARTE_OK;
+        case ESP_ERR_NVS_NOT_INITIALIZED:
+            ESP_LOGE(TAG, "Non-volatile storage not initialized");
+            ESP_LOGE(TAG, "You have to call nvs_flash_init() in your initialization code");
+            return ASTARTE_ERR_NVS_NOT_INITIALIZED;
+        default:
+            ESP_LOGE(
+                TAG, "nvs_open error while reading credentials_secret: %s", esp_err_to_name(err));
+            return ASTARTE_ERR_NVS;
+    }
+}
+
+astarte_err_t astarte_nvs_rw_err_to_astarte(esp_err_t err)
+{
+    switch (err) {
+        case ESP_OK:
+            // Got it
+            return ASTARTE_OK;
+
+        // Here we come from NVS_NOT_FOUND above
+        case ESP_ERR_NVS_INVALID_HANDLE:
+        case ESP_ERR_NVS_NOT_FOUND:
+            return ASTARTE_ERR_NOT_FOUND;
+
+        default:
+            ESP_LOGE(TAG, "nvs_get_str error: %s", esp_err_to_name(err));
+            return ASTARTE_ERR_NVS;
+    }
+}
+
+static const char *astarte_credentials_nvs_key(enum credential_type_t cred_type)
+{
+    switch (cred_type) {
+        case ASTARTE_CREDENTIALS_CSR:
+            return "device.csr";
+        case ASTARTE_CREDENTIALS_KEY:
+            return "device.key";
+        case ASTARTE_CREDENTIALS_CERTIFICATE:
+            return "device.crt";
+        default:
+            return NULL;
+    }
+}
+
+astarte_err_t astarte_credentials_nvs_store(
+    void *opaque, enum credential_type_t cred_type, const void *credential, size_t length)
+{
+    astarte_err_t res;
+
+    const char *partition_label = opaque;
+    const char *key = astarte_credentials_nvs_key(cred_type);
+    if (!key) {
+        return ASTARTE_ERR;
+    }
+
+    nvs_handle nvs;
+    res = astarte_nvs_open_err_to_astarte(
+        nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs));
+    if (res != ASTARTE_OK) {
+        goto err;
+    }
+
+    res = astarte_nvs_rw_err_to_astarte(nvs_set_str(nvs, key, credential));
+    nvs_close(nvs);
+
+err:
+    if (res != ASTARTE_OK) {
+        ESP_LOGE(TAG, "error while saving %s to NVS: %i", key, (int) res);
+        return ASTARTE_ERR_NVS;
+    }
+
+    return ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_nvs_fetch(
+    void *opaque, enum credential_type_t cred_type, char *out, size_t length)
+{
+    astarte_err_t res;
+
+    const char *partition_label = opaque;
+    const char *key = astarte_credentials_nvs_key(cred_type);
+    if (!key) {
+        return ASTARTE_ERR;
+    }
+
+    nvs_handle nvs;
+    res = astarte_nvs_open_err_to_astarte(
+        nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READONLY, &nvs));
+    if (res != ASTARTE_OK) {
+        goto err;
+    }
+
+    size_t len;
+    nvs_get_str(nvs, key, NULL, &len);
+
+    res = astarte_nvs_rw_err_to_astarte(nvs_get_str(nvs, key, out, &length));
+
+err:
+    nvs_close(nvs);
+    return res;
+}
+
+bool astarte_credentials_nvs_exists(void *opaque, enum credential_type_t cred_type)
+{
+    astarte_err_t res;
+
+    const char *partition_label = opaque;
+    const char *key = astarte_credentials_nvs_key(cred_type);
+    if (!key) {
+        return false;
+    }
+
+    nvs_handle nvs;
+    res = astarte_nvs_open_err_to_astarte(
+        nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READONLY, &nvs));
+    if (res != ASTARTE_OK) {
+        goto err;
+    }
+
+    size_t length;
+    res = astarte_nvs_rw_err_to_astarte(nvs_get_str(nvs, key, NULL, &length));
+
+err:
+    nvs_close(nvs);
+    return res == ASTARTE_OK;
+}
+
+astarte_err_t astarte_credentials_nvs_remove(void *opaque, enum credential_type_t cred_type)
+{
+    astarte_err_t res;
+
+    const char *partition_label = opaque;
+    const char *key = astarte_credentials_nvs_key(cred_type);
+    if (!key) {
+        return ASTARTE_ERR;
+    }
+
+    nvs_handle nvs;
+    res = astarte_nvs_open_err_to_astarte(
+        nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs));
+    if (res != ASTARTE_OK) {
+        goto err;
+    }
+
+    res = nvs_erase_key(nvs, key);
+
+err:
+    nvs_close(nvs);
+    return res;
 }
 
 astarte_err_t astarte_credentials_create_key()
@@ -161,7 +448,6 @@ astarte_err_t astarte_credentials_create_key()
     mbedtls_pk_context key;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-    FILE *fpriv = NULL;
     unsigned char *privkey_buffer = NULL;
     const char *pers = "astarte_credentials_create_key";
 
@@ -207,17 +493,13 @@ astarte_err_t astarte_credentials_create_key()
     }
     size_t len = strlen((char *) privkey_buffer);
 
-    ESP_LOGI(TAG, "Saving the private key in %s", PRIVKEY_PATH);
-    fpriv = fopen(PRIVKEY_PATH, "wb+");
-    if (!fpriv) {
-        exit_code = ASTARTE_ERR_IO;
-        ESP_LOGE(TAG, "Cannot open %s for writing", PRIVKEY_PATH);
-        goto exit;
-    }
-
-    if (fwrite(privkey_buffer, sizeof(unsigned char), len, fpriv) != len) {
-        exit_code = ASTARTE_ERR_IO;
-        ESP_LOGE(TAG, "Cannot write private key to %s", PRIVKEY_PATH);
+    ESP_LOGI(TAG, "Saving the private key");
+    CREDS_STORAGE_FUNCS(funcs);
+    astarte_err_t sres = funcs->astarte_credentials_store(
+        creds_ctx.opaque, ASTARTE_CREDENTIALS_KEY, privkey_buffer, len);
+    if (sres != ASTARTE_OK) {
+        exit_code = sres;
+        ESP_LOGE(TAG, "Cannot store private");
         goto exit;
     }
 
@@ -228,16 +510,13 @@ astarte_err_t astarte_credentials_create_key()
 
     // Remove the CSR if present since the key is changed
     // We don't care if we fail since it could be not yet created
-    if (remove(CSR_PATH) == 0) {
+    CREDS_STORAGE_FUNCS(sf);
+    if (sf->astarte_credentials_remove(creds_ctx.opaque, ASTARTE_CREDENTIALS_CSR) == ASTARTE_OK) {
         ESP_LOGI(TAG, "Deleted old CSR");
     }
 
 exit:
     free(privkey_buffer);
-
-    if (fpriv != NULL) {
-        fclose(fpriv);
-    }
 
     mbedtls_pk_free(&key);
     mbedtls_ctr_drbg_free(&ctr_drbg);
@@ -254,7 +533,7 @@ astarte_err_t astarte_credentials_create_csr()
     mbedtls_x509write_csr req;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-    FILE *fcsr = NULL;
+    unsigned char *privkey_buffer = NULL;
     unsigned char *csr_buffer = NULL;
     const char *pers = "astarte_credentials_create_csr";
 
@@ -282,7 +561,23 @@ astarte_err_t astarte_credentials_create_csr()
     }
 
     ESP_LOGI(TAG, "Loading the private key");
-    if ((ret = mbedtls_pk_parse_keyfile(&key, PRIVKEY_PATH, NULL)) != 0) {
+    privkey_buffer = calloc(PRIVKEY_BUFFER_LENGTH, sizeof(unsigned char));
+    if (!privkey_buffer) {
+        exit_code = ASTARTE_ERR_OUT_OF_MEMORY;
+        ESP_LOGE(TAG, "Cannot allocate private key buffer");
+        goto exit;
+    }
+
+    CREDS_STORAGE_FUNCS(funcs);
+    astarte_err_t sres = funcs->astarte_credentials_fetch(
+        creds_ctx.opaque, ASTARTE_CREDENTIALS_KEY, (char *) privkey_buffer, PRIVKEY_BUFFER_LENGTH);
+    if (sres != ASTARTE_OK) {
+        exit_code = sres;
+        ESP_LOGE(TAG, "Cannot load the private key");
+        goto exit;
+    }
+
+    if ((ret = mbedtls_pk_parse_key(&key, privkey_buffer, PRIVKEY_BUFFER_LENGTH, NULL, 0)) != 0) {
         ESP_LOGE(TAG, "mbedtls_pk_parse_key returned %d", ret);
         goto exit;
     }
@@ -304,17 +599,12 @@ astarte_err_t astarte_credentials_create_csr()
     }
     size_t len = strlen((char *) csr_buffer);
 
-    ESP_LOGI(TAG, "Saving the CSR in %s", CSR_PATH);
-    fcsr = fopen(CSR_PATH, "wb+");
-    if (!fcsr) {
-        exit_code = ASTARTE_ERR_IO;
-        ESP_LOGE(TAG, "Cannot open %s for writing", CSR_PATH);
-        goto exit;
-    }
-
-    if (fwrite(csr_buffer, sizeof(unsigned char), len, fcsr) != len) {
-        exit_code = ASTARTE_ERR_IO;
-        ESP_LOGE(TAG, "Cannot write CSR to %s", CSR_PATH);
+    ESP_LOGI(TAG, "Saving the CSR");
+    sres = funcs->astarte_credentials_store(
+        creds_ctx.opaque, ASTARTE_CREDENTIALS_CSR, csr_buffer, len);
+    if (sres != ASTARTE_OK) {
+        exit_code = sres;
+        ESP_LOGE(TAG, "Cannot store the CSR");
         goto exit;
     }
 
@@ -325,10 +615,7 @@ astarte_err_t astarte_credentials_create_csr()
 
 exit:
     free(csr_buffer);
-
-    if (fcsr) {
-        fclose(fcsr);
-    }
+    free(privkey_buffer);
 
     mbedtls_x509write_csr_free(&req);
     mbedtls_pk_free(&key);
@@ -345,71 +632,43 @@ astarte_err_t astarte_credentials_save_certificate(const char *cert_pem)
         return ASTARTE_ERR;
     }
 
-    FILE *fcert = fopen(CRT_PATH, "wb+");
-    if (!fcert) {
-        ESP_LOGE(TAG, "Cannot open %s", CRT_PATH);
-        return ASTARTE_ERR_IO;
-    }
-
     size_t len = strlen(cert_pem);
-    int ret;
-    if ((ret = fwrite(cert_pem, 1, len, fcert)) != len) {
-        ESP_LOGE(TAG, "fwrite returned %d", ret);
-        fclose(fcert);
-        return ASTARTE_ERR_IO;
+
+    ESP_LOGI(TAG, "Saving the certificate");
+    CREDS_STORAGE_FUNCS(funcs);
+    astarte_err_t sres = funcs->astarte_credentials_store(
+        creds_ctx.opaque, ASTARTE_CREDENTIALS_CERTIFICATE, cert_pem, len);
+    if (sres != ASTARTE_OK) {
+        return sres;
     }
 
-    fclose(fcert);
     return ASTARTE_OK;
 }
 
 astarte_err_t astarte_credentials_delete_certificate()
 {
-    int ret;
-    if ((ret = remove(CRT_PATH)) != 0) {
-        ESP_LOGE(TAG, "remove returned %d", ret);
-        return ASTARTE_ERR_IO;
+    CREDS_STORAGE_FUNCS(f);
+
+    astarte_err_t ret
+        = f->astarte_credentials_remove(creds_ctx.opaque, ASTARTE_CREDENTIALS_CERTIFICATE);
+    if (ret != ASTARTE_OK) {
+        ESP_LOGE(TAG, "certificate remove failed");
     }
 
-    return ASTARTE_OK;
+    return ret;
 }
 
 astarte_err_t astarte_credentials_get_csr(char *out, size_t length)
 {
-    FILE *fcsr = fopen(CSR_PATH, "rb");
-    if (!fcsr) {
-        ESP_LOGE(TAG, "Cannot open %s", CSR_PATH);
-        return ASTARTE_ERR_NOT_FOUND;
-    }
-
-    int ret;
-    if ((ret = fread(out, 1, length, fcsr)) < 0) {
-        ESP_LOGE(TAG, "fread returned %d", ret);
-        fclose(fcsr);
-        return ASTARTE_ERR_IO;
-    }
-
-    fclose(fcsr);
-    return ASTARTE_OK;
+    CREDS_STORAGE_FUNCS(funcs);
+    return funcs->astarte_credentials_fetch(creds_ctx.opaque, ASTARTE_CREDENTIALS_CSR, out, length);
 }
 
 astarte_err_t astarte_credentials_get_certificate(char *out, size_t length)
 {
-    FILE *fcert = fopen(CRT_PATH, "rb");
-    if (!fcert) {
-        ESP_LOGE(TAG, "Cannot open %s", CRT_PATH);
-        return ASTARTE_ERR_NOT_FOUND;
-    }
-
-    int ret;
-    if ((ret = fread(out, 1, length, fcert)) < 0) {
-        ESP_LOGE(TAG, "fread returned %d", ret);
-        fclose(fcert);
-        return ASTARTE_ERR_IO;
-    }
-
-    fclose(fcert);
-    return ASTARTE_OK;
+    CREDS_STORAGE_FUNCS(funcs);
+    return funcs->astarte_credentials_fetch(
+        creds_ctx.opaque, ASTARTE_CREDENTIALS_CERTIFICATE, out, length);
 }
 
 astarte_err_t astarte_credentials_get_certificate_common_name(
@@ -448,27 +707,15 @@ exit:
 
 astarte_err_t astarte_credentials_get_key(char *out, size_t length)
 {
-    FILE *fpriv = fopen(PRIVKEY_PATH, "rb");
-    if (!fpriv) {
-        ESP_LOGE(TAG, "Cannot open %s", CSR_PATH);
-        return ASTARTE_ERR_NOT_FOUND;
-    }
-
-    int ret;
-    if ((ret = fread(out, 1, length, fpriv)) < 0) {
-        ESP_LOGE(TAG, "fread returned %d", ret);
-        fclose(fpriv);
-        return ASTARTE_ERR_IO;
-    }
-
-    fclose(fpriv);
-    return ASTARTE_OK;
+    CREDS_STORAGE_FUNCS(funcs);
+    return funcs->astarte_credentials_fetch(creds_ctx.opaque, ASTARTE_CREDENTIALS_KEY, out, length);
 }
 
 astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_t length)
 {
     nvs_handle nvs;
-    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READONLY, &nvs);
+    esp_err_t err = nvs_open_from_partition(
+        s_credentials_secret_partition_label, PAIRING_NAMESPACE, NVS_READONLY, &nvs);
     switch (err) {
         // NVS_NOT_FOUND is ok if we don't have credentials_secret yet
         case ESP_ERR_NVS_NOT_FOUND:
@@ -506,7 +753,8 @@ astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_
 astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *credentials_secret)
 {
     nvs_handle nvs;
-    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
+    esp_err_t err = nvs_open_from_partition(
+        s_credentials_secret_partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
     switch (err) {
         case ESP_OK:
             break;
@@ -535,7 +783,8 @@ astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *cred
 astarte_err_t astarte_credentials_erase_stored_credentials_secret()
 {
     nvs_handle nvs;
-    esp_err_t err = nvs_open(PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
+    esp_err_t err = nvs_open_from_partition(
+        s_credentials_secret_partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
     switch (err) {
         case ESP_OK:
             break;
@@ -571,15 +820,18 @@ astarte_err_t astarte_credentials_erase_stored_credentials_secret()
 
 int astarte_credentials_has_certificate()
 {
-    return access(CRT_PATH, R_OK) == 0;
+    CREDS_STORAGE_FUNCS(funcs);
+    return funcs->astarte_credentials_exists(creds_ctx.opaque, ASTARTE_CREDENTIALS_CERTIFICATE);
 }
 
 int astarte_credentials_has_csr()
 {
-    return access(CSR_PATH, R_OK) == 0;
+    CREDS_STORAGE_FUNCS(funcs);
+    return funcs->astarte_credentials_exists(creds_ctx.opaque, ASTARTE_CREDENTIALS_CSR);
 }
 
 int astarte_credentials_has_key()
 {
-    return access(PRIVKEY_PATH, R_OK) == 0;
+    CREDS_STORAGE_FUNCS(funcs);
+    return funcs->astarte_credentials_exists(creds_ctx.opaque, ASTARTE_CREDENTIALS_KEY);
 }
