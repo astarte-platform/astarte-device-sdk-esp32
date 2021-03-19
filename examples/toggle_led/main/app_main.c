@@ -156,7 +156,10 @@ static void astarte_example_task(void *ctx)
 
     astarte_device_add_interface(device, "org.astarteplatform.esp32.DeviceDatastream", 0, 2);
     astarte_device_add_interface(device, "org.astarteplatform.esp32.ServerDatastream", 0, 1);
-    astarte_device_start(device);
+    if (astarte_device_start(device) != ASTARTE_OK) {
+        ESP_LOGE(TAG, "Failed to start astarte device");
+        return;
+    }
 
     ESP_LOGI(TAG, "[APP] Encoded device ID: %s", astarte_device_get_encoded_id(device));
 

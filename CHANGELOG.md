@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add `astarte_device_stop` function to stop the internal MQTT client.
 - Add connection and disconnection callbacks called after device connection/disconnection.
 
+### Changed
+- `astarte_device_start` now returns `astarte_err_t` to check if the device was succesfully started.
+
 ## [1.0.0-beta.1] - 2021-02-16
 ### Added
 - Allow sending data to object aggregated interfaces.

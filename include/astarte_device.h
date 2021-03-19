@@ -125,8 +125,9 @@ astarte_err_t astarte_device_add_interface(astarte_device_handle_t device,
  *
  * @details This function starts the device, making it connect to the broker and perform its work.
  * @param device A valid Astarte device handle.
+ * @return ASTARTE_OK if the device was succesfully started, another astarte_err_t otherwise.
  */
-void astarte_device_start(astarte_device_handle_t device);
+astarte_err_t astarte_device_start(astarte_device_handle_t device);
 
 /**
  * @brief stop Astarte device.
