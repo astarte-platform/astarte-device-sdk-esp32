@@ -79,7 +79,7 @@ astarte_err_t astarte_pairing_get_credentials_secret(
             return ASTARTE_OK;
 
         case ASTARTE_ERR_NOT_FOUND:
-            ESP_LOGI(TAG, "credentials_secret not found, registering device");
+            ESP_LOGD(TAG, "credentials_secret not found, registering device");
             break;
 
         default:
@@ -180,13 +180,13 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
 
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
-        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d", status_code,
+        ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %d", status_code,
             esp_http_client_get_content_length(client));
 
         const char *client_crt = NULL;
         if (status_code == 201) {
             client_crt = extract_client_crt(resp);
-            ESP_LOGI(TAG, "Got credentials, client_crt is %s", client_crt);
+            ESP_LOGD(TAG, "Got credentials, client_crt is %s", client_crt);
         } else {
             char *json_error = cJSON_Print(resp);
             if (json_error) {
@@ -296,13 +296,13 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
 
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
-        ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %d", status_code,
+        ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %d", status_code,
             esp_http_client_get_content_length(client));
 
         const char *broker_url = NULL;
         if (status_code == 200) {
             broker_url = extract_broker_url(resp);
-            ESP_LOGI(TAG, "Got info, broker_url is %s", broker_url);
+            ESP_LOGD(TAG, "Got info, broker_url is %s", broker_url);
         } else {
             char *json_error = cJSON_Print(resp);
             if (json_error) {
@@ -410,13 +410,13 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
 
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
-        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d", status_code,
+        ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %d", status_code,
             esp_http_client_get_content_length(client));
 
         const char *credentials_secret = NULL;
         if (status_code == 201) {
             credentials_secret = extract_credentials_secret(resp);
-            ESP_LOGI(TAG, "Device registered, credentials_secret is %s", credentials_secret);
+            ESP_LOGD(TAG, "Device registered, credentials_secret is %s", credentials_secret);
         } else {
             char *json_error = cJSON_Print(resp);
             if (json_error) {

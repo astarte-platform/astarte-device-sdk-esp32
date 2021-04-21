@@ -78,7 +78,7 @@ void credentials_init_task(void *ctx)
 {
     astarte_err_t res = ASTARTE_ERR;
     if (!astarte_credentials_has_key()) {
-        ESP_LOGI(TAG, "Private key not found, creating it.");
+        ESP_LOGD(TAG, "Private key not found, creating it.");
         res = astarte_credentials_create_key();
         if (res != ASTARTE_OK) {
             xQueueSend(s_init_result_queue, &res, portMAX_DELAY);
@@ -88,7 +88,7 @@ void credentials_init_task(void *ctx)
     }
 
     if (!astarte_credentials_has_csr()) {
-        ESP_LOGI(TAG, "CSR not found, creating it.");
+        ESP_LOGD(TAG, "CSR not found, creating it.");
         res = astarte_credentials_create_csr();
         if (res != ASTARTE_OK) {
             xQueueSend(s_init_result_queue, &res, portMAX_DELAY);
@@ -262,7 +262,7 @@ static astarte_err_t ensure_mounted()
     };
     esp_err_t err = ESP_OK;
     if (s_wl_handle == WL_INVALID_HANDLE) {
-        ESP_LOGI(TAG, "Mounting FAT filesystem for credentials");
+        ESP_LOGD(TAG, "Mounting FAT filesystem for credentials");
         err = esp_vfs_fat_spiflash_mount(
             CREDENTIALS_MOUNTPOINT, PARTITION_NAME, &mount_config, &s_wl_handle);
     }
@@ -274,7 +274,7 @@ static astarte_err_t ensure_mounted()
 
     struct stat st;
     if (stat(CREDENTIALS_DIR_PATH, &st) < 0) {
-        ESP_LOGI(TAG, "Directory %s doesn't exist, creating it", CREDENTIALS_DIR_PATH);
+        ESP_LOGD(TAG, "Directory %s doesn't exist, creating it", CREDENTIALS_DIR_PATH);
         if (mkdir(CREDENTIALS_DIR_PATH, 0700) < 0) {
             ESP_LOGE(TAG, "Cannot create %s directory", CREDENTIALS_DIR_PATH);
             return ASTARTE_ERR_IO;
@@ -456,7 +456,7 @@ astarte_err_t astarte_credentials_create_key()
     mbedtls_entropy_init(&entropy);
 
     int ret = 0;
-    ESP_LOGI(TAG, "Initializing entropy");
+    ESP_LOGD(TAG, "Initializing entropy");
     if ((ret = mbedtls_ctr_drbg_seed(
              &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, strlen(pers)))
         != 0) {
@@ -464,7 +464,7 @@ astarte_err_t astarte_credentials_create_key()
         goto exit;
     }
 
-    ESP_LOGI(TAG, "Generating the EC key (using curve secp256r1)");
+    ESP_LOGD(TAG, "Generating the EC key (using curve secp256r1)");
 
     if ((ret = mbedtls_pk_setup(&key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY))) != 0) {
         ESP_LOGE(TAG, "mbedtls_pk_setup returned %d", ret);
@@ -478,7 +478,7 @@ astarte_err_t astarte_credentials_create_key()
         goto exit;
     }
 
-    ESP_LOGI(TAG, "Key succesfully generated");
+    ESP_LOGD(TAG, "Key succesfully generated");
 
     privkey_buffer = calloc(PRIVKEY_BUFFER_LENGTH, sizeof(unsigned char));
     if (!privkey_buffer) {
@@ -493,7 +493,7 @@ astarte_err_t astarte_credentials_create_key()
     }
     size_t len = strlen((char *) privkey_buffer);
 
-    ESP_LOGI(TAG, "Saving the private key");
+    ESP_LOGD(TAG, "Saving the private key");
     CREDS_STORAGE_FUNCS(funcs);
     astarte_err_t sres = funcs->astarte_credentials_store(
         creds_ctx.opaque, ASTARTE_CREDENTIALS_KEY, privkey_buffer, len);
@@ -503,16 +503,16 @@ astarte_err_t astarte_credentials_create_key()
         goto exit;
     }
 
-    ESP_LOGI(TAG, "Private key succesfully saved.");
+    ESP_LOGD(TAG, "Private key succesfully saved.");
     // TODO: this is useful in this phase, remove it later
-    ESP_LOGI(TAG, "%.*s", len, privkey_buffer);
+    ESP_LOGD(TAG, "%.*s", len, privkey_buffer);
     exit_code = ASTARTE_OK;
 
     // Remove the CSR if present since the key is changed
     // We don't care if we fail since it could be not yet created
     CREDS_STORAGE_FUNCS(sf);
     if (sf->astarte_credentials_remove(creds_ctx.opaque, ASTARTE_CREDENTIALS_CSR) == ASTARTE_OK) {
-        ESP_LOGI(TAG, "Deleted old CSR");
+        ESP_LOGD(TAG, "Deleted old CSR");
     }
 
 exit:
@@ -552,7 +552,7 @@ astarte_err_t astarte_credentials_create_csr()
         goto exit;
     }
 
-    ESP_LOGI(TAG, "Initializing entropy");
+    ESP_LOGD(TAG, "Initializing entropy");
     if ((ret = mbedtls_ctr_drbg_seed(
              &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, strlen(pers)))
         != 0) {
@@ -560,7 +560,7 @@ astarte_err_t astarte_credentials_create_csr()
         goto exit;
     }
 
-    ESP_LOGI(TAG, "Loading the private key");
+    ESP_LOGD(TAG, "Loading the private key");
     privkey_buffer = calloc(PRIVKEY_BUFFER_LENGTH, sizeof(unsigned char));
     if (!privkey_buffer) {
         exit_code = ASTARTE_ERR_OUT_OF_MEMORY;
@@ -599,7 +599,7 @@ astarte_err_t astarte_credentials_create_csr()
     }
     size_t len = strlen((char *) csr_buffer);
 
-    ESP_LOGI(TAG, "Saving the CSR");
+    ESP_LOGD(TAG, "Saving the CSR");
     sres = funcs->astarte_credentials_store(
         creds_ctx.opaque, ASTARTE_CREDENTIALS_CSR, csr_buffer, len);
     if (sres != ASTARTE_OK) {
@@ -608,9 +608,9 @@ astarte_err_t astarte_credentials_create_csr()
         goto exit;
     }
 
-    ESP_LOGI(TAG, "CSR succesfully created.");
+    ESP_LOGD(TAG, "CSR succesfully created.");
     // TODO: this is useful in this phase, remove it later
-    ESP_LOGI(TAG, "%.*s", len, csr_buffer);
+    ESP_LOGD(TAG, "%.*s", len, csr_buffer);
     exit_code = ASTARTE_OK;
 
 exit:
@@ -634,7 +634,7 @@ astarte_err_t astarte_credentials_save_certificate(const char *cert_pem)
 
     size_t len = strlen(cert_pem);
 
-    ESP_LOGI(TAG, "Saving the certificate");
+    ESP_LOGD(TAG, "Saving the certificate");
     CREDS_STORAGE_FUNCS(funcs);
     astarte_err_t sres = funcs->astarte_credentials_store(
         creds_ctx.opaque, ASTARTE_CREDENTIALS_CERTIFICATE, cert_pem, len);
