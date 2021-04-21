@@ -107,7 +107,7 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         encoded_hwid = generated_encoded_hwid;
     }
 
-    ESP_LOGI(TAG, "hwid is: %s", encoded_hwid);
+    ESP_LOGD(TAG, "hwid is: %s", encoded_hwid);
 
     if (cfg->credentials_secret) {
         ret->credentials_secret = strdup(cfg->credentials_secret);
@@ -254,7 +254,7 @@ astarte_err_t astarte_device_init_connection(
         ESP_LOGE(TAG, "Error in get_credentials_secret");
         return err;
     } else {
-        ESP_LOGI(TAG, "credentials_secret is: %s", credentials_secret);
+        ESP_LOGD(TAG, "credentials_secret is: %s", credentials_secret);
     }
 
     char *client_cert_pem = NULL;
@@ -279,7 +279,7 @@ astarte_err_t astarte_device_init_connection(
         ESP_LOGE(TAG, "Error in get_key");
         goto init_failed;
     } else {
-        ESP_LOGI(TAG, "Key is: %s", key_pem);
+        ESP_LOGD(TAG, "Key is: %s", key_pem);
     }
 
     client_cert_pem = calloc(CERT_LENGTH, sizeof(char));
@@ -292,7 +292,7 @@ astarte_err_t astarte_device_init_connection(
         ESP_LOGE(TAG, "Error in get_certificate");
         goto init_failed;
     } else {
-        ESP_LOGI(TAG, "Certificate is: %s", client_cert_pem);
+        ESP_LOGD(TAG, "Certificate is: %s", client_cert_pem);
     }
 
     client_cert_cn = calloc(CN_LENGTH, sizeof(char));
@@ -306,7 +306,7 @@ astarte_err_t astarte_device_init_connection(
         ESP_LOGE(TAG, "Error in get_certificate_common_name");
         goto init_failed;
     } else {
-        ESP_LOGI(TAG, "Device topic is: %s", client_cert_cn);
+        ESP_LOGD(TAG, "Device topic is: %s", client_cert_cn);
     }
 
     char broker_url[URL_LENGTH];
@@ -315,7 +315,7 @@ astarte_err_t astarte_device_init_connection(
         ESP_LOGE(TAG, "Error in get_mqtt_v1_broker_url");
         goto init_failed;
     } else {
-        ESP_LOGI(TAG, "Broker URL is: %s", broker_url);
+        ESP_LOGD(TAG, "Broker URL is: %s", broker_url);
     }
 
     const esp_mqtt_client_config_t mqtt_cfg = {
@@ -480,7 +480,7 @@ static astarte_err_t publish_data(astarte_device_handle_t device, const char *in
 
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
 
-    ESP_LOGI(TAG, "Publishing on %s with QoS %d", topic, qos);
+    ESP_LOGD(TAG, "Publishing on %s with QoS %d", topic, qos);
     int ret = esp_mqtt_client_publish(mqtt, topic, data, length, qos, 0);
     xSemaphoreGive(device->reinit_mutex);
     if (ret < 0) {
@@ -488,7 +488,7 @@ static astarte_err_t publish_data(astarte_device_handle_t device, const char *in
         return ASTARTE_ERR_PUBLISH;
     }
 
-    ESP_LOGI(TAG, "Publish succeeded, msg_id: %d", ret);
+    ESP_LOGD(TAG, "Publish succeeded, msg_id: %d", ret);
     return ASTARTE_OK;
 }
 
@@ -762,7 +762,7 @@ static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing
         ESP_LOGE(TAG, "Error in get_mqtt_v1_credentials");
         goto exit;
     } else {
-        ESP_LOGI(TAG, "Got credentials");
+        ESP_LOGD(TAG, "Got credentials");
     }
 
     ret = astarte_credentials_save_certificate(cert_pem);
@@ -770,7 +770,7 @@ static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing
         ESP_LOGE(TAG, "Error in get_mqtt_v1_credentials");
         goto exit;
     } else {
-        ESP_LOGI(TAG, "Certificate saved");
+        ESP_LOGD(TAG, "Certificate saved");
     }
 
     ret = ASTARTE_OK;
@@ -831,7 +831,7 @@ static void send_introspection(astarte_device_handle_t device)
     // Decrease len accordingly
     len -= 1;
 
-    ESP_LOGI(TAG, "Publishing introspection: %s", introspection_string);
+    ESP_LOGD(TAG, "Publishing introspection: %s", introspection_string);
     esp_mqtt_client_publish(mqtt, device->device_topic, introspection_string, len, 2, 0);
 }
 
@@ -847,7 +847,7 @@ static void setup_subscriptions(astarte_device_handle_t device)
 
     // Subscribe to control messages
     snprintf(topic, TOPIC_LENGTH, "%s/control/consumer/properties", device->device_topic);
-    ESP_LOGI(TAG, "Subscribing to %s", topic);
+    ESP_LOGD(TAG, "Subscribing to %s", topic);
     esp_mqtt_client_subscribe(mqtt, topic, 2);
 
     struct astarte_list_head_t *item;
@@ -859,7 +859,7 @@ static void setup_subscriptions(astarte_device_handle_t device)
         if (interface->ownership == OWNERSHIP_SERVER) {
             // Subscribe to server interface subtopics
             snprintf(topic, TOPIC_LENGTH, "%s/%s/#", device->device_topic, interface->name);
-            ESP_LOGI(TAG, "Subscribing to %s", topic);
+            ESP_LOGD(TAG, "Subscribing to %s", topic);
             esp_mqtt_client_subscribe(mqtt, topic, 2);
         }
     }
@@ -920,7 +920,7 @@ static void on_incoming(
     if (strstr(topic, control_prefix)) {
         // Control message
         char *control_topic = topic + control_prefix_len;
-        ESP_LOGI(TAG, "Received control message on control topic %s", control_topic);
+        ESP_LOGD(TAG, "Received control message on control topic %s", control_topic);
         // TODO: on_control_message(device, control_topic, data, data_len);
         return;
     }
@@ -998,7 +998,7 @@ static void on_certificate_error(astarte_device_handle_t device)
         ESP_LOGW(TAG, "Certificate error, notifying the reinit task");
         xTaskNotify(device->reinit_task_handle, NOTIFY_REINIT, eSetBits);
     } else {
-        ESP_LOGI(TAG, "TLS error due to missing connectivity, ignoring");
+        ESP_LOGD(TAG, "TLS error due to missing connectivity, ignoring");
         // Do nothing, the mqtt client will try to connect again
     }
 }
@@ -1008,38 +1008,38 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
     astarte_device_handle_t device = (astarte_device_handle_t) event->user_context;
     switch (event->event_id) {
         case MQTT_EVENT_BEFORE_CONNECT:
-            ESP_LOGI(TAG, "MQTT_EVENT_BEFORE_CONNECT");
+            ESP_LOGD(TAG, "MQTT_EVENT_BEFORE_CONNECT");
             break;
 
         case MQTT_EVENT_CONNECTED:
-            ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+            ESP_LOGD(TAG, "MQTT_EVENT_CONNECTED");
             on_connected(device, event->session_present);
             break;
 
         case MQTT_EVENT_DISCONNECTED:
-            ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+            ESP_LOGD(TAG, "MQTT_EVENT_DISCONNECTED");
             on_disconnected(device);
             break;
 
         case MQTT_EVENT_SUBSCRIBED:
-            ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
+            ESP_LOGD(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
             break;
 
         case MQTT_EVENT_UNSUBSCRIBED:
-            ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
+            ESP_LOGD(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
             break;
 
         case MQTT_EVENT_PUBLISHED:
-            ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+            ESP_LOGD(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
             break;
 
         case MQTT_EVENT_DATA:
-            ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+            ESP_LOGD(TAG, "MQTT_EVENT_DATA");
             on_incoming(device, event->topic, event->topic_len, event->data, event->data_len);
             break;
 
         case MQTT_EVENT_ERROR:
-            ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+            ESP_LOGD(TAG, "MQTT_EVENT_ERROR");
             if (event->error_handle->error_type == MQTT_ERROR_TYPE_ESP_TLS) {
                 on_certificate_error(device);
             }
