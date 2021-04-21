@@ -14,6 +14,8 @@
 
 #include "astarte.h"
 
+#include <astarte_interface.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -112,13 +114,13 @@ void astarte_device_destroy(astarte_device_handle_t device);
  * @details This function has to be called before astarte_device_start to add all the needed Astarte
  * interfaces, that will be sent in the device introspection when it connects.
  * @param device A valid Astarte device handle.
- * @param interface_name A string containing the name of the interface.
- * @param major_version The major version of the interface.
- * @param minor_version The minor_version of the interface.
+ * @param interface A pointer to an astarte_interface_t struct describing the interface. The caller
+ * is responsible for making sure the pointed interface remains valid for the lifetime of the
+ * astarte_device. It is recommended to declare interface structs as static const.
  * @return ASTARTE_OK if the interface was succesfully added, another astarte_err_t otherwise.
  */
-astarte_err_t astarte_device_add_interface(astarte_device_handle_t device,
-    const char *interface_name, int major_version, int minor_version);
+astarte_err_t astarte_device_add_interface(
+    astarte_device_handle_t device, const astarte_interface_t *interface);
 
 /**
  * @brief start Astarte device.
