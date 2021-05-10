@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.0.0-rc.0] - Unreleased
+## [1.0.0-rc.0] - 2021-05-10
 ### Changed
 - `astarte_device_add_interface` **incompatible API change**, the caller now has to provide a
   pointer to an `astarte_interface_t` struct.
