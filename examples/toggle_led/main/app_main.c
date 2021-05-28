@@ -1,3 +1,4 @@
+#include "astarte_interface.h"
 #include "esp_event_loop.h"
 #include "esp_wifi.h"
 #include "nvs_flash.h"
@@ -30,6 +31,22 @@
 static EventGroupHandle_t wifi_event_group;
 const static int CONNECTED_BIT = BIT0;
 static xQueueHandle button_evt_queue;
+
+const static astarte_interface_t device_datastream_interface = {
+    .name = "org.astarteplatform.esp32.DeviceDatastream",
+    .major_version = 0,
+    .minor_version = 1,
+    .ownership = OWNERSHIP_DEVICE,
+    .type = TYPE_DATASTREAM,
+};
+
+const static astarte_interface_t server_datastream_interface = {
+    .name = "org.astarteplatform.esp32.ServerDatastream",
+    .major_version = 0,
+    .minor_version = 1,
+    .ownership = OWNERSHIP_SERVER,
+    .type = TYPE_DATASTREAM,
+};
 
 static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
 {
@@ -153,8 +170,8 @@ static void astarte_example_task(void *ctx)
         return;
     }
 
-    astarte_device_add_interface(device, "org.astarteplatform.esp32.DeviceDatastream", 0, 2);
-    astarte_device_add_interface(device, "org.astarteplatform.esp32.ServerDatastream", 0, 1);
+    astarte_device_add_interface(device, &device_datastream_interface);
+    astarte_device_add_interface(device, &server_datastream_interface);
     if (astarte_device_start(device) != ASTARTE_OK) {
         ESP_LOGE(TAG, "Failed to start astarte device");
         return;

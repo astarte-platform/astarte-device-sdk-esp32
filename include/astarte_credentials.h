@@ -85,9 +85,9 @@ astarte_err_t astarte_credentials_init();
 /**
  * @brief check if Astarte credentials are initialized.
  *
- * @return 1 if the private key and CSR exist, 0 otherwise.
+ * @return true if the private key and CSR exist, false otherwise.
  */
-int astarte_credentials_is_initialized();
+bool astarte_credentials_is_initialized();
 
 /**
  * @brief create Astarte private key.
@@ -216,25 +216,25 @@ astarte_err_t astarte_credentials_erase_stored_credentials_secret();
  * @brief check if the certificate exists
  *
  * @details Check if the file containing the certificate exists and is readable.
- * @return 1 if the file exists and is readable, 0 otherwise.
+ * @return true if the file exists and is readable, false otherwise.
  */
-int astarte_credentials_has_certificate();
+bool astarte_credentials_has_certificate();
 
 /**
  * @brief check if the CSR exists
  *
  * @details Check if the file containing the CSR exists and is readable.
- * @return 1 if the file exists and is readable, 0 otherwise.
+ * @return true if the file exists and is readable, false otherwise.
  */
-int astarte_credentials_has_csr();
+bool astarte_credentials_has_csr();
 
 /**
  * @brief check if the private key exists
  *
  * @details Check if the file containing the private key exists and is readable.
- * @return 1 if the file exists and is readable, 0 otherwise.
+ * @return true if the file exists and is readable, false otherwise.
  */
-int astarte_credentials_has_key();
+bool astarte_credentials_has_key();
 
 /*
  * @brief store a credential using filesystem storage

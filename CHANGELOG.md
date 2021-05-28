@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.0.0-beta.2] - Unreleased
+## [1.0.0-rc.0] - 2021-05-10
+### Changed
+- `astarte_device_add_interface` **incompatible API change**, the caller now has to provide a
+  pointer to an `astarte_interface_t` struct.
+- Make sure the device only subscribes to server owned interfaces. This avoids that published
+  messages are sent back to the device.
+
+## [1.0.0-beta.2] - 2021-03-23
 ### Added
 - Add `astarte_device_stop` function to stop the internal MQTT client.
 - Add connection and disconnection callbacks called after device connection/disconnection.
