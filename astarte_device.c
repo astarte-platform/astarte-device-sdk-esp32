@@ -53,11 +53,12 @@ struct astarte_device_t
     TaskHandle_t reinit_task_handle;
     SemaphoreHandle_t reinit_mutex;
     struct astarte_list_head_t interfaces_list;
+    char *realm;
 };
 
 static void astarte_device_reinit_task(void *ctx);
 static astarte_err_t astarte_device_init_connection(
-    astarte_device_handle_t device, const char *encoded_hwid);
+    astarte_device_handle_t device, const char *encoded_hwid, const char *realm);
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config);
 static astarte_err_t check_device(astarte_device_handle_t device);
 static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name,
@@ -113,14 +114,27 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         ret->credentials_secret = strdup(cfg->credentials_secret);
     }
 
+    const char *realm;
+    if (cfg->realm) {
+        realm = cfg->realm;
+    } else {
+        realm = CONFIG_ASTARTE_REALM;
+    }
+
     astarte_err_t res;
-    if ((res = astarte_device_init_connection(ret, encoded_hwid)) != ASTARTE_OK) {
+    if ((res = astarte_device_init_connection(ret, encoded_hwid, realm)) != ASTARTE_OK) {
         ESP_LOGE(TAG, "Cannot init Astarte device: %d", res);
         goto init_failed;
     }
 
     ret->encoded_hwid = strdup(encoded_hwid);
     if (!ret->encoded_hwid) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto init_failed;
+    }
+
+    ret->realm = strdup(realm);
+    if (!ret->realm) {
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto init_failed;
     }
@@ -145,6 +159,8 @@ init_failed:
         xTaskNotify(ret->reinit_task_handle, NOTIFY_TERMINATE, eSetBits);
     }
 
+    free(ret->encoded_hwid);
+    free(ret->realm);
     free(ret);
 
     return NULL;
@@ -173,7 +189,8 @@ static void astarte_device_reinit_task(void *ctx)
             astarte_credentials_delete_certificate();
             // Retry until we succeed
             bool reinitialized = true;
-            while ((res = astarte_device_init_connection(device, device->encoded_hwid))
+            while (
+                (res = astarte_device_init_connection(device, device->encoded_hwid, device->realm))
                 != ASTARTE_OK) {
                 ESP_LOGE(TAG,
                     "Cannot reinit Astarte device: %d, trying again in %d "
@@ -203,7 +220,7 @@ static void astarte_device_reinit_task(void *ctx)
 }
 
 astarte_err_t astarte_device_init_connection(
-    astarte_device_handle_t device, const char *encoded_hwid)
+    astarte_device_handle_t device, const char *encoded_hwid, const char *realm)
 {
     astarte_err_t err;
     if (!astarte_credentials_is_initialized()) {
@@ -239,7 +256,7 @@ astarte_err_t astarte_device_init_connection(
     struct astarte_pairing_config pairing_config = {
         .base_url = CONFIG_ASTARTE_PAIRING_BASE_URL,
         .jwt = CONFIG_ASTARTE_PAIRING_JWT,
-        .realm = CONFIG_ASTARTE_REALM,
+        .realm = realm,
         .hw_id = encoded_hwid,
     };
 
@@ -364,6 +381,7 @@ void astarte_device_destroy(astarte_device_handle_t device)
     free(device->key_pem);
     free(device->encoded_hwid);
     free(device->credentials_secret);
+    free(device->realm);
     struct astarte_list_head_t *item;
     struct astarte_list_head_t *tmp;
     MUTABLE_LIST_FOR_EACH(item, tmp, &device->interfaces_list)
