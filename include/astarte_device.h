@@ -60,6 +60,7 @@ typedef struct
     astarte_device_disconnection_event_callback_t disconnection_event_callback;
     const char *hwid;
     const char *credentials_secret;
+    const char *realm;
 } astarte_device_config_t;
 
 #ifdef __cplusplus
