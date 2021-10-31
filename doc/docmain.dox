@@ -1,6 +1,6 @@
 /** @mainpage Astarte Device SDK ESP32 Documentation
 
-@version 1.0.0-beta.2
+@version 1.1.0-dev
 
  * The Astarte device SDK allows connecting an ESP32 device to Astarte.
  *
