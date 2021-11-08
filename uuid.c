@@ -7,6 +7,7 @@
 #include "uuid.h"
 
 #include <esp_log.h>
+#include <esp_system.h>
 
 #include <arpa/inet.h>
 #include <stdio.h>
@@ -162,4 +163,19 @@ int uuid_from_string(const char *in, uuid_t uuid)
 
     uuid_from_struct(&uuid_struct, uuid);
     return 0;
+}
+
+void uuid_generate_v4(uuid_t out)
+{
+    uint8_t random_result[16];
+    esp_fill_random(random_result, 16);
+
+    struct uuid random_uuid_struct;
+    uuid_to_struct(random_result, &random_uuid_struct);
+
+    int version = 4;
+    random_uuid_struct.time_hi_and_version &= 0x0FFF;
+    random_uuid_struct.time_hi_and_version |= (version << 12);
+
+    uuid_from_struct(&random_uuid_struct, out);
 }
