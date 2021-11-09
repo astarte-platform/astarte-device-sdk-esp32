@@ -24,7 +24,7 @@ extern "C" {
  * @param ns The UUID to be used as namespace.
  * @param data A pointer to the data that will be hashed to produce the UUID.
  * @param len The lenght of the data.
- * @param len The UUID where the result will be written.
+ * @param out The UUID where the result will be written.
  */
 void uuid_generate_v5(const uuid_t ns, const void *data, size_t len, uuid_t out);
 
@@ -46,6 +46,14 @@ void uuid_to_string(const uuid_t uuid, char *out);
  * @return 0 if the parsing was succesfull, -1 otherwise.
  */
 int uuid_from_string(const char *in, uuid_t uuid);
+
+/**
+ * @brief generate a UUIDv4.
+ *
+ * @details This function computes a random UUID using hardware RNG.
+ * @param out The UUID where the result will be written.
+ */
+void uuid_generate_v4(uuid_t out);
 
 #ifdef __cplusplus
 }
