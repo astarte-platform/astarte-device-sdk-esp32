@@ -17,6 +17,7 @@
 #define BSON_TYPE_DOUBLE    '\x01'
 #define BSON_TYPE_STRING    '\x02'
 #define BSON_TYPE_DOCUMENT  '\x03'
+#define BSON_TYPE_ARRAY     '\x04'
 #define BSON_TYPE_BINARY    '\x05'
 #define BSON_TYPE_BOOLEAN   '\x08'
 #define BSON_TYPE_DATETIME  '\x09'
