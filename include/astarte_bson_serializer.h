@@ -138,7 +138,7 @@ void astarte_bson_serializer_append_int64(
  * @param binary blob size in bytes.
  */
 void astarte_bson_serializer_append_binary(
-    struct astarte_bson_serializer_t *bs, const char *name, void *value, int size);
+    struct astarte_bson_serializer_t *bs, const char *name, const void *value, int size);
 
 /**
  * @brief append an UTF-8 string
@@ -188,6 +188,99 @@ void astarte_bson_serializer_append_boolean(
  */
 void astarte_bson_serializer_append_document(
     struct astarte_bson_serializer_t *bs, const char *name, const void *document);
+
+/**
+ * @brief append a double array
+ *
+ * @details This function appends a double array to the document. Stored value can be fetched using
+ * given key.
+ * @param bs a astarte_bson_serializer_t.
+ * @param name BSON key, which is a C string.
+ * @param double_array an array of doubles.
+ * @param count the number of items stored in double_array.
+ */
+void astarte_bson_serializer_append_double_array(
+    struct astarte_bson_serializer_t *bs, const char *name, const double *double_array, int count);
+
+/**
+ * @brief append an int32 array
+ *
+ * @details This function appends an int32 array to the document. Stored value can be fetched using
+ * given key.
+ * @param bs a astarte_bson_serializer_t.
+ * @param name BSON key, which is a C string.
+ * @param int32_array an array of signed 32 bit integers.
+ * @param count the number of items stored in int32_array.
+ */
+void astarte_bson_serializer_append_int32_array(
+    struct astarte_bson_serializer_t *bs, const char *name, const int32_t *int32_array, int count);
+
+/**
+ * @brief append an int64 array
+ *
+ * @details This function appends an int64 array to the document. Stored value can be fetched using
+ * given key.
+ * @param bs a astarte_bson_serializer_t.
+ * @param name BSON key, which is a C string.
+ * @param int64_array an array of signed 64 bit integers.
+ * @param count the number of items stored in int64_array.
+ */
+void astarte_bson_serializer_append_int64_array(
+    struct astarte_bson_serializer_t *bs, const char *name, const int64_t *int64_array, int count);
+
+/**
+ * @brief append a string array
+ *
+ * @details This function appends a string array to the document. Stored value can be fetched using
+ * given key.
+ * @param bs a astarte_bson_serializer_t.
+ * @param name BSON key, which is a C string.
+ * @param string_array an array of 0 terminated UTF-8 strings.
+ * @param count the number of items stored in string_array.
+ */
+void astarte_bson_serializer_append_string_array(struct astarte_bson_serializer_t *bs,
+    const char *name, const char *const *string_array, int count);
+
+/**
+ * @brief append a binary blob array
+ *
+ * @details This function appends a binary blob array to the document. Stored value can be fetched
+ * using given key.
+ * @param bs a astarte_bson_serializer_t.
+ * @param name BSON key, which is a C string.
+ * @param binarty_array an array of binary blobs (void *).
+ * @param sizes an array with the sizes of each binary in binary_array parameter.
+ * @param count the number of items stored in binary_array.
+ */
+void astarte_bson_serializer_append_binary_array(struct astarte_bson_serializer_t *bs,
+    const char *name, const void *const *binary_array, const int *sizes, int count);
+
+/**
+ * @brief append a date time array
+ *
+ * @details This function appends a date time array to the document. Stored value can be fetched
+ * using given key.
+ * @param bs a astarte_bson_serializer_t.
+ * @param name BSON key, which is a C string.
+ * @param epoch_millis_array an array of 64 bits unsigned integer storing date time in milliseconds
+ * since epoch.
+ * @param count the number of items stored in epoch_millis_array.
+ */
+void astarte_bson_serializer_append_datetime_array(struct astarte_bson_serializer_t *bs,
+    const char *name, const int64_t *epoch_millis_array, int count);
+
+/**
+ * @brief append a boolean array
+ *
+ * @details This function appends a boolean array to the document. Stored value can be fetched using
+ * given key.
+ * @param bs a astarte_bson_serializer_t.
+ * @param name BSON key, which is a C string.
+ * @param boolean_array an array of stdbool booleans.
+ * @param count the number of items stored in boolean_array.
+ */
+void astarte_bson_serializer_append_boolean_array(
+    struct astarte_bson_serializer_t *bs, const char *name, const bool *boolean_array, int count);
 
 #ifdef __cplusplus
 }

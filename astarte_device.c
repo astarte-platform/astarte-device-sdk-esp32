@@ -623,6 +623,46 @@ astarte_err_t astarte_device_stream_datetime_with_timestamp(astarte_device_handl
     return exit_code;
 }
 
+#define IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(TYPE, TYPE_NAME, BSON_TYPE_NAME)         \
+    astarte_err_t astarte_device_stream_##TYPE_NAME##_with_timestamp(                              \
+        astarte_device_handle_t device, const char *interface_name, const char *path, TYPE value,  \
+        int count, uint64_t ts_epoch_millis, int qos)                                              \
+    {                                                                                              \
+        struct astarte_bson_serializer_t bs;                                                       \
+        astarte_bson_serializer_init(&bs);                                                         \
+        astarte_bson_serializer_append_##BSON_TYPE_NAME(&bs, "v", value, count);                   \
+        maybe_append_timestamp(&bs, ts_epoch_millis);                                              \
+        astarte_bson_serializer_append_end_of_document(&bs);                                       \
+                                                                                                   \
+        astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);            \
+                                                                                                   \
+        astarte_bson_serializer_destroy(&bs);                                                      \
+        return exit_code;                                                                          \
+    }
+
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const double *, double_array, double_array)
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const int32_t *, integer_array, int32_array)
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const int64_t *, longinteger_array, int64_array)
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const bool *, boolean_array, boolean_array)
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const char *const *, string_array, string_array)
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const int64_t *, datetime_array, datetime_array)
+
+astarte_err_t astarte_device_stream_binaryblob_array_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const void *const *binary_blobs, const int *sizes,
+    int count, uint64_t ts_epoch_millis, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_binary_array(&bs, "v", binary_blobs, sizes, count);
+    maybe_append_timestamp(&bs, ts_epoch_millis);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
 astarte_err_t astarte_device_stream_aggregate_with_timestamp(astarte_device_handle_t device,
     const char *interface_name, const char *path_prefix, const void *bson_document,
     uint64_t ts_epoch_millis, int qos)

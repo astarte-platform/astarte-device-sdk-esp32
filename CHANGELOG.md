@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Allow passing an explicit realm to `astarte_device_config_t`.
 - Add function for generating random UUIDv4.
+- Add astarte_bson_serializer_append_<T>_array functions to BSON serializer (for each supported
+  type).
+- Add astarte_device_stream_<T>_array(_with_timestamp) functions to astarte_device (for each
+  supported type) in order to enable sending arrays to array typed datastreams.
 
 ## [1.0.0] - 2021-07-02
 
