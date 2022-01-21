@@ -854,6 +854,35 @@ static astarte_err_t check_device(astarte_device_handle_t device)
     return ASTARTE_OK;
 }
 
+static size_t get_int_string_size(int number)
+{
+    size_t digits = 1;
+    while (number > 9) {
+        number /= 10;
+        digits++;
+    }
+    return digits;
+}
+
+static size_t get_introspection_string_size(astarte_device_handle_t device)
+{
+    struct astarte_list_head_t *item;
+    size_t introspection_size = 0;
+    LIST_FOR_EACH(item, &device->interfaces_list)
+    {
+        struct astarte_ptr_list_entry_t *entry
+            = GET_LIST_ENTRY(item, struct astarte_ptr_list_entry_t, head);
+        const astarte_interface_t *interface = entry->value;
+
+        size_t major_digits = get_int_string_size(interface->major_version);
+        size_t minor_digits = get_int_string_size(interface->minor_version);
+
+        // The interface name in introspection is composed as  "name:major:minor;"
+        introspection_size += strlen(interface->name) + major_digits + minor_digits + 3;
+    }
+    return introspection_size;
+}
+
 static void send_introspection(astarte_device_handle_t device)
 {
     if (check_device(device) != ASTARTE_OK) {
@@ -862,28 +891,27 @@ static void send_introspection(astarte_device_handle_t device)
 
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
 
-    char introspection_string[512] = { 0 };
-    size_t total_written = 0;
     struct astarte_list_head_t *item;
+    size_t introspection_size = get_introspection_string_size(device);
+
+    if (introspection_size > 4096) { // if introspection size is > 4KiB print a warning
+        ESP_LOGW(TAG, "The introspection size is > 4KiB");
+    }
+
+    char *introspection_string = calloc(introspection_size + 1, sizeof(char));
+    if (!introspection_string) {
+        ESP_LOGE(TAG, "Unable to allocate memory for introspection string");
+        return;
+    }
+    int len = 0;
     LIST_FOR_EACH(item, &device->interfaces_list)
     {
         struct astarte_ptr_list_entry_t *entry
             = GET_LIST_ENTRY(item, struct astarte_ptr_list_entry_t, head);
         const astarte_interface_t *interface = entry->value;
-        char interface_entry[128];
-        snprintf(interface_entry, 128, "%s:%d:%d;", interface->name, interface->major_version,
-            interface->minor_version);
-
-        size_t to_be_written = strlen(interface_entry);
-        // + 1 because we need space for the terminator
-        if (total_written + to_be_written + 1 > 512) {
-            ESP_LOGE(TAG, "Introspection string is too long, cannot publish");
-            return;
-        }
-        strcat(introspection_string, interface_entry);
-        total_written += to_be_written;
+        len += sprintf(introspection_string + len, "%s:%d:%d;", interface->name,
+            interface->major_version, interface->minor_version);
     }
-    int len = strlen(introspection_string);
     // Remove last ; from introspection
     introspection_string[len - 1] = 0;
     // Decrease len accordingly
@@ -891,6 +919,7 @@ static void send_introspection(astarte_device_handle_t device)
 
     ESP_LOGD(TAG, "Publishing introspection: %s", introspection_string);
     esp_mqtt_client_publish(mqtt, device->device_topic, introspection_string, len, 2, 0);
+    free(introspection_string);
 }
 
 static void setup_subscriptions(astarte_device_handle_t device)
