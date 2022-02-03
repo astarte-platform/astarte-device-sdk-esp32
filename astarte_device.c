@@ -47,6 +47,7 @@ struct astarte_device_t
     char *key_pem;
     bool connected;
     astarte_device_data_event_callback_t data_event_callback;
+    astarte_device_unset_event_callback_t unset_event_callback;
     astarte_device_connection_event_callback_t connection_event_callback;
     astarte_device_disconnection_event_callback_t disconnection_event_callback;
     esp_mqtt_client_handle_t mqtt_client;
@@ -141,6 +142,7 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 
     astarte_list_init(&ret->interfaces_list);
     ret->data_event_callback = cfg->data_event_callback;
+    ret->unset_event_callback = cfg->unset_event_callback;
     ret->connection_event_callback = cfg->connection_event_callback;
     ret->disconnection_event_callback = cfg->disconnection_event_callback;
 
@@ -1035,7 +1037,14 @@ static void on_incoming(
     snprintf(path, 512, "%.*s", path_len, path_begin);
 
     if (!data && data_len == 0) {
-        // TODO: handle incoming unset messages
+        if (device->unset_event_callback) {
+            astarte_device_unset_event_t event
+                = { .device = device, .interface_name = interface_name, .path = path };
+            device->unset_event_callback(&event);
+        } else {
+            ESP_LOGE(
+                TAG, "Unset data for %s received, but unset_event_callback is not defined", path);
+        }
         return;
     }
 
