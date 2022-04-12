@@ -580,7 +580,8 @@ astarte_err_t astarte_device_stream_boolean_with_timestamp(astarte_device_handle
 }
 
 astarte_err_t astarte_device_stream_string_with_timestamp(astarte_device_handle_t device,
-    const char *interface_name, const char *path, char *value, uint64_t ts_epoch_millis, int qos)
+    const char *interface_name, const char *path, const char *value, uint64_t ts_epoch_millis,
+    int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
@@ -710,7 +711,7 @@ astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device,
 }
 
 astarte_err_t astarte_device_stream_string(astarte_device_handle_t device,
-    const char *interface_name, const char *path, char *value, int qos)
+    const char *interface_name, const char *path, const char *value, int qos)
 {
     return astarte_device_stream_string_with_timestamp(
         device, interface_name, path, value, ASTARTE_INVALID_TIMESTAMP, qos);
@@ -762,7 +763,7 @@ astarte_err_t astarte_device_set_boolean_property(
 }
 
 astarte_err_t astarte_device_set_string_property(
-    astarte_device_handle_t device, const char *interface_name, const char *path, char *value)
+    astarte_device_handle_t device, const char *interface_name, const char *path, const char *value)
 {
     return astarte_device_stream_string(device, interface_name, path, value, 2);
 }
