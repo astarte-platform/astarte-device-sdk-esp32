@@ -33,6 +33,13 @@ typedef struct
     int bson_value_type;
 } astarte_device_data_event_t;
 
+typedef struct
+{
+    astarte_device_handle_t device;
+    const char *interface_name;
+    const char *path;
+} astarte_device_unset_event_t;
+
 typedef void (*astarte_device_data_event_callback_t)(astarte_device_data_event_t *event);
 
 typedef struct
@@ -53,9 +60,12 @@ typedef struct
 typedef void (*astarte_device_disconnection_event_callback_t)(
     astarte_device_disconnection_event_t *event);
 
+typedef void (*astarte_device_unset_event_callback_t)(astarte_device_unset_event_t *event);
+
 typedef struct
 {
     astarte_device_data_event_callback_t data_event_callback;
+    astarte_device_unset_event_callback_t unset_event_callback;
     astarte_device_connection_event_callback_t connection_event_callback;
     astarte_device_disconnection_event_callback_t disconnection_event_callback;
     const char *hwid;
