@@ -4,9 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.0.1] - Unreleased
+## [1.0.2] - 2022-04-14
+### Added
+- Add support to server-owned property unset, using `unset_event_callback`.
+
+### Changed
+- Functions such as `astarte_device_set_string_property` should make use of `const char *`, instead
+  of `char *`.
+
+## [1.0.1] - 2021-12-23
 ### Added
 - Allow passing an explicit realm to `astarte_device_config_t`.
+- Add function for generating random UUIDv4.
+- Add astarte_bson_serializer_append_<T>_array functions to BSON serializer (for each supported
+  type).
+- Add astarte_device_stream_<T>_array(_with_timestamp) functions to astarte_device (for each
+  supported type) in order to enable sending arrays to array typed datastreams.
 
 ## [1.0.0] - 2021-07-02
 

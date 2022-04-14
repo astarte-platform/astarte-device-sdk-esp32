@@ -33,6 +33,13 @@ typedef struct
     int bson_value_type;
 } astarte_device_data_event_t;
 
+typedef struct
+{
+    astarte_device_handle_t device;
+    const char *interface_name;
+    const char *path;
+} astarte_device_unset_event_t;
+
 typedef void (*astarte_device_data_event_callback_t)(astarte_device_data_event_t *event);
 
 typedef struct
@@ -53,9 +60,12 @@ typedef struct
 typedef void (*astarte_device_disconnection_event_callback_t)(
     astarte_device_disconnection_event_t *event);
 
+typedef void (*astarte_device_unset_event_callback_t)(astarte_device_unset_event_t *event);
+
 typedef struct
 {
     astarte_device_data_event_callback_t data_event_callback;
+    astarte_device_unset_event_callback_t unset_event_callback;
     astarte_device_connection_event_callback_t connection_event_callback;
     astarte_device_disconnection_event_callback_t disconnection_event_callback;
     const char *hwid;
@@ -295,7 +305,7 @@ astarte_err_t astarte_device_stream_boolean_with_timestamp(astarte_device_handle
  * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
 astarte_err_t astarte_device_stream_string(astarte_device_handle_t device,
-    const char *interface_name, const char *path, char *value, int qos);
+    const char *interface_name, const char *path, const char *value, int qos);
 
 /**
  * @brief send a UTF8 encoded string on a datastream endpoint with an explicit timestamp.
@@ -314,7 +324,8 @@ astarte_err_t astarte_device_stream_string(astarte_device_handle_t device,
  * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
 astarte_err_t astarte_device_stream_string_with_timestamp(astarte_device_handle_t device,
-    const char *interface_name, const char *path, char *value, uint64_t ts_epoch_millis, int qos);
+    const char *interface_name, const char *path, const char *value, uint64_t ts_epoch_millis,
+    int qos);
 
 /**
  * @brief send a binary value on a datastream endpoint.
@@ -392,6 +403,316 @@ astarte_err_t astarte_device_stream_datetime(astarte_device_handle_t device,
  */
 astarte_err_t astarte_device_stream_datetime_with_timestamp(astarte_device_handle_t device,
     const char *interface_name, const char *path, int64_t value, uint64_t ts_epoch_millis, int qos);
+
+/**
+ * @brief send a double array value on a datastream endpoint with an explicit timestamp.
+ *
+ * @details This function sends a double array value on a path of a given datastream interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of double to be sent.
+ * @param count The number of values stored in values array.
+ * @param ts_epoch_millis The timestamp of the datastream. This is useful only on mappings with
+ * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
+ * ASTARTE_INVALID_TIMESTAMP is ignored.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_stream_double_array_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const double *values, int count,
+    uint64_t ts_epoch_millis, int qos);
+
+/**
+ * @brief send a double array value on a datastream endpoint.
+ *
+ * @details This function sends a double array value on a path of a given datastream interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of double to be sent.
+ * @param count The number of values stored in values array.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+static inline astarte_err_t astarte_device_stream_double_array(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const double *values, int count,
+    uint64_t ts_epoch_millis, int qos)
+{
+    return astarte_device_stream_double_array_with_timestamp(
+        device, interface_name, path, values, count, ASTARTE_INVALID_TIMESTAMP, qos);
+}
+
+/**
+ * @brief send a 32 bit integer array value on a datastream endpoint with an explicit timestamp.
+ *
+ * @details This function sends a signed 32 bit int array value on a path of a given datastream
+ * interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of int32_t to be sent.
+ * @param count The number of values stored in values array.
+ * @param ts_epoch_millis The timestamp of the datastream. This is useful only on mappings with
+ * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
+ * ASTARTE_INVALID_TIMESTAMP is ignored.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_stream_integer_array_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const int32_t *values, int count,
+    uint64_t ts_epoch_millis, int qos);
+
+/**
+ * @brief send a 32 bit integer array value on a datastream endpoint.
+ *
+ * @details This function sends a signed 32 bit int array value on a path of a given datastream
+ * interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of int32_t to be sent.
+ * @param count The number of values stored in values array.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+static inline astarte_err_t astarte_device_stream_integer_array(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const int32_t *values, int count, int qos)
+{
+    return astarte_device_stream_integer_array_with_timestamp(
+        device, interface_name, path, values, count, ASTARTE_INVALID_TIMESTAMP, qos);
+}
+
+/**
+ * @brief send a 64 bit integer array value on a datastream endpoint with an explicit timestamp.
+ *
+ * @details This function sends a signed 64 bit int array value on a path of a given datastream
+ * interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of int64_t to be sent.
+ * @param count The number of values stored in values array.
+ * @param ts_epoch_millis The timestamp of the datastream. This is useful only on mappings with
+ * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
+ * ASTARTE_INVALID_TIMESTAMP is ignored.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_stream_longinteger_array_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const int64_t *values, int count,
+    uint64_t ts_epoch_millis, int qos);
+
+/**
+ * @brief send a 64 bit integer array value on a datastream endpoint.
+ *
+ * @details This function sends a signed 64 bit int array value on a path of a given datastream
+ * interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of int64_t to be sent.
+ * @param count The number of values stored in values array.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+static inline astarte_err_t astarte_device_stream_longinteger_array(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const int64_t *values, int count, int qos)
+{
+    return astarte_device_stream_longinteger_array_with_timestamp(
+        device, interface_name, path, values, count, ASTARTE_INVALID_TIMESTAMP, qos);
+}
+
+/**
+ * @brief send a boolean array value on a datastream endpoint with an explicit timestamp.
+ *
+ * @details This function sends a boolean array value on a path of a given datastream interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of booleans to be sent (false or true).
+ * @param count The number of values stored in values array.
+ * @param ts_epoch_millis The timestamp of the datastream. This is useful only on mappings with
+ * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
+ * ASTARTE_INVALID_TIMESTAMP is ignored.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_stream_boolean_array_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const bool *values, int count,
+    uint64_t ts_epoch_millis, int qos);
+
+/**
+ * @brief send a boolean array value on a datastream endpoint.
+ *
+ * @details This function sends a boolean array value on a path of a given datastream interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of booleans to be sent (false or true).
+ * @param count The number of values stored in values array.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+static inline astarte_err_t astarte_device_stream_boolean_array(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const bool *values, int count, int qos)
+{
+    return astarte_device_stream_boolean_array_with_timestamp(
+        device, interface_name, path, values, count, ASTARTE_INVALID_TIMESTAMP, qos);
+}
+
+/**
+ * @brief send a string array value on a datastream endpoint with an explicit timestamp.
+ *
+ * @details This function sends a string array value on a path of a given datastream interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of C strings to be sent (having each one const char * type and encoded as
+ * 0 terminated UTF-8 string).
+ * @param count The number of values stored in values array.
+ * @param ts_epoch_millis The timestamp of the datastream. This is useful only on mappings with
+ * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
+ * ASTARTE_INVALID_TIMESTAMP is ignored.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_stream_string_array_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const char *const *values, int count,
+    uint64_t ts_epoch_millis, int qos);
+
+/**
+ * @brief send a string array value on a datastream endpoint.
+ *
+ * @details This function sends a string array value on a path of a given datastream interface. The
+ * datetime represents the number of milliseconds since Unix epoch (1970-01-01).
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of C strings to be sent (having each one const char * type and encoded as
+ * 0 terminated UTF-8 string).
+ * @param count The number of values stored in values array.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+
+static inline astarte_err_t astarte_device_stream_string_array(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const char *const *values, int count, int qos)
+{
+    return astarte_device_stream_string_array_with_timestamp(
+        device, interface_name, path, values, count, ASTARTE_INVALID_TIMESTAMP, qos);
+}
+
+/**
+ * @brief send a binary blob array value on a datastream endpoint with an explicit timestamp.
+ *
+ * @details This function sends a binary blob array value on a path of a given datastream interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of binary blobs to be sent (having each one const void * type).
+ * @param sizes The size of each binary blob that is in the given values array.
+ * @param count The number of values stored in values array.
+ * @param ts_epoch_millis The timestamp of the datastream. This is useful only on mappings with
+ * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
+ * ASTARTE_INVALID_TIMESTAMP is ignored.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_stream_binaryblob_array_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const void *const *values, const int *sizes,
+    int count, uint64_t ts_epoch_millis, int qos);
+
+/**
+ * @brief send a binary blob array value on a datastream endpoint with an explicit timestamp.
+ *
+ * @details This function sends a binary blob array value on a path of a given datastream interface.
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of binary blobs to be sent (having each one const void * type).
+ * @param sizes The size of each binary blob that is in the given values array.
+ * @param count The number of values stored in values array.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+static inline astarte_err_t astarte_device_stream_binaryblob_array(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const void *const *values, const int *sizes,
+    int count, int qos)
+{
+    return astarte_device_stream_binaryblob_array_with_timestamp(
+        device, interface_name, path, values, sizes, count, ASTARTE_INVALID_TIMESTAMP, qos);
+}
+
+/**
+ * @brief send a datetime value on a datastream endpoint with an explicit timestamp.
+ *
+ * @details This function sends a datetime value on a path of a given datastream interface. The
+ * datetime represents the number of milliseconds since Unix epoch (1970-01-01).
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of datetimes, each one representing the number of milliseconds since Unix
+ * epoch (1970-01-01).
+ * @param count The number of values stored in values array.
+ * @param ts_epoch_millis The timestamp of the datastream. This is useful only on mappings with
+ * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
+ * ASTARTE_INVALID_TIMESTAMP is ignored.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+astarte_err_t astarte_device_stream_datetime_array_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const int64_t *values, int count,
+    uint64_t ts_epoch_millis, int qos);
+
+/**
+ * @brief send a datetime value on a datastream endpoint.
+ *
+ * @details This function sends a datetime value on a path of a given datastream interface. The
+ * datetime represents the number of milliseconds since Unix epoch (1970-01-01).
+ * @param device A started Astarte device handle.
+ * @param interface_name A string containing the name of the interface.
+ * @param path A string containing the path (beginning with /).
+ * @param values The array of datetimes, each one representing the number of milliseconds since Unix
+ * epoch (1970-01-01).
+ * @param count The number of values stored in values array.
+ * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
+ * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
+ * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
+ * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
+ */
+static inline astarte_err_t astarte_device_stream_datetime_array(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const int64_t *values, int count, int qos)
+{
+    return astarte_device_stream_datetime_array_with_timestamp(
+        device, interface_name, path, values, count, ASTARTE_INVALID_TIMESTAMP, qos);
+}
 
 /**
  * @brief send an aggregate value on a datastream endpoint of an interface with object aggregation.
@@ -524,8 +845,8 @@ astarte_err_t astarte_device_set_boolean_property(
  * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
  * PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_set_string_property(
-    astarte_device_handle_t device, const char *interface_name, const char *path, char *value);
+astarte_err_t astarte_device_set_string_property(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const char *value);
 
 /**
  * @brief send a binary value on a properties endpoint.

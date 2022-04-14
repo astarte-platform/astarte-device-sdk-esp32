@@ -47,6 +47,7 @@ struct astarte_device_t
     char *key_pem;
     bool connected;
     astarte_device_data_event_callback_t data_event_callback;
+    astarte_device_unset_event_callback_t unset_event_callback;
     astarte_device_connection_event_callback_t connection_event_callback;
     astarte_device_disconnection_event_callback_t disconnection_event_callback;
     esp_mqtt_client_handle_t mqtt_client;
@@ -141,6 +142,7 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 
     astarte_list_init(&ret->interfaces_list);
     ret->data_event_callback = cfg->data_event_callback;
+    ret->unset_event_callback = cfg->unset_event_callback;
     ret->connection_event_callback = cfg->connection_event_callback;
     ret->disconnection_event_callback = cfg->disconnection_event_callback;
 
@@ -578,7 +580,8 @@ astarte_err_t astarte_device_stream_boolean_with_timestamp(astarte_device_handle
 }
 
 astarte_err_t astarte_device_stream_string_with_timestamp(astarte_device_handle_t device,
-    const char *interface_name, const char *path, char *value, uint64_t ts_epoch_millis, int qos)
+    const char *interface_name, const char *path, const char *value, uint64_t ts_epoch_millis,
+    int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
@@ -614,6 +617,46 @@ astarte_err_t astarte_device_stream_datetime_with_timestamp(astarte_device_handl
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
     astarte_bson_serializer_append_datetime(&bs, "v", value);
+    maybe_append_timestamp(&bs, ts_epoch_millis);
+    astarte_bson_serializer_append_end_of_document(&bs);
+
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+
+    astarte_bson_serializer_destroy(&bs);
+    return exit_code;
+}
+
+#define IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(TYPE, TYPE_NAME, BSON_TYPE_NAME)         \
+    astarte_err_t astarte_device_stream_##TYPE_NAME##_with_timestamp(                              \
+        astarte_device_handle_t device, const char *interface_name, const char *path, TYPE value,  \
+        int count, uint64_t ts_epoch_millis, int qos)                                              \
+    {                                                                                              \
+        struct astarte_bson_serializer_t bs;                                                       \
+        astarte_bson_serializer_init(&bs);                                                         \
+        astarte_bson_serializer_append_##BSON_TYPE_NAME(&bs, "v", value, count);                   \
+        maybe_append_timestamp(&bs, ts_epoch_millis);                                              \
+        astarte_bson_serializer_append_end_of_document(&bs);                                       \
+                                                                                                   \
+        astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);            \
+                                                                                                   \
+        astarte_bson_serializer_destroy(&bs);                                                      \
+        return exit_code;                                                                          \
+    }
+
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const double *, double_array, double_array)
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const int32_t *, integer_array, int32_array)
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const int64_t *, longinteger_array, int64_array)
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const bool *, boolean_array, boolean_array)
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const char *const *, string_array, string_array)
+IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const int64_t *, datetime_array, datetime_array)
+
+astarte_err_t astarte_device_stream_binaryblob_array_with_timestamp(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const void *const *binary_blobs, const int *sizes,
+    int count, uint64_t ts_epoch_millis, int qos)
+{
+    struct astarte_bson_serializer_t bs;
+    astarte_bson_serializer_init(&bs);
+    astarte_bson_serializer_append_binary_array(&bs, "v", binary_blobs, sizes, count);
     maybe_append_timestamp(&bs, ts_epoch_millis);
     astarte_bson_serializer_append_end_of_document(&bs);
 
@@ -668,7 +711,7 @@ astarte_err_t astarte_device_stream_boolean(astarte_device_handle_t device,
 }
 
 astarte_err_t astarte_device_stream_string(astarte_device_handle_t device,
-    const char *interface_name, const char *path, char *value, int qos)
+    const char *interface_name, const char *path, const char *value, int qos)
 {
     return astarte_device_stream_string_with_timestamp(
         device, interface_name, path, value, ASTARTE_INVALID_TIMESTAMP, qos);
@@ -720,7 +763,7 @@ astarte_err_t astarte_device_set_boolean_property(
 }
 
 astarte_err_t astarte_device_set_string_property(
-    astarte_device_handle_t device, const char *interface_name, const char *path, char *value)
+    astarte_device_handle_t device, const char *interface_name, const char *path, const char *value)
 {
     return astarte_device_stream_string(device, interface_name, path, value, 2);
 }
@@ -814,6 +857,35 @@ static astarte_err_t check_device(astarte_device_handle_t device)
     return ASTARTE_OK;
 }
 
+static size_t get_int_string_size(int number)
+{
+    size_t digits = 1;
+    while (number > 9) {
+        number /= 10;
+        digits++;
+    }
+    return digits;
+}
+
+static size_t get_introspection_string_size(astarte_device_handle_t device)
+{
+    struct astarte_list_head_t *item;
+    size_t introspection_size = 0;
+    LIST_FOR_EACH(item, &device->interfaces_list)
+    {
+        struct astarte_ptr_list_entry_t *entry
+            = GET_LIST_ENTRY(item, struct astarte_ptr_list_entry_t, head);
+        const astarte_interface_t *interface = entry->value;
+
+        size_t major_digits = get_int_string_size(interface->major_version);
+        size_t minor_digits = get_int_string_size(interface->minor_version);
+
+        // The interface name in introspection is composed as  "name:major:minor;"
+        introspection_size += strlen(interface->name) + major_digits + minor_digits + 3;
+    }
+    return introspection_size;
+}
+
 static void send_introspection(astarte_device_handle_t device)
 {
     if (check_device(device) != ASTARTE_OK) {
@@ -822,28 +894,27 @@ static void send_introspection(astarte_device_handle_t device)
 
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
 
-    char introspection_string[512] = { 0 };
-    size_t total_written = 0;
     struct astarte_list_head_t *item;
+    size_t introspection_size = get_introspection_string_size(device);
+
+    if (introspection_size > 4096) { // if introspection size is > 4KiB print a warning
+        ESP_LOGW(TAG, "The introspection size is > 4KiB");
+    }
+
+    char *introspection_string = calloc(introspection_size + 1, sizeof(char));
+    if (!introspection_string) {
+        ESP_LOGE(TAG, "Unable to allocate memory for introspection string");
+        return;
+    }
+    int len = 0;
     LIST_FOR_EACH(item, &device->interfaces_list)
     {
         struct astarte_ptr_list_entry_t *entry
             = GET_LIST_ENTRY(item, struct astarte_ptr_list_entry_t, head);
         const astarte_interface_t *interface = entry->value;
-        char interface_entry[128];
-        snprintf(interface_entry, 128, "%s:%d:%d;", interface->name, interface->major_version,
-            interface->minor_version);
-
-        size_t to_be_written = strlen(interface_entry);
-        // + 1 because we need space for the terminator
-        if (total_written + to_be_written + 1 > 512) {
-            ESP_LOGE(TAG, "Introspection string is too long, cannot publish");
-            return;
-        }
-        strcat(introspection_string, interface_entry);
-        total_written += to_be_written;
+        len += sprintf(introspection_string + len, "%s:%d:%d;", interface->name,
+            interface->major_version, interface->minor_version);
     }
-    int len = strlen(introspection_string);
     // Remove last ; from introspection
     introspection_string[len - 1] = 0;
     // Decrease len accordingly
@@ -851,6 +922,7 @@ static void send_introspection(astarte_device_handle_t device)
 
     ESP_LOGD(TAG, "Publishing introspection: %s", introspection_string);
     esp_mqtt_client_publish(mqtt, device->device_topic, introspection_string, len, 2, 0);
+    free(introspection_string);
 }
 
 static void setup_subscriptions(astarte_device_handle_t device)
@@ -966,7 +1038,14 @@ static void on_incoming(
     snprintf(path, 512, "%.*s", path_len, path_begin);
 
     if (!data && data_len == 0) {
-        // TODO: handle incoming unset messages
+        if (device->unset_event_callback) {
+            astarte_device_unset_event_t event
+                = { .device = device, .interface_name = interface_name, .path = path };
+            device->unset_event_callback(&event);
+        } else {
+            ESP_LOGE(
+                TAG, "Unset data for %s received, but unset_event_callback is not defined", path);
+        }
         return;
     }
 
