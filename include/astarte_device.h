@@ -305,7 +305,7 @@ astarte_err_t astarte_device_stream_boolean_with_timestamp(astarte_device_handle
  * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
 astarte_err_t astarte_device_stream_string(astarte_device_handle_t device,
-    const char *interface_name, const char *path, char *value, int qos);
+    const char *interface_name, const char *path, const char *value, int qos);
 
 /**
  * @brief send a UTF8 encoded string on a datastream endpoint with an explicit timestamp.
@@ -324,7 +324,8 @@ astarte_err_t astarte_device_stream_string(astarte_device_handle_t device,
  * PUBACK for QoS 1 messages or for PUBCOMP for QoS 2 messages
  */
 astarte_err_t astarte_device_stream_string_with_timestamp(astarte_device_handle_t device,
-    const char *interface_name, const char *path, char *value, uint64_t ts_epoch_millis, int qos);
+    const char *interface_name, const char *path, const char *value, uint64_t ts_epoch_millis,
+    int qos);
 
 /**
  * @brief send a binary value on a datastream endpoint.
@@ -616,7 +617,7 @@ astarte_err_t astarte_device_stream_string_array_with_timestamp(astarte_device_h
  */
 
 static inline astarte_err_t astarte_device_stream_string_array(astarte_device_handle_t device,
-    const char *interface_name, const char *path, const char **values, int count, int qos)
+    const char *interface_name, const char *path, const char *const *values, int count, int qos)
 {
     return astarte_device_stream_string_array_with_timestamp(
         device, interface_name, path, values, count, ASTARTE_INVALID_TIMESTAMP, qos);
@@ -844,8 +845,8 @@ astarte_err_t astarte_device_set_boolean_property(
  * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
  * PUBCOMP for QoS 2 messages
  */
-astarte_err_t astarte_device_set_string_property(
-    astarte_device_handle_t device, const char *interface_name, const char *path, char *value);
+astarte_err_t astarte_device_set_string_property(astarte_device_handle_t device,
+    const char *interface_name, const char *path, const char *value);
 
 /**
  * @brief send a binary value on a properties endpoint.

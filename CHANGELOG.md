@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Add support to server-owned property unset
 
+### Changed
+- Functions such as `astarte_device_set_string_property` should make use of `const char *`, instead
+  of `char *`.
+
 ## [1.0.1] - 2021-12-23
 ### Added
 - Allow passing an explicit realm to `astarte_device_config_t`.
