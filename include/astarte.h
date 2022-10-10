@@ -45,7 +45,8 @@ enum astarte_err_t
     ASTARTE_ERR_INVALID_QOS = 16, /**< The QoS is not valid */
     ASTARTE_ERR_DEVICE_NOT_READY = 17, /**< Tried to perform an operation on a Device in a non-ready or initialized state */
     ASTARTE_ERR_PUBLISH = 18, /**< An error occurred while publishing data on MQTT */
-    ASTARTE_ERR_INVALID_INTROSPECTION = 19 /**< The introspection is not valid or empty */
+    ASTARTE_ERR_INVALID_INTROSPECTION = 19, /**< The introspection is not valid or empty */
+    ASTARTE_ERR_INVALID_INTERFACE_VERSION = 20 /**< The interface is not valid */
 };
 
 // clang-format on
