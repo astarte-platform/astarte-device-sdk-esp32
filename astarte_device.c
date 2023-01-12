@@ -403,6 +403,11 @@ astarte_err_t astarte_device_add_interface(
         return ASTARTE_ERR;
     }
 
+    if (interface->major_version == 0 && interface->minor_version == 0) {
+        ESP_LOGE(TAG, "Trying to add an interface with both major and minor version equal 0");
+        return ASTARTE_ERR_INVALID_INTERFACE_VERSION;
+    }
+
     struct astarte_ptr_list_entry_t *entry = calloc(1, sizeof(struct astarte_ptr_list_entry_t));
     if (!entry) {
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
