@@ -1,0 +1,26 @@
+menu "Astarte datastreams example"
+
+config WIFI_SSID
+    string "WiFi SSID"
+    default "myssid"
+    help
+        SSID (network name) for the example to connect to.
+
+config WIFI_PASSWORD
+    string "WiFi Password"
+    default "mypassword"
+    help
+        WiFi password (WPA or WPA2) for the example to use.
+
+config CREDENTIALS_SECRET
+    string "Credentials secret"
+    default ""
+    help
+        Astarte device credential secret, generated when the device is added on an Astarte instance.
+
+config DEVICE_ID
+    string "Device hardware ID"
+    default ""
+    help
+        Astarte device hardware id, generated when the device is added on an Astarte instance.
+endmenu
