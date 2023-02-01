@@ -1,5 +1,5 @@
 {
-   "interface_name": "org.astarteplatform.esp32.DeviceDatastream",
+   "interface_name": "org.astarteplatform.esp32.examples.DeviceDatastream",
    "version_major": 0,
    "version_minor": 2,
    "type": "datastream",
