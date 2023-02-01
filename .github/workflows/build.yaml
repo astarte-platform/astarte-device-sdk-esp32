@@ -22,6 +22,7 @@ on:
   # Run when pushing to stable branches
   push:
     branches:
+    - '*'
     - 'master'
     - 'release-*'
   # Run on branch/tag creation
