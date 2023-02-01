@@ -47,6 +47,7 @@ static unsigned int astarte_bson_next_item_offset(
             break;
         }
 
+        case BSON_TYPE_ARRAY:
         case BSON_TYPE_DOCUMENT: {
             uint32_t docLen = read_uint32(docBytes + offset);
             offset += docLen;
