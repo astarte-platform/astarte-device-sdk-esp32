@@ -40,6 +40,8 @@ jobs:
         build-system:
         - make
         - idf
+        example:
+        - "toggle_led"
         exclude:
           # Exclude idf.py build with old idf version, not supported
           - idf-version: "3.3.4"
@@ -54,7 +56,7 @@ jobs:
     - name: Build with make
       if: matrix.build-system == 'make'
       shell: bash
-      working-directory: ./examples/toggle_led
+      working-directory: ./examples/${{ matrix.example }}
       run: |
         . $IDF_PATH/export.sh
         make defconfig
@@ -64,7 +66,7 @@ jobs:
     - name: Build with idf.py
       if: matrix.build-system == 'idf'
       shell: bash
-      working-directory: ./examples/toggle_led
+      working-directory: ./examples/${{ matrix.example }}
       run: |
         . $IDF_PATH/export.sh
         idf.py reconfigure
