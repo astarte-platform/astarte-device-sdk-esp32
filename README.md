@@ -6,7 +6,9 @@ Astarte ESP32 SDK lets you connect your ESP32 device to
 The SDK simplifies all the low level operations like credentials generation, pairing and so on, and
 exposes an high-level API to publish data from your device.
 
-Have a look at the [`toggle_led` example](examples/toggle_led) for a usage example showing how to
+Have a look at the [`toggle_led` example](examples/toggle_led),
+[`aggregates` example](examples/aggregates), or
+[`datastreams` example](examples/datastreams) for a usage example showing how to
 send and receive data.
 
 ## Documentation

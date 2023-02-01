@@ -32,6 +32,9 @@ jobs:
         sudo apt-get install -y clang-format
         curl -sSfL https://raw.githubusercontent.com/Sarcasm/run-clang-format/master/run-clang-format.py -o run-clang-format
         chmod +x run-clang-format
-    - name: Check formatting
+    - name: Check formatting library
       run: |
-        ./run-clang-format --style=file -r *.c include/*.h examples/toggle_led
+        ./run-clang-format --style=file *.c include/*.h
+    - name: Check formatting examples
+      run: |
+        ./run-clang-format --style=file examples/**/main/src/*.c examples/**/main/inc/*.h
