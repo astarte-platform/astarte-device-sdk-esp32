@@ -54,16 +54,16 @@ jobs:
     container: espressif/idf:v${{ matrix.idf-version }}
     steps:
     - uses: actions/checkout@v2
-    # - name: Build with make
-    #   if: matrix.build-system == 'make'
-    #   shell: bash
-    #   working-directory: ./examples/${{ matrix.example }}
-    #   run: |
-    #     . $IDF_PATH/export.sh
-    #     make defconfig
-    #     make -j4
-    #     # Print component size info
-    #     make size-components
+    - name: Build with make
+      if: matrix.build-system == 'make'
+      shell: bash
+      working-directory: ./examples/${{ matrix.example }}
+      run: |
+        . $IDF_PATH/export.sh
+        make defconfig
+        make -j4
+        # Print component size info
+        make size-components
     - name: Build with idf.py
       if: matrix.build-system == 'idf'
       shell: bash
