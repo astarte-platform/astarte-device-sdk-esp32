@@ -6,6 +6,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+#include "freertos/task.h"
+#endif
+
 #include "astarte_bson.h"
 #include "astarte_bson_types.h"
 #include "astarte_credentials.h"
