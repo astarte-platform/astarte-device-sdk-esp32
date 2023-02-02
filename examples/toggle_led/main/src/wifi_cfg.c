@@ -4,6 +4,10 @@
 #include <esp_log.h>
 #include <esp_wifi.h>
 
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+#include <esp_event_loop.h>
+#endif
+
 #include "freertos/event_groups.h"
 #include "freertos/task.h"
 
