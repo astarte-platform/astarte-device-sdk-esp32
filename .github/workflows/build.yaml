@@ -34,15 +34,19 @@ jobs:
     strategy:
       matrix:
         idf-version:
-        - 3.3.4
-        - 4.2
+        - "3.3.4"
+        - "4.2"
+        - "5.0"
         build-system:
         - make
         - idf
         exclude:
-          # Exclude old idf with idf.py build, not supported
-          - idf-version: 3.3.4
+          # Exclude idf.py build with old idf version, not supported
+          - idf-version: "3.3.4"
             build-system: idf
+          # Exclude make build with newer idf version, not supported
+          - idf-version: "5.0"
+            build-system: make
     runs-on: ubuntu-latest
     container: espressif/idf:v${{ matrix.idf-version }}
     steps:

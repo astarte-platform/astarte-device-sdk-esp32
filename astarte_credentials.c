@@ -263,8 +263,13 @@ static astarte_err_t ensure_mounted()
     esp_err_t err = ESP_OK;
     if (s_wl_handle == WL_INVALID_HANDLE) {
         ESP_LOGD(TAG, "Mounting FAT filesystem for credentials");
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        err = esp_vfs_fat_spiflash_mount_rw_wl(
+            CREDENTIALS_MOUNTPOINT, PARTITION_NAME, &mount_config, &s_wl_handle);
+#else
         err = esp_vfs_fat_spiflash_mount(
             CREDENTIALS_MOUNTPOINT, PARTITION_NAME, &mount_config, &s_wl_handle);
+#endif
     }
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to mount FATFS (%s)", esp_err_to_name(err));
@@ -577,10 +582,19 @@ astarte_err_t astarte_credentials_create_csr()
         goto exit;
     }
 
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    if ((ret = mbedtls_pk_parse_key(&key, privkey_buffer, PRIVKEY_BUFFER_LENGTH, NULL, 0,
+             mbedtls_ctr_drbg_random, &ctr_drbg))
+        != 0) {
+        ESP_LOGE(TAG, "mbedtls_pk_parse_key returned %d", ret);
+        goto exit;
+    }
+#else
     if ((ret = mbedtls_pk_parse_key(&key, privkey_buffer, PRIVKEY_BUFFER_LENGTH, NULL, 0)) != 0) {
         ESP_LOGE(TAG, "mbedtls_pk_parse_key returned %d", ret);
         goto exit;
     }
+#endif
 
     mbedtls_x509write_csr_set_key(&req, &key);
 
