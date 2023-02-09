@@ -11,6 +11,10 @@
 
 #include <esp_log.h>
 #include <esp_system.h>
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#include <esp_chip_info.h>
+#include <esp_mac.h>
+#endif
 
 #include <mbedtls/base64.h>
 #include <mbedtls/md.h>

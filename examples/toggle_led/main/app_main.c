@@ -1,13 +1,18 @@
 #include "astarte_interface.h"
-#include "esp_event_loop.h"
-#include "esp_wifi.h"
-#include "nvs_flash.h"
+#include <driver/gpio.h>
+#include <esp_wifi.h>
+#include <nvs_flash.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "driver/gpio.h"
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#include <esp_event.h>
+#else
+#include <esp_event_loop.h>
+#endif
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
@@ -48,6 +53,20 @@ const static astarte_interface_t server_datastream_interface = {
     .type = TYPE_DATASTREAM,
 };
 
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+static void wifi_event_handler(
+    void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+{
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
+        esp_wifi_connect();
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        esp_wifi_connect();
+        xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
+    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
+        xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
+    }
+}
+#else
 static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
 {
     switch (event->event_id) {
@@ -67,6 +86,7 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
     }
     return ESP_OK;
 }
+#endif
 
 static void IRAM_ATTR button_isr_handler(void *arg)
 {
@@ -76,11 +96,30 @@ static void IRAM_ATTR button_isr_handler(void *arg)
 
 static void wifi_init(void)
 {
-    tcpip_adapter_init();
     wifi_event_group = xEventGroupCreate();
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    ESP_ERROR_CHECK(esp_netif_init());
+
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    esp_netif_create_default_wifi_sta();
+#else
+    tcpip_adapter_init();
     ESP_ERROR_CHECK(esp_event_loop_init(wifi_event_handler, NULL));
+#endif
+
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    esp_event_handler_instance_t instance_any_id;
+    esp_event_handler_instance_t instance_got_ip;
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+        WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_any_id));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+        IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL, &instance_got_ip));
+#endif
+
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
     wifi_config_t wifi_config = {
         .sta = {
@@ -98,6 +137,19 @@ static void wifi_init(void)
 
 static void button_gpio_init()
 {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    // zero-initialize the config structure.
+    gpio_config_t io_conf = {};
+    // interrupt of rising edge
+    io_conf.intr_type = GPIO_INTR_NEGEDGE;
+    // bit mask of the pin
+    io_conf.pin_bit_mask = (1ULL << BUTTON_GPIO);
+    // set as input mode
+    io_conf.mode = GPIO_MODE_INPUT;
+    // enable pull-up mode
+    io_conf.pull_up_en = 1;
+    gpio_config(&io_conf);
+#else
     // Set the pad as GPIO
     gpio_pad_select_gpio(BUTTON_GPIO);
     // Set button GPIO as input
@@ -106,6 +158,7 @@ static void button_gpio_init()
     gpio_pullup_en(BUTTON_GPIO);
     // Trigger interrupt on negative edge, i.e. on release
     gpio_set_intr_type(BUTTON_GPIO, GPIO_INTR_NEGEDGE);
+#endif
 
     button_evt_queue = xQueueCreate(10, sizeof(uint32_t));
 
@@ -117,10 +170,27 @@ static void button_gpio_init()
 
 static void led_init()
 {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    // zero-initialize the config structure.
+    gpio_config_t io_conf = {};
+    // disable interrupt
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    // set as output mode
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    // bit mask of the pin to set
+    io_conf.pin_bit_mask = (1ULL << LED_GPIO);
+    // disable pull-down mode
+    io_conf.pull_down_en = 0;
+    // disable pull-up mode
+    io_conf.pull_up_en = 0;
+    // configure GPIO with the given settings
+    gpio_config(&io_conf);
+#else
     // Set the pad as GPIO
     gpio_pad_select_gpio(LED_GPIO);
     // Set LED GPIO as output
     gpio_set_direction(LED_GPIO, GPIO_MODE_OUTPUT);
+#endif
 }
 
 static void astarte_data_events_handler(astarte_device_data_event_t *event)
@@ -197,7 +267,11 @@ static void astarte_example_task(void *ctx)
 void app_main()
 {
     ESP_LOGI(TAG, "[APP] Startup..");
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    ESP_LOGI(TAG, "[APP] Free memory: %ld bytes", esp_get_free_heap_size());
+#else
     ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
+#endif
     ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
 
     esp_log_level_set("*", ESP_LOG_INFO);

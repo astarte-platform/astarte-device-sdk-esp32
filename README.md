@@ -19,6 +19,7 @@ website](https://docs.astarte-platform.org/1.0/device-sdks/esp32).
 The SDK is tested against these versions of `esp-idf`:
 - `v3.3.4` (only `make` supported)
 - `v4.2` (`make` and `idf.py` supported)
+- `v5.0` (`idf.py` supported)
 
 Previous versions of `esp-idf` are not guaranteed to work. If you find a problem using a later
 version of `esp-idf`, please [open an

@@ -59,6 +59,11 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
         case HTTP_EVENT_DISCONNECTED:
             ESP_LOGD(TAG, "HTTP_EVENT_DISCONNECTED");
             break;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        case HTTP_EVENT_REDIRECT:
+            ESP_LOGD(TAG, "HTTP_EVENT_REDIRECT");
+            break;
+#endif
     }
 
     return ESP_OK;
@@ -180,8 +185,13 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
 
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %lld", status_code,
+            esp_http_client_get_content_length(client));
+#else
         ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %d", status_code,
             esp_http_client_get_content_length(client));
+#endif
 
         const char *client_crt = NULL;
         if (status_code == 201) {
@@ -296,8 +306,13 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
 
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %lld", status_code,
+            esp_http_client_get_content_length(client));
+#else
         ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %d", status_code,
             esp_http_client_get_content_length(client));
+#endif
 
         const char *broker_url = NULL;
         if (status_code == 200) {
@@ -410,8 +425,13 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
 
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %lld", status_code,
+            esp_http_client_get_content_length(client));
+#else
         ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %d", status_code,
             esp_http_client_get_content_length(client));
+#endif
 
         const char *credentials_secret = NULL;
         if (status_code == 201) {
