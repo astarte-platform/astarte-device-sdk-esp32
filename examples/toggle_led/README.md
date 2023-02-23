@@ -1,75 +1,40 @@
 # Astarte LED Toggle example
 
-## Usage
-First of all, you need an Astarte instance to send data to.
+This example will guide you through setting up a simple ESP32 application running the Astarte SDK
+and interacting with a local instance of Astarte.
 
-If you don't have one, you can either follow the [Astarte in 5
-minutes](https://docs.astarte-platform.org/latest/010-astarte_in_5_minutes.html) guide or deploy it
-to you favorite cloud provider using our [Kubernetes
-Operator](https://github.com/astarte-platform/astarte-kubernetes-operator).
+We will configure the device to perform the following actions:
+- Auto-register in the local Astarte instance at the first start-up.
+- Blink an onboard LED when a message is received from our local instance of Astarte.
+- When a button is pressed on the device transmits to Astarte the uptime in seconds.
 
-When you have your realm ready, you should [install the
-interfaces](https://docs.astarte-platform.org/latest/010-astarte_in_5_minutes.html#install-an-interface)
-contained in the `interfaces` folder.
+## Turning on/off the LED
 
-After that, you have to generate a Pairing JWT using
-[`astartectl`](https://github.com/astarte-platform/astartectl).
-
-You can do it with:
-
+Turning on and off the LED can be accomplished by sending some data from Astarte to the device.
+This can be done using the following command:
 ```
-astartectl utils gen-jwt pairing -e0 -k <private-key-pem>
+astartectl appengine --appengine-url http://localhost:4002/       \
+    --realm-key <REALM>_private.pem --realm-name <REALM>          \
+    devices send-data <DEVICE_ID>                                 \
+    org.astarteplatform.esp32.examples.ServerDatastream           \
+    --interface-type individual-datastream --payload-type boolean \
+     /led <VALUE>
 ```
+The `<VALUE>` should be in the boolean format. Sending `true` will turn the LED on, and sending
+`false` will turn it off.
 
-Now you have all that you need to configure and run the example.
+## Checking out the stored messages in Astarte
 
-Run
-
+Each time the button is pressed, the device will send its uptime in seconds to the local Astarte
+instance.
+You can verify the transmitted data has been successfully stored in Astarte by running:
 ```
-make menuconfig
-```
-
-In the `Astarte toggle LED example` submenu, configure your Wifi and the button and LED GPIO
-numbers (check your board schematics).
-
-In the `Component config -> Astarte SDK` submenu configure your realm name, the Astarte Pairing base
-URL and the Pairing JWT you've generated before. If you have deployed Astarte through
-docker-compose, the Astarte Pairing base URL is http://<your-machine-url>:4003. On a common,
-standard installation, the base URL can be built by adding `/pairing` to your API base URL, e.g.
-`https://api.astarte.example.com/pairing`.
-
-After configuring the example, run
-
-```
-make -j4 flash monitor
+astartectl appengine --appengine-url http://localhost:4002/ \
+    --realm-key <REALM>_private.pem --realm-name <REALM>    \
+    devices get-samples <DEVICE_ID>                         \
+    org.astarteplatform.esp32.examples.DeviceDatastream /uptimeSeconds --count 1
 ```
 
-The device should now register to Astarte, printing its device id, and you can verify its connection
-status using:
-
-```
-astartectl appengine devices show <device-id> \
-  -r <realm> -k <private-key> -u <astarte-base-url>
-```
-
-Now if you press the button, you should be able to see data using
-
-```
-astartectl appengine devices get-samples <device-id> \
-  org.astarteplatform.esp32.DeviceDatastream /button \
-  -r <realm> -k <private-key> -u <astarte-base-url>
-
-astartectl appengine devices get-samples <device-id> \
-  org.astarteplatform.esp32.DeviceDatastream /uptimeSeconds \
-  -r <realm> -k <private-key> -u <astarte-base-url>
-```
-
-and you should also be able to switch the LED on and off with
-
-```
-astartectl appengine devices send-data <device-id> \
-  org.astarteplatform.esp32.ServerDatastream /led true \
-  -r <realm> -k <private-key> -u <astarte-base-url>
-```
-
-(use `true` to turn the LED on, `false` to turn the LED off).
+This will print the latest message from the device that has been stored in the Astarte Cloud
+instance. To print a longer history of messages change the number in `--count 1` to the history
+length of your liking.

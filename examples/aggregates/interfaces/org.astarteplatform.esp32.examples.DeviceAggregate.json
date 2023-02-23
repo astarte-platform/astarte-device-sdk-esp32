@@ -1,0 +1,30 @@
+{
+    "interface_name": "org.astarteplatform.esp32.examples.DeviceAggregate",
+    "version_major": 0,
+    "version_minor": 1,
+    "type": "datastream",
+    "ownership": "device",
+    "aggregation": "object",
+    "mappings": [
+        {
+            "endpoint": "/%{sensor_id}/double_endpoint",
+            "type": "double",
+            "explicit_timestamp": true
+        },
+        {
+            "endpoint": "/%{sensor_id}/integer_endpoint",
+            "type": "integer",
+            "explicit_timestamp": true
+        },
+        {
+            "endpoint": "/%{sensor_id}/boolean_endpoint",
+            "type": "boolean",
+            "explicit_timestamp": true
+        },
+        {
+            "endpoint": "/%{sensor_id}/doublearray_endpoint",
+            "type": "doublearray",
+            "explicit_timestamp": true
+        }
+    ]
+}

@@ -1,0 +1,20 @@
+{
+    "interface_name": "org.astarteplatform.esp32.examples.ServerAggregate",
+    "version_major": 0,
+    "version_minor": 1,
+    "type": "datastream",
+    "ownership": "server",
+    "aggregation": "object",
+    "mappings": [
+        {
+            "endpoint": "/%{sensor_id}/booleanarray_endpoint",
+            "type": "booleanarray",
+            "explicit_timestamp": true
+        },
+        {
+            "endpoint": "/%{sensor_id}/longinteger_endpoint",
+            "type": "longinteger",
+            "explicit_timestamp": true
+        }
+    ]
+}
