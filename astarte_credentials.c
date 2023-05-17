@@ -835,7 +835,46 @@ astarte_err_t astarte_credentials_erase_stored_credentials_secret()
 bool astarte_credentials_has_certificate()
 {
     CREDS_STORAGE_FUNCS(funcs);
-    return funcs->astarte_credentials_exists(creds_ctx.opaque, ASTARTE_CREDENTIALS_CERTIFICATE);
+    if (!funcs->astarte_credentials_exists(creds_ctx.opaque, ASTARTE_CREDENTIALS_CERTIFICATE)) {
+        return false;
+    }
+
+    astarte_err_t astarte_ret = ASTARTE_ERR;
+    char *client_crt_cn = NULL;
+
+    char *client_crt_pem = calloc(CERT_LENGTH, sizeof(char));
+    if (!client_crt_pem) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        astarte_ret = ASTARTE_ERR_OUT_OF_MEMORY;
+        goto exit;
+    }
+
+    astarte_ret = astarte_credentials_get_certificate(client_crt_pem, CERT_LENGTH);
+    if (astarte_ret != ASTARTE_OK) {
+        ESP_LOGE(TAG, "astarte_credentials_get_certificate returned %d", astarte_ret);
+        goto exit;
+    }
+
+    client_crt_cn = calloc(CN_LENGTH, sizeof(char));
+    if (!client_crt_cn) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto exit;
+    }
+
+    astarte_ret
+        = astarte_credentials_get_certificate_common_name(client_crt_pem, client_crt_cn, CN_LENGTH);
+    if (astarte_ret != ASTARTE_OK) {
+        ESP_LOGE(TAG, "astarte_credentials_get_certificate_common_name returned %d", astarte_ret);
+        goto exit;
+    }
+
+    astarte_ret = ASTARTE_OK;
+
+exit:
+    free(client_crt_pem);
+    free(client_crt_cn);
+
+    return astarte_ret == ASTARTE_OK;
 }
 
 bool astarte_credentials_has_csr()
