@@ -25,6 +25,24 @@ Previous versions of `esp-idf` are not guaranteed to work. If you find a problem
 version of `esp-idf`, please [open an
 issue](https://github.com/astarte-platform/astarte-device-sdk-esp32/issues).
 
+## Component Free RTOS APIs usage
+
+The Astarte ESP32 Device interacts internally with the Free RTOS APIs. As such some factors
+should be taken into account when integrating this component into a larger system.
+
+The following **tasks** are spawned directly by the Astarte ESP32 Device:
+- `credentials_init_task`: Initializes the credentials for the MQTT communication.
+This task is created when calling the `astarte_credentials_init()` function.
+This should be done before initializing the Astarte ESP32 Device.
+It will use `16384` words from the stack and will be deleted before exiting the
+`astarte_credentials_init()` function.
+- `astarte_device_reinit_task`: Reinitializes the device in case of a TLS error coming from an
+expired certificate. This task is created upon device initialization and runs constantly for the
+life of the device. It will use `6000` words from the stack.
+
+All of the tasks are spawned with the lowest priority and rely on the time-slicing functionality
+of freertos to run concurrently with the main task.
+
 ## Notes on non-volatile memory (NVM)
 
 The device's Astarte credentials are always stored in the NVM. This means that credentials will
