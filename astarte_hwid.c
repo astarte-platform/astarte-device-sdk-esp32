@@ -37,13 +37,19 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
     int embedded_flash = (chip_info.features & CHIP_FEATURE_EMB_FLASH) != 0;
     int bluetooth = (chip_info.features & CHIP_FEATURE_BT) != 0;
     int ble = (chip_info.features & CHIP_FEATURE_BLE) != 0;
+    // See changelog to v5.0 of ESP IDF: https://github.com/espressif/esp-idf/releases/tag/v5.0
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    uint16_t revision = chip_info.revision / 100u;
+#else
+    uint16_t revision = chip_info.revision;
+#endif
 
     snprintf(info_string, 160,
         "ESP_MAC_WIFI_STA: %02x:%02x:%02x:%02x:%02x:%02x, model: %i, cores: %i, revision: %i "
         "embedded flash: %i, bluetooth: %i, BLE: %i.",
         (unsigned int) mac_addr[0], (unsigned int) mac_addr[1], (unsigned int) mac_addr[2],
         (unsigned int) mac_addr[3], (unsigned int) mac_addr[4], (unsigned int) mac_addr[5],
-        chip_info.model, chip_info.cores, chip_info.revision, embedded_flash, bluetooth, ble);
+        chip_info.model, chip_info.cores, revision, embedded_flash, bluetooth, ble);
 
     ESP_LOGD(HWID_TAG, "Astarte Device SDK running on: %s", info_string);
 

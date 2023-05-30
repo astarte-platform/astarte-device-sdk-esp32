@@ -11,8 +11,8 @@ receive data.
 
 ## Documentation
 
-The generated Doxygen documentation is available on the [Astarte Documentation
-website](https://docs.astarte-platform.org/1.0/device-sdks/esp32).
+The generated Doxygen documentation is available in the [Astarte Documentation
+website](https://docs.astarte-platform.org/device-sdks/esp32/latest/api).
 
 ## `esp-idf` version compatibility
 
