@@ -68,6 +68,7 @@ static astarte_err_t publish_data(astarte_device_handle_t device, const char *in
     const char *path, const void *data, size_t length, int qos);
 static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
+static void send_emptycache(astarte_device_handle_t device);
 static void on_connected(astarte_device_handle_t device, int session_present);
 static void on_disconnected(astarte_device_handle_t device);
 static void on_incoming(
@@ -355,6 +356,11 @@ astarte_err_t astarte_device_init_connection(
         .client_cert_pem = client_cert_pem,
         .client_key_pem = key_pem,
         .user_context = device,
+        // TODO: At this time, the device starts with a clean session every connection,
+        //  to change this behavior, it is necessary to enable disable_clean_session.
+        //  Before enable it pay attention if the #issue-29 has been solved
+        //  (see: https://github.com/astarte-platform/astarte-device-sdk-esp32/issues/29).
+        //  .disable_clean_session = true,
     };
 #endif
 
@@ -978,6 +984,20 @@ static void setup_subscriptions(astarte_device_handle_t device)
     }
 }
 
+static void send_emptycache(astarte_device_handle_t device)
+{
+    if (check_device(device) != ASTARTE_OK) {
+        return;
+    }
+
+    esp_mqtt_client_handle_t mqtt = device->mqtt_client;
+
+    char topic[TOPIC_LENGTH];
+    snprintf(topic, TOPIC_LENGTH, "%s/control/emptyCache", device->device_topic);
+    ESP_LOGD(TAG, "Sending emptyCache to %s", topic);
+    esp_mqtt_client_publish(mqtt, topic, "1", 1, 2, 0);
+}
+
 static void on_connected(astarte_device_handle_t device, int session_present)
 {
     device->connected = true;
@@ -995,6 +1015,7 @@ static void on_connected(astarte_device_handle_t device, int session_present)
 
     setup_subscriptions(device);
     send_introspection(device);
+    send_emptycache(device);
 }
 
 static void on_disconnected(astarte_device_handle_t device)

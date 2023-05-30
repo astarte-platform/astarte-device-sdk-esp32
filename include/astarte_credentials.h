@@ -17,6 +17,9 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define CERT_LENGTH 4096
+#define CN_LENGTH 512
+
 #define ASTARTE_CREDENTIALS_DEFAULT_NVS_PARTITION NULL
 
 enum credential_type_t
