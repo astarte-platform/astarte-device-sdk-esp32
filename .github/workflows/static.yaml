@@ -52,21 +52,12 @@ jobs:
     container: espressif/idf:release-v5.0
     steps:
     - uses: actions/checkout@v3
-    - name: Configuring
-      working-directory: ./examples/${{ matrix.example }}
+    - name: Setup
       run: |
         . $IDF_PATH/export.sh
-        pip install --upgrade -r ./../../python_scripts/requirements.txt
-        idf_tools.py --non-interactive install xtensa-clang
-        wget -O run-clang-tidy.py https://raw.githubusercontent.com/llvm/llvm-project/main/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py
-        chmod +x run-clang-tidy.py
-    - name: Running
-      working-directory: ./examples/${{ matrix.example }}
-      run: |
-        export PATH="$PWD:$PATH"
-        . $IDF_PATH/export.sh
-        idf.py clang-check --run-clang-tidy-options "-config-file=$PWD/../../.clang-tidy" --include-paths $PWD/../..
-    - name: Parse result
+        python3 -m pip install -r python_scripts/requirements.txt
+        python3 python_scripts/setup_clang_tidy.py -p ./examples/${{ matrix.example }} -v
+    - name: Run and parse the results
       run: |
         . $IDF_PATH/export.sh
-         python3 python_scripts/parse_clang_tidy_res.py -d ./examples/${{ matrix.example }} -r
+        python3 python_scripts/run_clang_tidy.py -p ./examples/${{ matrix.example }} -r
