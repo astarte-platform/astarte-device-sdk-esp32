@@ -1,7 +1,7 @@
 #
 # This file is part of Astarte.
 #
-# Copyright 2021 Ispirata Srl
+# Copyright 2021-2023 SECO Mind S.r.l.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# SPDX-License-Identifier: CC0-1.0
+#
 
-name: "Check formatting"
+name: Static analysis of the C sources.
+
 on:
   pull_request:
   push:
@@ -38,3 +41,32 @@ jobs:
     - name: Check formatting examples
       run: |
         ./run-clang-format --style=file examples/**/main/src/*.c examples/**/main/include/*.h
+  clang-tidy-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example:
+        - "aggregates"
+        - "datastreams"
+        - "toggle_led"
+    container: espressif/idf:release-v5.0
+    steps:
+    - uses: actions/checkout@v3
+    - name: Configuring
+      working-directory: ./examples/${{ matrix.example }}
+      run: |
+        . $IDF_PATH/export.sh
+        pip install --upgrade -r ./../../python_scripts/requirements.txt
+        idf_tools.py --non-interactive install xtensa-clang
+        wget -O run-clang-tidy.py https://raw.githubusercontent.com/llvm/llvm-project/main/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py
+        chmod +x run-clang-tidy.py
+    - name: Running
+      working-directory: ./examples/${{ matrix.example }}
+      run: |
+        export PATH="$PWD:$PATH"
+        . $IDF_PATH/export.sh
+        idf.py clang-check --run-clang-tidy-options "-config-file=$PWD/../../.clang-tidy" --include-paths $PWD/../..
+    - name: Parse result
+      run: |
+        . $IDF_PATH/export.sh
+         python3 python_scripts/parse_clang_tidy_res.py -d ./examples/${{ matrix.example }} -r
