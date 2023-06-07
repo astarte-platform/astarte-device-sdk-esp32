@@ -277,9 +277,8 @@ astarte_err_t astarte_device_init_connection(
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_credentials_secret");
         return err;
-    } else {
-        ESP_LOGD(TAG, "credentials_secret is: %s", credentials_secret);
     }
+    ESP_LOGD(TAG, "credentials_secret is: %s", credentials_secret);
 
     char *client_cert_pem = NULL;
     char *client_cert_cn = NULL;
