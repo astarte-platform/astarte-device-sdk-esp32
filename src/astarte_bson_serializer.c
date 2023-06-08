@@ -28,7 +28,7 @@
     union data32 d32;                                                                              \
     d32.sval = (value);                                                                            \
     d32.uval = htole32(d32.uval);                                                                  \
-    buf = d32.valBuf;
+    (buf) = d32.valBuf;
 
 #define INT64_TO_BYTES(value, buf)                                                                 \
     union data64                                                                                   \
@@ -40,7 +40,7 @@
     union data64 d64;                                                                              \
     d64.sval = (value);                                                                            \
     d64.uval = htole64(d64.uval);                                                                  \
-    buf = d64.valBuf;
+    (buf) = d64.valBuf;
 
 #define DOUBLE_TO_BYTES(value, buf)                                                                \
     union data64                                                                                   \
@@ -52,7 +52,7 @@
     union data64 d64;                                                                              \
     d64.dval = (value);                                                                            \
     d64.uval = htole64(d64.uval);                                                                  \
-    buf = d64.valBuf;
+    (buf) = d64.valBuf;
 
 static void astarte_byte_array_init(struct astarte_byte_array_t *ba, void *bytes, int size)
 {
