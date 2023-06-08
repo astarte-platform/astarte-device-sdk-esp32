@@ -1054,6 +1054,7 @@ static void on_incoming(
     int control_prefix_len = strlen(control_prefix);
     if (strstr(topic, control_prefix)) {
         // Control message
+        // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) Remove once control_topic is used.
         char *control_topic = topic + control_prefix_len;
         ESP_LOGD(TAG, "Received control message on control topic %s", control_topic);
         // TODO: on_control_message(device, control_topic, data, data_len);
