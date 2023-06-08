@@ -61,7 +61,6 @@ Checks: >
   -readability-function-size,
   -readability-identifier-length,
   -readability-identifier-naming,
-  -readability-inconsistent-declaration-parameter-name,
   -readability-magic-numbers
 
 # TODO:
@@ -79,8 +78,7 @@ Checks: >
 #   11. readability-function-size
 #   12. readability-identifier-length
 #   13. readability-identifier-naming
-#   14. readability-inconsistent-declaration-parameter-name
-#   15. readability-magic-numbers
+#   14. readability-magic-numbers
 #   N.B. The following rules will be fixed as a consequence:
 #   - bugprone-narrowing-conversions (cppcoreguidelines-narrowing-conversions)
 #   - cppcoreguidelines-avoid-magic-numbers (readability-magic-numbers)

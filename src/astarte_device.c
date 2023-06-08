@@ -681,12 +681,12 @@ IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const char *const *, string_ar
 IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const int64_t *, datetime_array, datetime_array)
 
 astarte_err_t astarte_device_stream_binaryblob_array_with_timestamp(astarte_device_handle_t device,
-    const char *interface_name, const char *path, const void *const *binary_blobs, const int *sizes,
+    const char *interface_name, const char *path, const void *const *values, const int *sizes,
     int count, uint64_t ts_epoch_millis, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_binary_array(&bs, "v", binary_blobs, sizes, count);
+    astarte_bson_serializer_append_binary_array(&bs, "v", values, sizes, count);
     maybe_append_timestamp(&bs, ts_epoch_millis);
     astarte_bson_serializer_append_end_of_document(&bs);
 

@@ -202,7 +202,7 @@ void astarte_bson_serializer_append_document(
  * @param[in] count the number of items stored in double_array.
  */
 void astarte_bson_serializer_append_double_array(
-    struct astarte_bson_serializer_t *bs, const char *name, const double *double_array, int count);
+    struct astarte_bson_serializer_t *bs, const char *name, const double *arr, int count);
 
 /**
  * @brief append an int32 array
@@ -215,7 +215,7 @@ void astarte_bson_serializer_append_double_array(
  * @param[in] count the number of items stored in int32_array.
  */
 void astarte_bson_serializer_append_int32_array(
-    struct astarte_bson_serializer_t *bs, const char *name, const int32_t *int32_array, int count);
+    struct astarte_bson_serializer_t *bs, const char *name, const int32_t *arr, int count);
 
 /**
  * @brief append an int64 array
@@ -228,7 +228,7 @@ void astarte_bson_serializer_append_int32_array(
  * @param[in] count the number of items stored in int64_array.
  */
 void astarte_bson_serializer_append_int64_array(
-    struct astarte_bson_serializer_t *bs, const char *name, const int64_t *int64_array, int count);
+    struct astarte_bson_serializer_t *bs, const char *name, const int64_t *arr, int count);
 
 /**
  * @brief append a string array
@@ -240,8 +240,8 @@ void astarte_bson_serializer_append_int64_array(
  * @param[in] string_array an array of 0 terminated UTF-8 strings.
  * @param[in] count the number of items stored in string_array.
  */
-void astarte_bson_serializer_append_string_array(struct astarte_bson_serializer_t *bs,
-    const char *name, const char *const *string_array, int count);
+void astarte_bson_serializer_append_string_array(
+    struct astarte_bson_serializer_t *bs, const char *name, const char *const *arr, int count);
 
 /**
  * @brief append a binary blob array
@@ -255,7 +255,7 @@ void astarte_bson_serializer_append_string_array(struct astarte_bson_serializer_
  * @param[in] count the number of items stored in binary_array.
  */
 void astarte_bson_serializer_append_binary_array(struct astarte_bson_serializer_t *bs,
-    const char *name, const void *const *binary_array, const int *sizes, int count);
+    const char *name, const void *const *arr, const int *sizes, int count);
 
 /**
  * @brief append a date time array
@@ -268,8 +268,8 @@ void astarte_bson_serializer_append_binary_array(struct astarte_bson_serializer_
  * milliseconds since epoch.
  * @param[in] count the number of items stored in epoch_millis_array.
  */
-void astarte_bson_serializer_append_datetime_array(struct astarte_bson_serializer_t *bs,
-    const char *name, const int64_t *epoch_millis_array, int count);
+void astarte_bson_serializer_append_datetime_array(
+    struct astarte_bson_serializer_t *bs, const char *name, const int64_t *arr, int count);
 
 /**
  * @brief append a boolean array
@@ -282,7 +282,7 @@ void astarte_bson_serializer_append_datetime_array(struct astarte_bson_serialize
  * @param[in] count the number of items stored in boolean_array.
  */
 void astarte_bson_serializer_append_boolean_array(
-    struct astarte_bson_serializer_t *bs, const char *name, const bool *boolean_array, int count);
+    struct astarte_bson_serializer_t *bs, const char *name, const bool *arr, int count);
 
 #ifdef __cplusplus
 }
