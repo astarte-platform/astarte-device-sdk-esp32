@@ -37,10 +37,10 @@ jobs:
         chmod +x run-clang-format
     - name: Check formatting library
       run: |
-        ./run-clang-format --style=file *.c include/*.h
+        ./run-clang-format --style=file src/*.c include/*.h
     - name: Check formatting examples
       run: |
-        ./run-clang-format --style=file examples/**/main/src/*.c examples/**/main/include/*.h
+        ./run-clang-format --style=file examples/**/main/*.c examples/**/main/src/*.c examples/**/main/include/*.h
   clang-tidy-check:
     runs-on: ubuntu-latest
     strategy:
