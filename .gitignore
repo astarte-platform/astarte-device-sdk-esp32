@@ -3,3 +3,10 @@ sdkconfig
 sdkconfig.old
 doc/out
 .vscode
+
+# Files related to clang-tidy
+warnings.txt
+run-clang-tidy.py
+
+# Generic python cache
+__pycache__
