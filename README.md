@@ -70,3 +70,29 @@ This can be done using the following command:
 | ESP-IDF $\geqslant$ v4.x | ESP-IDF v3.x |
 | ------------- | ------------ |
 | `idf.py -p <DEVICE_PORT> erase-flash` | `make ESPPORT=<DEVICE_PORT> erase_flash` |
+
+## Notes on custom certificate bundle
+
+The Astarte ESP32 Device uses the
+[ESP x509 Certificate Bundle](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/protocols/esp_crt_bundle.html)
+to verify the Astarte instance certificates. This feature is only available for ESP IDF versions
+starting from `v4.3.5`.
+
+If your Astarte instance uses a custom CA you can disable the default certificate bundle and add
+your own certificates.
+This can be done directly in `esp-idf` using the `menuconfig` command, or adding a
+`sdkconfig.defaults` file to your project.
+
+Below an example configuration is presented. It adds a locally stored custom certificate.
+```
+#
+# Certificate Bundle
+#
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y
+# CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_FULL is not set
+# CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_CMN is not set
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_NONE=y
+CONFIG_MBEDTLS_CUSTOM_CERTIFICATE_BUNDLE=y
+CONFIG_MBEDTLS_CUSTOM_CERTIFICATE_BUNDLE_PATH="/path/to/certificate/file/astarte_instance.pem"
+# end of Certificate Bundle
+```
