@@ -9,6 +9,9 @@
 #include "astarte_credentials.h"
 
 #include <esp_http_client.h>
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+#include <esp_crt_bundle.h>
+#endif
 #include <esp_log.h>
 
 #include <cJSON.h>
@@ -146,6 +149,9 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
     esp_http_client_config_t http_config
         = {.url = url,
               .event_handler = http_event_handler,
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+              .crt_bundle_attach = esp_crt_bundle_attach,
+#endif
               .method = HTTP_METHOD_POST,
               .buffer_size = 2048,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
@@ -276,6 +282,9 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
     esp_http_client_config_t http_config
         = {.url = url,
               .event_handler = http_event_handler,
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+              .crt_bundle_attach = esp_crt_bundle_attach,
+#endif
               .method = HTTP_METHOD_GET,
               .buffer_size = 2048,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
@@ -386,6 +395,9 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
     esp_http_client_config_t http_config
         = {.url = url,
               .event_handler = http_event_handler,
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+              .crt_bundle_attach = esp_crt_bundle_attach,
+#endif
               .method = HTTP_METHOD_POST,
               .buffer_size = 2048,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)

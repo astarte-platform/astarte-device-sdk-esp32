@@ -16,6 +16,9 @@
 #include <mqtt_client.h>
 
 #include <esp_http_client.h>
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+#include <esp_crt_bundle.h>
+#endif
 #include <esp_log.h>
 #include <freertos/semphr.h>
 #include <freertos/task.h>
@@ -344,11 +347,14 @@ astarte_err_t astarte_device_init_connection(
     }
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-    const esp_mqtt_client_config_t mqtt_cfg = {
-        .broker.address.uri = broker_url,
-        .credentials.authentication.certificate = client_cert_pem,
-        .credentials.authentication.key = key_pem,
-    };
+    const esp_mqtt_client_config_t mqtt_cfg
+        = {.broker.address.uri = broker_url,
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+              .broker.verification.crt_bundle_attach = esp_crt_bundle_attach,
+#endif
+              .credentials.authentication.certificate = client_cert_pem,
+              .credentials.authentication.key = key_pem,
+          };
 #else
     const esp_mqtt_client_config_t mqtt_cfg = {
         .uri = broker_url,
@@ -1118,9 +1124,12 @@ static void on_incoming(
 
 static int has_connectivity()
 {
-    esp_http_client_config_t config = {
-        .url = CONFIG_ASTARTE_CONNECTIVITY_TEST_URL,
-    };
+    esp_http_client_config_t config
+        = {.url = CONFIG_ASTARTE_CONNECTIVITY_TEST_URL,
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+              .crt_bundle_attach = esp_crt_bundle_attach,
+#endif
+          };
     esp_http_client_handle_t client = esp_http_client_init(&config);
     esp_err_t err = esp_http_client_perform(client);
 
