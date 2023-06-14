@@ -125,7 +125,9 @@ void astarte_bson_serializer_destroy(struct astarte_bson_serializer_t *bs)
 const void *astarte_bson_serializer_get_document(
     const struct astarte_bson_serializer_t *bs, int *size)
 {
-    *size = bs->ba.size;
+    if (size) {
+        *size = bs->ba.size;
+    }
     return bs->ba.buf;
 }
 
@@ -133,7 +135,9 @@ astarte_err_t astarte_bson_serializer_write_document(
     const struct astarte_bson_serializer_t *bs, void *out_buf, int out_buf_len, int *out_doc_size)
 {
     int doc_size = bs->ba.size;
-    *out_doc_size = doc_size;
+    if (out_doc_size) {
+        *out_doc_size = doc_size;
+    }
 
     if (out_buf_len < bs->ba.size) {
         return ASTARTE_ERR;
