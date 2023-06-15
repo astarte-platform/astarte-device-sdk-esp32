@@ -17,7 +17,6 @@ website](https://docs.astarte-platform.org/device-sdks/esp32/latest/api).
 ## `esp-idf` version compatibility
 
 The SDK is tested against these versions of `esp-idf`:
-- `v3.3.4` (only `make` supported)
 - `v4.2` (`make` and `idf.py` supported)
 - `v5.0` (`idf.py` supported)
 
@@ -67,9 +66,9 @@ flashes and the old ones stored in the NVM can be reused.
 However, when changing elements of the `Astarte SDK` component configuration the old credentials
 should be discarded by erasing the NMV.
 This can be done using the following command:
-| ESP-IDF $\geqslant$ v4.x | ESP-IDF v3.x |
-| ------------- | ------------ |
-| `idf.py -p <DEVICE_PORT> erase-flash` | `make ESPPORT=<DEVICE_PORT> erase_flash` |
+| idf.py (ESP-IDF v5.x) | idf.py (ESP-IDF v4.x) | make |
+| ------------- | ------------ | ------------ |
+| `idf.py -p <DEVICE_PORT> erase-flash` | `idf.py -p <DEVICE_PORT> erase_flash` | `make ESPPORT=<DEVICE_PORT> erase_flash` |
 
 ## Notes on custom certificate bundle
 

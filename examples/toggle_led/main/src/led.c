@@ -16,7 +16,6 @@
 
 void led_init()
 {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     // zero-initialize the config structure.
     gpio_config_t io_conf = {};
     // disable interrupt
@@ -31,12 +30,6 @@ void led_init()
     io_conf.pull_up_en = 0;
     // configure GPIO with the given settings
     gpio_config(&io_conf);
-#else
-    // Set the pad as GPIO
-    gpio_pad_select_gpio(CONFIG_LED_GPIO);
-    // Set LED GPIO as output
-    gpio_set_direction(CONFIG_LED_GPIO, GPIO_MODE_OUTPUT);
-#endif
 }
 
 void led_set_level(uint32_t level)

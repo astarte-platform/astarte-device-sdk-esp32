@@ -16,6 +16,7 @@
 
 #include <cJSON.h>
 
+#include <inttypes.h>
 #include <string.h>
 
 #define CRED_SECRET_LENGTH 256
@@ -154,9 +155,7 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
 #endif
               .method = HTTP_METHOD_POST,
               .buffer_size = 2048,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
               .buffer_size_tx = 2048,
-#endif
               .user_data = &resp,
           };
 
@@ -192,7 +191,7 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %lld", status_code,
+        ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %" PRIi64, status_code,
             esp_http_client_get_content_length(client));
 #else
         ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %d", status_code,
@@ -287,9 +286,7 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
 #endif
               .method = HTTP_METHOD_GET,
               .buffer_size = 2048,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
               .buffer_size_tx = 2048,
-#endif
               .user_data = &resp,
           };
 
@@ -316,7 +313,7 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %lld", status_code,
+        ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %" PRIi64, status_code,
             esp_http_client_get_content_length(client));
 #else
         ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %d", status_code,
@@ -400,9 +397,7 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
 #endif
               .method = HTTP_METHOD_POST,
               .buffer_size = 2048,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
               .buffer_size_tx = 2048,
-#endif
               .user_data = &resp,
           };
 
@@ -438,7 +433,7 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
     if (err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %lld", status_code,
+        ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %" PRIi64, status_code,
             esp_http_client_get_content_length(client));
 #else
         ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %d", status_code,

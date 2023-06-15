@@ -100,7 +100,7 @@ with the Visual Studio Code or the Eclipse plugins then the configuration proced
 slightly different.
 
 Open the configuration tool using the following command:
-| ESP-IDF $\geqslant$ v4.x | ESP-IDF v3.x |
+| idf.py | make |
 | ------------- | ------------ |
 | `idf.py menuconfig` | `make menuconfig` |
 
@@ -130,15 +130,15 @@ more permanently you can overwrite the defaults by adding them to the `sdkconfig
 
 When using a non-brand new device, some certificates might be already stored in data flash. Make
 sure you correctly wipe clean the device by running:
-| ESP-IDF $\geqslant$ v4.x | ESP-IDF v3.x |
-| ------------- | ------------ |
-| `idf.py -p <DEVICE_PORT> erase-flash` | `make ESPPORT=<DEVICE_PORT> erase_flash` |
+| idf.py (ESP-IDF v5.x) | idf.py (ESP-IDF v4.x) | make |
+| ------------- | ------------ | ------------ |
+| `idf.py -p <DEVICE_PORT> erase-flash` | `idf.py -p <DEVICE_PORT> erase_flash` | `make ESPPORT=<DEVICE_PORT> erase_flash` |
 
 # Building and flashing
 
 Now build and flash the device using the ESP-IDF utilities. You can build, flash and then open a
 monitor using:
-| ESP-IDF $\geqslant$ v4.x | ESP-IDF v3.x |
+| idf.py | make |
 | ------------- | ------------ |
 | `idf.py -p <DEVICE_PORT> build flash monitor` | `make ESPPORT=<DEVICE_PORT> flash monitor` |
 
