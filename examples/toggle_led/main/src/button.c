@@ -61,7 +61,7 @@ void button_gpio_init(void)
 
 bool poll_button_event(void)
 {
-    uint32_t io_num;
+    uint32_t io_num = 0U;
     return (
         xQueueReceive(button_evt_queue, &io_num, portMAX_DELAY) && (io_num == CONFIG_BUTTON_GPIO));
 }

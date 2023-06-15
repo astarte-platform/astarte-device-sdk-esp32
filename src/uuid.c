@@ -34,8 +34,8 @@ struct uuid
 
 static void uuid_from_struct(const struct uuid *in, uuid_t out)
 {
-    uint32_t tmp32;
-    uint16_t tmp16;
+    uint32_t tmp32 = 0U;
+    uint16_t tmp16 = 0U;
     uint8_t *out_p = out;
 
     tmp32 = htonl(in->time_low);
@@ -55,8 +55,8 @@ static void uuid_from_struct(const struct uuid *in, uuid_t out)
 
 static void uuid_to_struct(const uuid_t in, struct uuid *out)
 {
-    uint32_t tmp32;
-    uint16_t tmp16;
+    uint32_t tmp32 = 0U;
+    uint16_t tmp16 = 0U;
     const uint8_t *in_p = in;
 
     memcpy(&tmp32, in_p, sizeof(uint32_t));

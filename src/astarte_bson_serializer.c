@@ -157,7 +157,7 @@ void astarte_bson_serializer_append_end_of_document(struct astarte_bson_serializ
 {
     astarte_byte_array_append_byte(&bs->ba, '\0');
 
-    uint8_t *sizeBuf;
+    uint8_t *sizeBuf = NULL;
     INT32_TO_BYTES(bs->ba.size, sizeBuf)
 
     astarte_byte_array_replace(&bs->ba, 0, sizeof(int32_t), sizeBuf);
@@ -166,7 +166,7 @@ void astarte_bson_serializer_append_end_of_document(struct astarte_bson_serializ
 void astarte_bson_serializer_append_double(
     struct astarte_bson_serializer_t *bs, const char *name, double value)
 {
-    uint8_t *valBuf;
+    uint8_t *valBuf = NULL;
     DOUBLE_TO_BYTES(value, valBuf)
 
     astarte_byte_array_append_byte(&bs->ba, BSON_TYPE_DOUBLE);
@@ -177,7 +177,7 @@ void astarte_bson_serializer_append_double(
 void astarte_bson_serializer_append_int32(
     struct astarte_bson_serializer_t *bs, const char *name, int32_t value)
 {
-    uint8_t *valBuf;
+    uint8_t *valBuf = NULL;
     INT32_TO_BYTES(value, valBuf)
 
     astarte_byte_array_append_byte(&bs->ba, BSON_TYPE_INT32);
@@ -188,7 +188,7 @@ void astarte_bson_serializer_append_int32(
 void astarte_bson_serializer_append_int64(
     struct astarte_bson_serializer_t *bs, const char *name, int64_t value)
 {
-    uint8_t *valBuf;
+    uint8_t *valBuf = NULL;
     INT64_TO_BYTES(value, valBuf)
 
     astarte_byte_array_append_byte(&bs->ba, BSON_TYPE_INT64);
@@ -199,7 +199,7 @@ void astarte_bson_serializer_append_int64(
 void astarte_bson_serializer_append_binary(
     struct astarte_bson_serializer_t *bs, const char *name, const void *value, int size)
 {
-    uint8_t *lenBuf;
+    uint8_t *lenBuf = NULL;
     INT32_TO_BYTES(size, lenBuf)
 
     astarte_byte_array_append_byte(&bs->ba, BSON_TYPE_BINARY);
@@ -214,7 +214,7 @@ void astarte_bson_serializer_append_string(
 {
     int string_len = strlen(string);
 
-    uint8_t *lenBuf;
+    uint8_t *lenBuf = NULL;
     INT32_TO_BYTES(string_len + 1, lenBuf)
 
     astarte_byte_array_append_byte(&bs->ba, BSON_TYPE_STRING);
@@ -226,7 +226,7 @@ void astarte_bson_serializer_append_string(
 void astarte_bson_serializer_append_datetime(
     struct astarte_bson_serializer_t *bs, const char *name, uint64_t epoch_millis)
 {
-    uint8_t *valBuf;
+    uint8_t *valBuf = NULL;
     INT64_TO_BYTES(epoch_millis, valBuf)
 
     astarte_byte_array_append_byte(&bs->ba, BSON_TYPE_DATETIME);
@@ -245,7 +245,7 @@ void astarte_bson_serializer_append_boolean(
 void astarte_bson_serializer_append_document(
     struct astarte_bson_serializer_t *bs, const char *name, const void *document)
 {
-    uint32_t size;
+    uint32_t size = 0U;
     memcpy(&size, document, sizeof(uint32_t));
     size = le32toh(size);
 
@@ -298,7 +298,7 @@ void astarte_bson_serializer_append_binary_array(struct astarte_bson_serializer_
     }
     astarte_bson_serializer_append_end_of_document(&array_ser);
 
-    int size;
+    int size = 0;
     const void *document = astarte_bson_serializer_get_document(&array_ser, &size);
 
     astarte_byte_array_append_byte(&bs->ba, BSON_TYPE_ARRAY);
