@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.2.0] - Unreleased
 ### Added
 - Add support for server validation through ESP x509 Certificate Bundle.
+- Add maximum JWT size to SDK configuration options.
 
 ### Removed
 - Support for ESP IDF v3.x.

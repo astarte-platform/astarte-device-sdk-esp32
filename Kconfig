@@ -20,6 +20,12 @@ config ASTARTE_PAIRING_JWT
 
         Can be obtained with ./generate-astarte-credentials -t pairing -p yourrealmkey.key
 
+config ASTARTE_PAIRING_JWT_MAX_LEN
+    int "Pairing JWT maximum length"
+    default 1024
+    help
+        JWT maximum allowed size.
+
 config ASTARTE_CONNECTIVITY_TEST_URL
     string "Astarte connectivity test URL"
     default "http://www.example.com"

@@ -19,10 +19,15 @@
 #include <inttypes.h>
 #include <string.h>
 
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#include <assert.h>
+static_assert(sizeof(CONFIG_ASTARTE_PAIRING_JWT) <= CONFIG_ASTARTE_PAIRING_JWT_MAX_LEN,
+    "Provided JWT is larger than its maximum size.");
+#endif
+
 #define CRED_SECRET_LENGTH 256
 #define MAX_URL_LENGTH 512
 #define MAX_CRED_SECR_HEADER_LENGTH 64
-#define MAX_JWT_HEADER_LENGTH 1024
 
 #define TAG "ASTARTE_PAIRING"
 
@@ -417,14 +422,14 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
 
     ESP_ERROR_CHECK(esp_http_client_set_post_field(client, payload, strlen(payload)));
 
-    auth_header = calloc(MAX_JWT_HEADER_LENGTH, sizeof(char));
+    auth_header = calloc(CONFIG_ASTARTE_PAIRING_JWT_MAX_LEN, sizeof(char));
     if (!auth_header) {
         ret = ASTARTE_ERR_OUT_OF_MEMORY;
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         goto exit;
     }
 
-    snprintf(auth_header, MAX_JWT_HEADER_LENGTH, "Bearer %s", config->jwt);
+    snprintf(auth_header, CONFIG_ASTARTE_PAIRING_JWT_MAX_LEN, "Bearer %s", config->jwt);
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Authorization", auth_header));
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Content-Type", "application/json"));
 
