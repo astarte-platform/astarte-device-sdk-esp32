@@ -68,6 +68,8 @@ static void astarte_disconnection_events_handler(astarte_device_disconnection_ev
 
 void astarte_example_task(void *ctx)
 {
+    (void) ctx;
+
     led_init();
     button_gpio_init();
     if (astarte_credentials_init() != ASTARTE_OK) {
@@ -139,5 +141,7 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
 
 static void astarte_disconnection_events_handler(astarte_device_disconnection_event_t *event)
 {
+    (void) event;
+
     ESP_LOGI(TAG, "Astarte device disconnected");
 }
