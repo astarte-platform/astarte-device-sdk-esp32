@@ -77,12 +77,8 @@ static void on_disconnected(astarte_device_handle_t device);
 static void on_incoming(
     astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len);
 static void on_certificate_error(astarte_device_handle_t device);
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 static void mqtt_event_handler(
     void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
-#else
-static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
-#endif
 static int has_connectivity();
 static void maybe_append_timestamp(struct astarte_bson_serializer_t *bs, uint64_t ts_epoch_millis);
 
@@ -349,25 +345,27 @@ astarte_err_t astarte_device_init_connection(
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     const esp_mqtt_client_config_t mqtt_cfg
         = {.broker.address.uri = broker_url,
-#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
               .broker.verification.crt_bundle_attach = esp_crt_bundle_attach,
 #endif
               .credentials.authentication.certificate = client_cert_pem,
               .credentials.authentication.key = key_pem,
           };
 #else
-    const esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = broker_url,
-        .event_handle = mqtt_event_handler,
-        .client_cert_pem = client_cert_pem,
-        .client_key_pem = key_pem,
-        .user_context = device,
-        // TODO: At this time, the device starts with a clean session every connection,
-        //  to change this behavior, it is necessary to enable disable_clean_session.
-        //  Before enable it pay attention if the #issue-29 has been solved
-        //  (see: https://github.com/astarte-platform/astarte-device-sdk-esp32/issues/29).
-        //  .disable_clean_session = true,
-    };
+    const esp_mqtt_client_config_t mqtt_cfg
+        = {.uri = broker_url,
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+              .crt_bundle_attach = esp_crt_bundle_attach,
+#endif
+              .client_cert_pem = client_cert_pem,
+              .client_key_pem = key_pem,
+              .user_context = device,
+              // TODO: At this time, the device starts with a clean session every connection,
+              //  to change this behavior, it is necessary to enable disable_clean_session.
+              //  Before enable it pay attention if the #issue-29 has been solved
+              //  (see: https://github.com/astarte-platform/astarte-device-sdk-esp32/issues/29).
+              //  .disable_clean_session = true,
+          };
 #endif
 
     esp_mqtt_client_handle_t mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
@@ -376,9 +374,7 @@ astarte_err_t astarte_device_init_connection(
         goto init_failed;
     }
 
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     esp_mqtt_client_register_event(mqtt_client, ESP_EVENT_ANY_ID, mqtt_event_handler, device);
-#endif
 
     device->mqtt_client = mqtt_client;
     device->device_topic = client_cert_cn;
@@ -1153,20 +1149,11 @@ static void on_certificate_error(astarte_device_handle_t device)
     }
 }
 
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 static void mqtt_event_handler(
     void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
-#else
-static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
-#endif
 {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     esp_mqtt_event_handle_t event = event_data;
     astarte_device_handle_t device = (astarte_device_handle_t) handler_args;
-#else
-    astarte_device_handle_t device = (astarte_device_handle_t) event->user_context;
-    esp_mqtt_event_id_t event_id = event->event_id;
-#endif
     switch ((esp_mqtt_event_id_t) event_id) {
         case MQTT_EVENT_BEFORE_CONNECT:
             ESP_LOGD(TAG, "MQTT_EVENT_BEFORE_CONNECT");
@@ -1210,7 +1197,4 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             // Handle MQTT_EVENT_ANY introduced in esp-idf 3.2
             break;
     }
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-    return ESP_OK;
-#endif
 }

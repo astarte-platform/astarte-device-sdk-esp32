@@ -19,7 +19,7 @@
 static xQueueHandle button_evt_queue;
 
 /************************************************
- * Static functions declaration
+ * ISR handlers
  ***********************************************/
 
 /**
@@ -27,7 +27,11 @@ static xQueueHandle button_evt_queue;
  *
  * @param arg ISR handler arguments.
  */
-static void IRAM_ATTR button_isr_handler(void *arg);
+static void IRAM_ATTR button_isr_handler(void *arg)
+{
+    uint32_t gpio_num = (uint32_t) arg;
+    xQueueSendFromISR(button_evt_queue, &gpio_num, NULL);
+}
 
 /************************************************
  * Global functions definition
@@ -35,7 +39,6 @@ static void IRAM_ATTR button_isr_handler(void *arg);
 
 void button_gpio_init(void)
 {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     // zero-initialize the config structure.
     gpio_config_t io_conf = {};
     // interrupt of rising edge
@@ -47,16 +50,6 @@ void button_gpio_init(void)
     // enable pull-up mode
     io_conf.pull_up_en = 1;
     gpio_config(&io_conf);
-#else
-    // Set the pad as GPIO
-    gpio_pad_select_gpio(CONFIG_BUTTON_GPIO);
-    // Set button GPIO as input
-    gpio_set_direction(CONFIG_BUTTON_GPIO, GPIO_MODE_INPUT);
-    // Enable pullup
-    gpio_pullup_en(CONFIG_BUTTON_GPIO);
-    // Trigger interrupt on negative edge, i.e. on release
-    gpio_set_intr_type(CONFIG_BUTTON_GPIO, GPIO_INTR_NEGEDGE);
-#endif
 
     button_evt_queue = xQueueCreate(10, sizeof(uint32_t));
 
@@ -71,14 +64,4 @@ bool poll_button_event(void)
     uint32_t io_num;
     return (
         xQueueReceive(button_evt_queue, &io_num, portMAX_DELAY) && (io_num == CONFIG_BUTTON_GPIO));
-}
-
-/************************************************
- * Static functions definitions
- ***********************************************/
-
-static void IRAM_ATTR button_isr_handler(void *arg)
-{
-    uint32_t gpio_num = (uint32_t) arg;
-    xQueueSendFromISR(button_evt_queue, &gpio_num, NULL);
 }

@@ -197,11 +197,7 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
         double doubleanarray_endpoint[] = { 11.2, 2.2, 99.9, 421.1 };
         ESP_LOGI(TAG, "Sending device aggregate with the following content:");
         ESP_LOGI(TAG, "double_endpoint: %lf", double_endpoint);
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        ESP_LOGI(TAG, "integer_endpoint: %ld", integer_endpoint);
-#else
-        ESP_LOGI(TAG, "integer_endpoint: %d", integer_endpoint);
-#endif
+        ESP_LOGI(TAG, "integer_endpoint: %" PRIu32, integer_endpoint);
         ESP_LOGI(TAG, "boolean_endpoint: %d", boolean_endpoint);
         ESP_LOGI(TAG, "doubleanarray_endpoint: {%lf, %lf, %lf, %lf}", doubleanarray_endpoint[0],
             doubleanarray_endpoint[1], doubleanarray_endpoint[2], doubleanarray_endpoint[3]);

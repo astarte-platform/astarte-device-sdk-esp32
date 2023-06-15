@@ -10,6 +10,7 @@
 #include <esp_system.h>
 
 #include <arpa/inet.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -106,17 +107,10 @@ void uuid_to_string(const uuid_t uuid, char *out)
     struct uuid uuid_struct;
 
     uuid_to_struct(uuid, &uuid_struct);
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-    sprintf(out, "%08lx-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", uuid_struct.time_low,
+    sprintf(out, "%08" PRIu32 "-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", uuid_struct.time_low,
         uuid_struct.time_mid, uuid_struct.time_hi_and_version, uuid_struct.clock_seq_hi_res,
         uuid_struct.clock_seq_low, uuid_struct.node[0], uuid_struct.node[1], uuid_struct.node[2],
         uuid_struct.node[3], uuid_struct.node[4], uuid_struct.node[5]);
-#else
-    sprintf(out, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", uuid_struct.time_low,
-        uuid_struct.time_mid, uuid_struct.time_hi_and_version, uuid_struct.clock_seq_hi_res,
-        uuid_struct.clock_seq_low, uuid_struct.node[0], uuid_struct.node[1], uuid_struct.node[2],
-        uuid_struct.node[3], uuid_struct.node[4], uuid_struct.node[5]);
-#endif
 }
 
 int uuid_from_string(const char *in, uuid_t uuid)
