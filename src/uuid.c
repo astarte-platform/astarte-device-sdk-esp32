@@ -93,11 +93,11 @@ void uuid_generate_v5(const uuid_t ns, const void *data, size_t length, uuid_t o
     // This will use the first 16 bytes of the SHA
     uuid_to_struct(sha_result, &sha_uuid_struct);
 
-    int version = 5;
-    sha_uuid_struct.time_hi_and_version &= 0x0FFF;
-    sha_uuid_struct.time_hi_and_version |= (version << 12);
-    sha_uuid_struct.clock_seq_hi_res &= 0x3F;
-    sha_uuid_struct.clock_seq_hi_res |= 0x80;
+    unsigned int version = 5U;
+    sha_uuid_struct.time_hi_and_version &= 0x0FFFU;
+    sha_uuid_struct.time_hi_and_version |= (version << 12U);
+    sha_uuid_struct.clock_seq_hi_res &= 0x3FU;
+    sha_uuid_struct.clock_seq_hi_res |= 0x80U;
 
     uuid_from_struct(&sha_uuid_struct, out);
 }
@@ -173,9 +173,9 @@ void uuid_generate_v4(uuid_t out)
     struct uuid random_uuid_struct;
     uuid_to_struct(random_result, &random_uuid_struct);
 
-    int version = 4;
-    random_uuid_struct.time_hi_and_version &= 0x0FFF;
-    random_uuid_struct.time_hi_and_version |= (version << 12);
+    unsigned int version = 4;
+    random_uuid_struct.time_hi_and_version &= 0x0FFFU;
+    random_uuid_struct.time_hi_and_version |= (version << 12U);
 
     uuid_from_struct(&random_uuid_struct, out);
 }

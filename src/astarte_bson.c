@@ -19,16 +19,16 @@
 static uint32_t read_uint32(const void *u)
 {
     const unsigned char *b = (const unsigned char *) u;
-    return le32toh(((uint32_t) b[0]) | (((uint32_t) b[1]) << 8) | (((uint32_t) b[2]) << 16)
-        | (((uint32_t) b[3]) << 24));
+    return le32toh(((uint32_t) b[0]) | (((uint32_t) b[1]) << 8U) | (((uint32_t) b[2]) << 16U)
+        | (((uint32_t) b[3]) << 24U));
 }
 
 static uint64_t read_uint64(const void *u)
 {
     const unsigned char *b = (const unsigned char *) u;
-    return le64toh((uint64_t) b[0] | ((uint64_t) b[1] << 8) | ((uint64_t) b[2] << 16)
-        | ((uint64_t) b[3] << 24) | ((uint64_t) b[4] << 32) | ((uint64_t) b[5] << 40)
-        | ((uint64_t) b[6] << 48) | ((uint64_t) b[7] << 56));
+    return le64toh((uint64_t) b[0] | ((uint64_t) b[1] << 8U) | ((uint64_t) b[2] << 16U)
+        | ((uint64_t) b[3] << 24U) | ((uint64_t) b[4] << 32U) | ((uint64_t) b[5] << 40U)
+        | ((uint64_t) b[6] << 48U) | ((uint64_t) b[7] << 56U));
 }
 
 static unsigned int astarte_bson_next_item_offset(

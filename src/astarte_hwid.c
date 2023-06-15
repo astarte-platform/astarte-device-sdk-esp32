@@ -34,9 +34,13 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
 
     char info_string[160];
 
+    // CHIP_FEATURE_EMB_FLASH, CHIP_FEATURE_BT and CHIP_FEATURE_BLE are part of the esp-idf lib.
+    // NOLINTBEGIN(hicpp-signed-bitwise)
     int embedded_flash = (chip_info.features & CHIP_FEATURE_EMB_FLASH) != 0;
     int bluetooth = (chip_info.features & CHIP_FEATURE_BT) != 0;
     int ble = (chip_info.features & CHIP_FEATURE_BLE) != 0;
+    // NOLINTEND(hicpp-signed-bitwise)
+
     // See changelog to v5.0 of ESP IDF: https://github.com/espressif/esp-idf/releases/tag/v5.0
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     uint16_t revision = chip_info.revision / 100U;

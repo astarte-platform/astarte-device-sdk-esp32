@@ -37,8 +37,8 @@
 #define TOPIC_LENGTH 512
 #define REINIT_RETRY_INTERVAL_MS (30 * 1000)
 
-#define NOTIFY_TERMINATE (1 << 0)
-#define NOTIFY_REINIT (1 << 1)
+#define NOTIFY_TERMINATE (1U << 0U)
+#define NOTIFY_REINIT (1U << 1U)
 
 struct astarte_device_t
 {

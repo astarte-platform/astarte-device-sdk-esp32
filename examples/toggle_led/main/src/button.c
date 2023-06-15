@@ -44,7 +44,7 @@ void button_gpio_init(void)
     // interrupt of rising edge
     io_conf.intr_type = GPIO_INTR_NEGEDGE;
     // bit mask of the pin
-    io_conf.pin_bit_mask = (1ULL << CONFIG_BUTTON_GPIO);
+    io_conf.pin_bit_mask = (1ULL << (uint8_t) CONFIG_BUTTON_GPIO);
     // set as input mode
     io_conf.mode = GPIO_MODE_INPUT;
     // enable pull-up mode
