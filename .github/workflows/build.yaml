@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     container: espressif/idf:v${{ matrix.idf-version }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Build with make
       if: matrix.build-system == 'make'
       shell: bash
