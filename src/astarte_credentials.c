@@ -287,8 +287,8 @@ static astarte_err_t ensure_mounted()
         return ASTARTE_ERR_PARTITION_SCHEME;
     }
 
-    struct stat st;
-    if (stat(CREDENTIALS_DIR_PATH, &st) < 0) {
+    struct stat stats;
+    if (stat(CREDENTIALS_DIR_PATH, &stats) < 0) {
         ESP_LOGD(TAG, "Directory %s doesn't exist, creating it", CREDENTIALS_DIR_PATH);
         if (mkdir(CREDENTIALS_DIR_PATH, 0700) < 0) {
             ESP_LOGE(TAG, "Cannot create %s directory", CREDENTIALS_DIR_PATH);
@@ -519,8 +519,8 @@ astarte_err_t astarte_credentials_create_key()
 
     // Remove the CSR if present since the key is changed
     // We don't care if we fail since it could be not yet created
-    CREDS_STORAGE_FUNCS(sf);
-    if (sf->astarte_credentials_remove(creds_ctx.opaque, ASTARTE_CREDENTIALS_CSR) == ASTARTE_OK) {
+    if (funcs->astarte_credentials_remove(creds_ctx.opaque, ASTARTE_CREDENTIALS_CSR)
+        == ASTARTE_OK) {
         ESP_LOGD(TAG, "Deleted old CSR");
     }
 
@@ -665,10 +665,10 @@ astarte_err_t astarte_credentials_save_certificate(const char *cert_pem)
 
 astarte_err_t astarte_credentials_delete_certificate()
 {
-    CREDS_STORAGE_FUNCS(f);
+    CREDS_STORAGE_FUNCS(funcs);
 
     astarte_err_t ret
-        = f->astarte_credentials_remove(creds_ctx.opaque, ASTARTE_CREDENTIALS_CERTIFICATE);
+        = funcs->astarte_credentials_remove(creds_ctx.opaque, ASTARTE_CREDENTIALS_CERTIFICATE);
     if (ret != ASTARTE_OK) {
         ESP_LOGE(TAG, "certificate remove failed");
     }

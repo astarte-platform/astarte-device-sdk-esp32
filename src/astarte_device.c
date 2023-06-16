@@ -560,60 +560,60 @@ static void maybe_append_timestamp(struct astarte_bson_serializer_t *bson, uint6
 astarte_err_t astarte_device_stream_double_with_timestamp(astarte_device_handle_t device,
     const char *interface_name, const char *path, double value, uint64_t ts_epoch_millis, int qos)
 {
-    struct astarte_bson_serializer_t bs;
-    astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_double(&bs, "v", value);
-    maybe_append_timestamp(&bs, ts_epoch_millis);
-    astarte_bson_serializer_append_end_of_document(&bs);
+    struct astarte_bson_serializer_t bson;
+    astarte_bson_serializer_init(&bson);
+    astarte_bson_serializer_append_double(&bson, "v", value);
+    maybe_append_timestamp(&bson, ts_epoch_millis);
+    astarte_bson_serializer_append_end_of_document(&bson);
 
-    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bson, qos);
 
-    astarte_bson_serializer_destroy(&bs);
+    astarte_bson_serializer_destroy(&bson);
     return exit_code;
 }
 
 astarte_err_t astarte_device_stream_integer_with_timestamp(astarte_device_handle_t device,
     const char *interface_name, const char *path, int32_t value, uint64_t ts_epoch_millis, int qos)
 {
-    struct astarte_bson_serializer_t bs;
-    astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_int32(&bs, "v", value);
-    maybe_append_timestamp(&bs, ts_epoch_millis);
-    astarte_bson_serializer_append_end_of_document(&bs);
+    struct astarte_bson_serializer_t bson;
+    astarte_bson_serializer_init(&bson);
+    astarte_bson_serializer_append_int32(&bson, "v", value);
+    maybe_append_timestamp(&bson, ts_epoch_millis);
+    astarte_bson_serializer_append_end_of_document(&bson);
 
-    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bson, qos);
 
-    astarte_bson_serializer_destroy(&bs);
+    astarte_bson_serializer_destroy(&bson);
     return exit_code;
 }
 
 astarte_err_t astarte_device_stream_longinteger_with_timestamp(astarte_device_handle_t device,
     const char *interface_name, const char *path, int64_t value, uint64_t ts_epoch_millis, int qos)
 {
-    struct astarte_bson_serializer_t bs;
-    astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_int64(&bs, "v", value);
-    maybe_append_timestamp(&bs, ts_epoch_millis);
-    astarte_bson_serializer_append_end_of_document(&bs);
+    struct astarte_bson_serializer_t bson;
+    astarte_bson_serializer_init(&bson);
+    astarte_bson_serializer_append_int64(&bson, "v", value);
+    maybe_append_timestamp(&bson, ts_epoch_millis);
+    astarte_bson_serializer_append_end_of_document(&bson);
 
-    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bson, qos);
 
-    astarte_bson_serializer_destroy(&bs);
+    astarte_bson_serializer_destroy(&bson);
     return exit_code;
 }
 
 astarte_err_t astarte_device_stream_boolean_with_timestamp(astarte_device_handle_t device,
     const char *interface_name, const char *path, bool value, uint64_t ts_epoch_millis, int qos)
 {
-    struct astarte_bson_serializer_t bs;
-    astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_boolean(&bs, "v", value);
-    maybe_append_timestamp(&bs, ts_epoch_millis);
-    astarte_bson_serializer_append_end_of_document(&bs);
+    struct astarte_bson_serializer_t bson;
+    astarte_bson_serializer_init(&bson);
+    astarte_bson_serializer_append_boolean(&bson, "v", value);
+    maybe_append_timestamp(&bson, ts_epoch_millis);
+    astarte_bson_serializer_append_end_of_document(&bson);
 
-    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bson, qos);
 
-    astarte_bson_serializer_destroy(&bs);
+    astarte_bson_serializer_destroy(&bson);
     return exit_code;
 }
 
@@ -621,15 +621,15 @@ astarte_err_t astarte_device_stream_string_with_timestamp(astarte_device_handle_
     const char *interface_name, const char *path, const char *value, uint64_t ts_epoch_millis,
     int qos)
 {
-    struct astarte_bson_serializer_t bs;
-    astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_string(&bs, "v", value);
-    maybe_append_timestamp(&bs, ts_epoch_millis);
-    astarte_bson_serializer_append_end_of_document(&bs);
+    struct astarte_bson_serializer_t bson;
+    astarte_bson_serializer_init(&bson);
+    astarte_bson_serializer_append_string(&bson, "v", value);
+    maybe_append_timestamp(&bson, ts_epoch_millis);
+    astarte_bson_serializer_append_end_of_document(&bson);
 
-    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bson, qos);
 
-    astarte_bson_serializer_destroy(&bs);
+    astarte_bson_serializer_destroy(&bson);
     return exit_code;
 }
 
@@ -637,30 +637,30 @@ astarte_err_t astarte_device_stream_binaryblob_with_timestamp(astarte_device_han
     const char *interface_name, const char *path, void *value, size_t size,
     uint64_t ts_epoch_millis, int qos)
 {
-    struct astarte_bson_serializer_t bs;
-    astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_binary(&bs, "v", value, size);
-    maybe_append_timestamp(&bs, ts_epoch_millis);
-    astarte_bson_serializer_append_end_of_document(&bs);
+    struct astarte_bson_serializer_t bson;
+    astarte_bson_serializer_init(&bson);
+    astarte_bson_serializer_append_binary(&bson, "v", value, size);
+    maybe_append_timestamp(&bson, ts_epoch_millis);
+    astarte_bson_serializer_append_end_of_document(&bson);
 
-    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bson, qos);
 
-    astarte_bson_serializer_destroy(&bs);
+    astarte_bson_serializer_destroy(&bson);
     return exit_code;
 }
 
 astarte_err_t astarte_device_stream_datetime_with_timestamp(astarte_device_handle_t device,
     const char *interface_name, const char *path, int64_t value, uint64_t ts_epoch_millis, int qos)
 {
-    struct astarte_bson_serializer_t bs;
-    astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_datetime(&bs, "v", value);
-    maybe_append_timestamp(&bs, ts_epoch_millis);
-    astarte_bson_serializer_append_end_of_document(&bs);
+    struct astarte_bson_serializer_t bson;
+    astarte_bson_serializer_init(&bson);
+    astarte_bson_serializer_append_datetime(&bson, "v", value);
+    maybe_append_timestamp(&bson, ts_epoch_millis);
+    astarte_bson_serializer_append_end_of_document(&bson);
 
-    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bson, qos);
 
-    astarte_bson_serializer_destroy(&bs);
+    astarte_bson_serializer_destroy(&bson);
     return exit_code;
 }
 
@@ -669,15 +669,15 @@ astarte_err_t astarte_device_stream_datetime_with_timestamp(astarte_device_handl
         astarte_device_handle_t device, const char *interface_name, const char *path, TYPE value,  \
         int count, uint64_t ts_epoch_millis, int qos)                                              \
     {                                                                                              \
-        struct astarte_bson_serializer_t bs;                                                       \
-        astarte_bson_serializer_init(&bs);                                                         \
-        astarte_bson_serializer_append_##BSON_TYPE_NAME(&bs, "v", value, count);                   \
-        maybe_append_timestamp(&bs, ts_epoch_millis);                                              \
-        astarte_bson_serializer_append_end_of_document(&bs);                                       \
+        struct astarte_bson_serializer_t bson;                                                     \
+        astarte_bson_serializer_init(&bson);                                                       \
+        astarte_bson_serializer_append_##BSON_TYPE_NAME(&bson, "v", value, count);                 \
+        maybe_append_timestamp(&bson, ts_epoch_millis);                                            \
+        astarte_bson_serializer_append_end_of_document(&bson);                                     \
                                                                                                    \
-        astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);            \
+        astarte_err_t exit_code = publish_bson(device, interface_name, path, &bson, qos);          \
                                                                                                    \
-        astarte_bson_serializer_destroy(&bs);                                                      \
+        astarte_bson_serializer_destroy(&bson);                                                    \
         return exit_code;                                                                          \
     }
 
@@ -692,15 +692,15 @@ astarte_err_t astarte_device_stream_binaryblob_array_with_timestamp(astarte_devi
     const char *interface_name, const char *path, const void *const *values, const int *sizes,
     int count, uint64_t ts_epoch_millis, int qos)
 {
-    struct astarte_bson_serializer_t bs;
-    astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_binary_array(&bs, "v", values, sizes, count);
-    maybe_append_timestamp(&bs, ts_epoch_millis);
-    astarte_bson_serializer_append_end_of_document(&bs);
+    struct astarte_bson_serializer_t bson;
+    astarte_bson_serializer_init(&bson);
+    astarte_bson_serializer_append_binary_array(&bson, "v", values, sizes, count);
+    maybe_append_timestamp(&bson, ts_epoch_millis);
+    astarte_bson_serializer_append_end_of_document(&bson);
 
-    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bs, qos);
+    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bson, qos);
 
-    astarte_bson_serializer_destroy(&bs);
+    astarte_bson_serializer_destroy(&bson);
     return exit_code;
 }
 
@@ -708,15 +708,15 @@ astarte_err_t astarte_device_stream_aggregate_with_timestamp(astarte_device_hand
     const char *interface_name, const char *path_prefix, const void *bson_document,
     uint64_t ts_epoch_millis, int qos)
 {
-    struct astarte_bson_serializer_t bs;
-    astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_document(&bs, "v", bson_document);
-    maybe_append_timestamp(&bs, ts_epoch_millis);
-    astarte_bson_serializer_append_end_of_document(&bs);
+    struct astarte_bson_serializer_t bson;
+    astarte_bson_serializer_init(&bson);
+    astarte_bson_serializer_append_document(&bson, "v", bson_document);
+    maybe_append_timestamp(&bson, ts_epoch_millis);
+    astarte_bson_serializer_append_end_of_document(&bson);
 
-    astarte_err_t exit_code = publish_bson(device, interface_name, path_prefix, &bs, qos);
+    astarte_err_t exit_code = publish_bson(device, interface_name, path_prefix, &bson, qos);
 
-    astarte_bson_serializer_destroy(&bs);
+    astarte_bson_serializer_destroy(&bson);
     return exit_code;
 }
 

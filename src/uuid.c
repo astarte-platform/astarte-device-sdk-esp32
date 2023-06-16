@@ -122,20 +122,20 @@ int uuid_from_string(const char *input, uuid_t uuid)
 
     // Sanity check
     for (int i = 0; i < 36; i++) {
-        char c = input[i];
+        char char_i = input[i];
         // Check that hyphens are in the right place
         if ((i == 8) || (i == 13) || (i == 18) || (i == 23)) {
-            if (c != '-') {
-                ESP_LOGW(TAG, "Found invalid character %c in hyphen position %d", c, i);
+            if (char_i != '-') {
+                ESP_LOGW(TAG, "Found invalid character %c in hyphen position %d", char_i, i);
                 return -1;
             }
             continue;
         }
 
         // Check that everything else is an hexadecimal digit
-        if (!((c >= '0') && (c <= '9')) && !((c >= 'a') && (c <= 'f'))
-            && !((c >= 'A') && (c <= 'F'))) {
-            ESP_LOGW(TAG, "Found invalid character %c in position %d", c, i);
+        if (!((char_i >= '0') && (char_i <= '9')) && !((char_i >= 'a') && (char_i <= 'f'))
+            && !((char_i >= 'A') && (char_i <= 'F'))) {
+            ESP_LOGW(TAG, "Found invalid character %c in position %d", char_i, i);
             return -1;
         }
     }

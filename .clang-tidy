@@ -80,12 +80,11 @@ CheckOptions:
   - { key: readability-function-size.VariableThreshold, value: 15 }
 
   - { key: readability-identifier-length.MinimumVariableNameLength, value: 3 }
-  - { key: readability-identifier-length.IgnoredVariableNames, value: ".*" }
+  - { key: readability-identifier-length.IgnoredVariableNames, value: "" }
   - { key: readability-identifier-length.MinimumParameterNameLength, value: 3 }
   - { key: readability-identifier-length.IgnoredParameterNames, value: "" }
   - { key: readability-identifier-length.MinimumLoopCounterNameLength, value: 3 }
   - { key: readability-identifier-length.IgnoredLoopCounterNames, value: "^[ijk_]$" }
-
 
   - { key: readability-identifier-naming.ConstantCase, value: lower_case }
   - { key: readability-identifier-naming.ConstantParameterCase, value: lower_case }
