@@ -117,7 +117,7 @@ astarte_err_t astarte_credentials_init()
         }
     }
 
-    TaskHandle_t task_handle;
+    TaskHandle_t task_handle = NULL;
     xTaskCreate(credentials_init_task, "credentials_init_task", 16384, NULL, tskIDLE_PRIORITY,
         &task_handle);
     if (!task_handle) {
@@ -125,7 +125,7 @@ astarte_err_t astarte_credentials_init()
         return ASTARTE_ERR;
     }
 
-    astarte_err_t result;
+    astarte_err_t result = ASTARTE_OK;
     xQueueReceive(s_init_result_queue, &result, portMAX_DELAY);
 
     return result;
@@ -224,8 +224,8 @@ astarte_err_t astarte_credentials_fetch(
         return ASTARTE_ERR_NOT_FOUND;
     }
 
-    int ret;
-    if ((ret = fread(out, 1, length, infile)) < 0) {
+    int ret = fread(out, 1, length, infile);
+    if (ret < 0) {
         ESP_LOGE(TAG, "fread on %s returned %d", path, ret);
         fclose(infile);
         return ASTARTE_ERR_IO;
@@ -342,16 +342,14 @@ static const char *astarte_credentials_nvs_key(enum credential_type_t cred_type)
 astarte_err_t astarte_credentials_nvs_store(
     void *opaque, enum credential_type_t cred_type, const void *credential, size_t length)
 {
-    astarte_err_t res;
-
     const char *partition_label = opaque;
     const char *key = astarte_credentials_nvs_key(cred_type);
     if (!key) {
         return ASTARTE_ERR;
     }
 
-    nvs_handle nvs;
-    res = astarte_nvs_open_err_to_astarte(
+    nvs_handle_t nvs = 0U;
+    astarte_err_t res = astarte_nvs_open_err_to_astarte(
         nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs));
     if (res != ASTARTE_OK) {
         goto err;
@@ -372,22 +370,20 @@ err:
 astarte_err_t astarte_credentials_nvs_fetch(
     void *opaque, enum credential_type_t cred_type, char *out, size_t length)
 {
-    astarte_err_t res;
-
     const char *partition_label = opaque;
     const char *key = astarte_credentials_nvs_key(cred_type);
     if (!key) {
         return ASTARTE_ERR;
     }
 
-    nvs_handle nvs;
-    res = astarte_nvs_open_err_to_astarte(
+    nvs_handle_t nvs = 0U;
+    astarte_err_t res = astarte_nvs_open_err_to_astarte(
         nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READONLY, &nvs));
     if (res != ASTARTE_OK) {
         goto err;
     }
 
-    size_t len;
+    size_t len = 0U;
     nvs_get_str(nvs, key, NULL, &len);
 
     res = astarte_nvs_rw_err_to_astarte(nvs_get_str(nvs, key, out, &length));
@@ -399,22 +395,20 @@ err:
 
 bool astarte_credentials_nvs_exists(void *opaque, enum credential_type_t cred_type)
 {
-    astarte_err_t res;
-
     const char *partition_label = opaque;
     const char *key = astarte_credentials_nvs_key(cred_type);
     if (!key) {
         return false;
     }
 
-    nvs_handle nvs;
-    res = astarte_nvs_open_err_to_astarte(
+    nvs_handle_t nvs = 0U;
+    astarte_err_t res = astarte_nvs_open_err_to_astarte(
         nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READONLY, &nvs));
     if (res != ASTARTE_OK) {
         goto err;
     }
 
-    size_t length;
+    size_t length = 0U;
     res = astarte_nvs_rw_err_to_astarte(nvs_get_str(nvs, key, NULL, &length));
 
 err:
@@ -424,16 +418,14 @@ err:
 
 astarte_err_t astarte_credentials_nvs_remove(void *opaque, enum credential_type_t cred_type)
 {
-    astarte_err_t res;
-
     const char *partition_label = opaque;
     const char *key = astarte_credentials_nvs_key(cred_type);
     if (!key) {
         return ASTARTE_ERR;
     }
 
-    nvs_handle nvs;
-    res = astarte_nvs_open_err_to_astarte(
+    nvs_handle_t nvs = 0U;
+    astarte_err_t res = astarte_nvs_open_err_to_astarte(
         nvs_open_from_partition(partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs));
     if (res != ASTARTE_OK) {
         goto err;
@@ -692,9 +684,9 @@ astarte_err_t astarte_credentials_get_certificate_common_name(
     mbedtls_x509_crt crt;
     mbedtls_x509_crt_init(&crt);
 
-    int ret;
     size_t cert_length = strlen(cert_pem) + 1; // + 1 for NULL terminator, as per documentation
-    if ((ret = mbedtls_x509_crt_parse(&crt, (unsigned char *) cert_pem, cert_length)) < 0) {
+    int ret = mbedtls_x509_crt_parse(&crt, (unsigned char *) cert_pem, cert_length);
+    if (ret < 0) {
         ESP_LOGE(TAG, "mbedtls_x509_crt_parse_file returned %d", ret);
         goto exit;
     }
@@ -727,7 +719,7 @@ astarte_err_t astarte_credentials_get_key(char *out, size_t length)
 
 astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_t length)
 {
-    nvs_handle nvs;
+    nvs_handle_t nvs = 0U;
     esp_err_t err = nvs_open_from_partition(
         s_credentials_secret_partition_label, PAIRING_NAMESPACE, NVS_READONLY, &nvs);
     switch (err) {
@@ -766,7 +758,7 @@ astarte_err_t astarte_credentials_get_stored_credentials_secret(char *out, size_
 
 astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *credentials_secret)
 {
-    nvs_handle nvs;
+    nvs_handle_t nvs = 0U;
     esp_err_t err = nvs_open_from_partition(
         s_credentials_secret_partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
     switch (err) {
@@ -796,7 +788,7 @@ astarte_err_t astarte_credentials_set_stored_credentials_secret(const char *cred
 
 astarte_err_t astarte_credentials_erase_stored_credentials_secret()
 {
-    nvs_handle nvs;
+    nvs_handle_t nvs = 0U;
     esp_err_t err = nvs_open_from_partition(
         s_credentials_secret_partition_label, PAIRING_NAMESPACE, NVS_READWRITE, &nvs);
     switch (err) {

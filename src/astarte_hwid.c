@@ -82,7 +82,7 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
 
 void astarte_hwid_encode(char *encoded, int dest_size, const uint8_t *hardware_id)
 {
-    size_t out_len;
+    size_t out_len = 0U;
     mbedtls_base64_encode((unsigned char *) encoded, dest_size, &out_len, hardware_id, 16);
 
     for (int i = 0; i < out_len; i++) {

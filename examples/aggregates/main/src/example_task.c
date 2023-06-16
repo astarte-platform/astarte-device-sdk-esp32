@@ -149,13 +149,13 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
          */
 
         char booleanarray_key[] = "booleanarray_endpoint";
-        uint8_t booleanarray_type;
+        uint8_t booleanarray_type = 0U;
         const void *booleanarray = astarte_bson_key_lookup(
             (char *) &booleanarray_key, event->bson_value, &booleanarray_type);
         if ((booleanarray != NULL) && (booleanarray_type == BSON_TYPE_ARRAY)
             && (astarte_bson_document_size(booleanarray) == 0x15)) {
 
-            uint8_t boolean_type;
+            uint8_t boolean_type = 0U;
             char boolean_key[5];
             for (uint32_t i = 0; i < 4; i++) {
                 sprintf(boolean_key, "%" PRIu32 "", i);
@@ -173,7 +173,7 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
         }
 
         char longinteger_key[] = "longinteger_endpoint";
-        uint8_t longinteger_type;
+        uint8_t longinteger_type = 0U;
         const void *longinteger = astarte_bson_key_lookup(
             (char *) &longinteger_key, event->bson_value, &longinteger_type);
         if ((longinteger != NULL) && (longinteger_type == BSON_TYPE_INT64)) {
@@ -212,7 +212,7 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
             &aggregate_bson, "doublearray_endpoint", doubleanarray_endpoint, 4);
         astarte_bson_serializer_append_end_of_document(&aggregate_bson);
 
-        int doc_len;
+        int doc_len = 0;
         const void *doc = astarte_bson_serializer_get_document(&aggregate_bson, &doc_len);
         astarte_err_t res = astarte_device_stream_aggregate(
             event->device, device_datastream_interface.name, "/24", doc, 0);

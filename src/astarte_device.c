@@ -103,7 +103,7 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         goto init_failed;
     }
 
-    const char *encoded_hwid;
+    const char *encoded_hwid = NULL;
     if (cfg->hwid) {
         encoded_hwid = cfg->hwid;
     } else {
@@ -120,15 +120,15 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         ret->credentials_secret = strdup(cfg->credentials_secret);
     }
 
-    const char *realm;
+    const char *realm = NULL;
     if (cfg->realm) {
         realm = cfg->realm;
     } else {
         realm = CONFIG_ASTARTE_REALM;
     }
 
-    astarte_err_t res;
-    if ((res = astarte_device_init_connection(ret, encoded_hwid, realm)) != ASTARTE_OK) {
+    astarte_err_t res = astarte_device_init_connection(ret, encoded_hwid, realm);
+    if (res != ASTARTE_OK) {
         ESP_LOGE(TAG, "Cannot init Astarte device: %d", res);
         goto init_failed;
     }
@@ -182,10 +182,8 @@ static void astarte_device_reinit_task(void *ctx)
 
     astarte_device_handle_t device = (astarte_device_handle_t) ctx;
 
-    uint32_t notification_value;
-    astarte_err_t res;
     while (1) {
-        notification_value = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        uint32_t notification_value = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         if (notification_value & NOTIFY_TERMINATE) {
             // Terminate the task
             vTaskDelete(NULL);
@@ -196,9 +194,14 @@ static void astarte_device_reinit_task(void *ctx)
             astarte_credentials_delete_certificate();
             // Retry until we succeed
             bool reinitialized = true;
-            while (
-                (res = astarte_device_init_connection(device, device->encoded_hwid, device->realm))
-                != ASTARTE_OK) {
+
+            while (1) {
+                astarte_err_t res
+                    = astarte_device_init_connection(device, device->encoded_hwid, device->realm);
+                if (res == ASTARTE_OK) {
+                    break;
+                }
+
                 ESP_LOGE(TAG,
                     "Cannot reinit Astarte device: %d, trying again in %d "
                     "milliseconds",
@@ -229,14 +232,13 @@ static void astarte_device_reinit_task(void *ctx)
 astarte_err_t astarte_device_init_connection(
     astarte_device_handle_t device, const char *encoded_hwid, const char *realm)
 {
-    astarte_err_t err;
     if (!astarte_credentials_is_initialized()) {
         // TODO: this should be manually called from main before initializing the device,
         // but we just print a warning to maintain backwards compatibility for now
         ESP_LOGW(TAG,
             "You should manually call astarte_credentials_init before calling "
             "astarte_device_init");
-        err = astarte_credentials_init();
+        astarte_err_t err = astarte_credentials_init();
         if (err != ASTARTE_OK) {
             ESP_LOGE(TAG, "Error in astarte_credentials_init");
             return err;
@@ -272,7 +274,7 @@ astarte_err_t astarte_device_init_connection(
     }
 
     char credentials_secret[CREDENTIALS_SECRET_LENGTH];
-    err = astarte_pairing_get_credentials_secret(
+    astarte_err_t err = astarte_pairing_get_credentials_secret(
         &pairing_config, credentials_secret, CREDENTIALS_SECRET_LENGTH);
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_credentials_secret");
@@ -409,8 +411,8 @@ void astarte_device_destroy(astarte_device_handle_t device)
     free(device->encoded_hwid);
     free(device->credentials_secret);
     free(device->realm);
-    struct astarte_list_head_t *item;
-    struct astarte_list_head_t *tmp;
+    struct astarte_list_head_t *item = NULL;
+    struct astarte_list_head_t *tmp = NULL;
     MUTABLE_LIST_FOR_EACH(item, tmp, &device->interfaces_list)
     {
         struct astarte_ptr_list_entry_t *entry
@@ -497,7 +499,7 @@ astarte_err_t astarte_device_stop(astarte_device_handle_t device)
 static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name,
     const char *path, const struct astarte_bson_serializer_t *bs, int qos)
 {
-    int len;
+    int len = 0;
     const void *data = astarte_bson_serializer_get_document(bs, &len);
     if (!data) {
         ESP_LOGE(TAG, "Error during BSON serialization");
@@ -899,7 +901,7 @@ static size_t get_int_string_size(int number)
 
 static size_t get_introspection_string_size(astarte_device_handle_t device)
 {
-    struct astarte_list_head_t *item;
+    struct astarte_list_head_t *item = NULL;
     size_t introspection_size = 0;
     LIST_FOR_EACH(item, &device->interfaces_list)
     {
@@ -924,7 +926,7 @@ static void send_introspection(astarte_device_handle_t device)
 
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
 
-    struct astarte_list_head_t *item;
+    struct astarte_list_head_t *item = NULL;
     size_t introspection_size = get_introspection_string_size(device);
 
     if (introspection_size > 4096) { // if introspection size is > 4KiB print a warning
@@ -970,7 +972,7 @@ static void setup_subscriptions(astarte_device_handle_t device)
     ESP_LOGD(TAG, "Subscribing to %s", topic);
     esp_mqtt_client_subscribe(mqtt, topic, 2);
 
-    struct astarte_list_head_t *item;
+    struct astarte_list_head_t *item = NULL;
     LIST_FOR_EACH(item, &device->interfaces_list)
     {
         struct astarte_ptr_list_entry_t *entry
@@ -1100,7 +1102,7 @@ static void on_incoming(
         return;
     }
 
-    uint8_t bson_value_type;
+    uint8_t bson_value_type = 0U;
     const void *bson_value = astarte_bson_key_lookup("v", data, &bson_value_type);
     if (!bson_value) {
         ESP_LOGE(TAG, "Cannot retrieve BSON value from data");

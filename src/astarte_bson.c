@@ -216,7 +216,6 @@ bool astarte_bson_check_validity(const void *document, unsigned int fileSize)
 {
     const char *docBytes = (const char *) document;
     uint32_t docLen = read_uint32(document);
-    int offset;
 
     if (!fileSize) {
         ESP_LOGW(TAG, "Empty buffer: no BSON document found");
@@ -244,7 +243,7 @@ bool astarte_bson_check_validity(const void *document, unsigned int fileSize)
         return false;
     }
 
-    offset = 4;
+    int offset = 4;
     switch (docBytes[offset]) {
         case BSON_TYPE_DOUBLE:
         case BSON_TYPE_STRING:
