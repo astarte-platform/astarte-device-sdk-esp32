@@ -76,6 +76,8 @@ static astarte_credentials_context_t creds_ctx = {
 
 void credentials_init_task(void *ctx)
 {
+    (void) ctx;
+
     astarte_err_t res = ASTARTE_ERR;
     if (!astarte_credentials_has_key()) {
         ESP_LOGD(TAG, "Private key not found, creating it.");
@@ -184,6 +186,8 @@ static const char *astarte_credentials_filesystem_path(enum credential_type_t cr
 astarte_err_t astarte_credentials_store(
     void *opaque, enum credential_type_t cred_type, const void *credential, size_t length)
 {
+    (void) opaque;
+
     const char *path = astarte_credentials_filesystem_path(cred_type);
     if (!path) {
         return ASTARTE_ERR;
@@ -213,6 +217,8 @@ astarte_err_t astarte_credentials_store(
 astarte_err_t astarte_credentials_fetch(
     void *opaque, enum credential_type_t cred_type, char *out, size_t length)
 {
+    (void) opaque;
+
     const char *path = astarte_credentials_filesystem_path(cred_type);
     if (!path) {
         return ASTARTE_ERR;
@@ -237,6 +243,8 @@ astarte_err_t astarte_credentials_fetch(
 
 bool astarte_credentials_exists(void *opaque, enum credential_type_t cred_type)
 {
+    (void) opaque;
+
     const char *path = astarte_credentials_filesystem_path(cred_type);
     if (!path) {
         return false;
@@ -246,6 +254,8 @@ bool astarte_credentials_exists(void *opaque, enum credential_type_t cred_type)
 
 astarte_err_t astarte_credentials_remove(void *opaque, enum credential_type_t cred_type)
 {
+    (void) opaque;
+
     const char *path = astarte_credentials_filesystem_path(cred_type);
     if (!path) {
         return ASTARTE_ERR;
@@ -342,6 +352,8 @@ static const char *astarte_credentials_nvs_key(enum credential_type_t cred_type)
 astarte_err_t astarte_credentials_nvs_store(
     void *opaque, enum credential_type_t cred_type, const void *credential, size_t length)
 {
+    (void) length;
+
     const char *partition_label = opaque;
     const char *key = astarte_credentials_nvs_key(cred_type);
     if (!key) {

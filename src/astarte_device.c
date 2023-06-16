@@ -1154,6 +1154,8 @@ static void on_certificate_error(astarte_device_handle_t device)
 static void mqtt_event_handler(
     void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
+    (void) base;
+
     esp_mqtt_event_handle_t event = event_data;
     astarte_device_handle_t device = (astarte_device_handle_t) handler_args;
     switch ((esp_mqtt_event_id_t) event_id) {
