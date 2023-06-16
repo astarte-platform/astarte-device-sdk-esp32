@@ -23,7 +23,7 @@ void led_init()
     // set as output mode
     io_conf.mode = GPIO_MODE_OUTPUT;
     // bit mask of the pin to set
-    io_conf.pin_bit_mask = (1ULL << CONFIG_LED_GPIO);
+    io_conf.pin_bit_mask = (1ULL << (uint8_t) CONFIG_LED_GPIO);
     // disable pull-down mode
     io_conf.pull_down_en = 0;
     // disable pull-up mode
