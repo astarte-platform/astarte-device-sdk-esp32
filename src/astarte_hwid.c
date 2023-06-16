@@ -39,7 +39,7 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
     int ble = (chip_info.features & CHIP_FEATURE_BLE) != 0;
     // See changelog to v5.0 of ESP IDF: https://github.com/espressif/esp-idf/releases/tag/v5.0
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-    uint16_t revision = chip_info.revision / 100u;
+    uint16_t revision = chip_info.revision / 100U;
 #else
     uint16_t revision = chip_info.revision;
 #endif

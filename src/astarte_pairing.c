@@ -501,10 +501,9 @@ static const char *extract_broker_url(cJSON *response)
 
     if (cJSON_IsString(broker_url)) {
         return broker_url->valuestring;
-    } else {
-        ESP_LOGE(TAG, "Error parsing broker_url");
-        return NULL;
     }
+    ESP_LOGE(TAG, "Error parsing broker_url");
+    return NULL;
 }
 
 static const char *extract_credentials_secret(cJSON *response)
@@ -514,10 +513,9 @@ static const char *extract_credentials_secret(cJSON *response)
 
     if (cJSON_IsString(credentials_secret)) {
         return credentials_secret->valuestring;
-    } else {
-        ESP_LOGE(TAG, "Error parsing credentials_secret");
-        return NULL;
     }
+    ESP_LOGE(TAG, "Error parsing credentials_secret");
+    return NULL;
 }
 
 static const char *extract_client_crt(cJSON *response)
@@ -527,8 +525,7 @@ static const char *extract_client_crt(cJSON *response)
 
     if (cJSON_IsString(client_crt)) {
         return client_crt->valuestring;
-    } else {
-        ESP_LOGE(TAG, "Error parsing client_crt");
-        return NULL;
     }
+    ESP_LOGE(TAG, "Error parsing client_crt");
+    return NULL;
 }

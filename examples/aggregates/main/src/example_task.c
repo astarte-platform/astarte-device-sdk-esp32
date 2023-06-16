@@ -164,12 +164,12 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
                 if ((boolean != NULL) && (boolean_type == BSON_TYPE_BOOLEAN)) {
                     rx_data.booleans[i] = astarte_bson_value_to_int8(boolean);
                 } else {
-                    parsing_error = 1u;
+                    parsing_error = 1U;
                     break;
                 }
             }
         } else {
-            parsing_error = 1u;
+            parsing_error = 1U;
         }
 
         char longinteger_key[] = "longinteger_endpoint";
@@ -179,13 +179,13 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
         if ((longinteger != NULL) && (longinteger_type == BSON_TYPE_INT64)) {
             rx_data.longinteger = astarte_bson_value_to_int64(longinteger);
         } else {
-            parsing_error = 1u;
+            parsing_error = 1U;
         }
     } else {
-        parsing_error = 1u;
+        parsing_error = 1U;
     }
 
-    if (parsing_error == 0u) {
+    if (parsing_error == 0U) {
         ESP_LOGI(TAG, "Server aggregate received with the following content:");
         ESP_LOGI(TAG, "longinteger_endpoint: %lli", rx_data.longinteger);
         ESP_LOGI(TAG, "booleanarray_endpoint: {%d, %d, %d, %d}", rx_data.booleans[0],

@@ -277,9 +277,8 @@ astarte_err_t astarte_device_init_connection(
     if (err != ASTARTE_OK) {
         ESP_LOGE(TAG, "Error in get_credentials_secret");
         return err;
-    } else {
-        ESP_LOGD(TAG, "credentials_secret is: %s", credentials_secret);
     }
+    ESP_LOGD(TAG, "credentials_secret is: %s", credentials_secret);
 
     char *client_cert_pem = NULL;
     char *client_cert_cn = NULL;
@@ -682,12 +681,12 @@ IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const char *const *, string_ar
 IMPL_ASTARTE_DEVICE_STREAM_ARRAY_T_WITH_TIMESTAMP(const int64_t *, datetime_array, datetime_array)
 
 astarte_err_t astarte_device_stream_binaryblob_array_with_timestamp(astarte_device_handle_t device,
-    const char *interface_name, const char *path, const void *const *binary_blobs, const int *sizes,
+    const char *interface_name, const char *path, const void *const *values, const int *sizes,
     int count, uint64_t ts_epoch_millis, int qos)
 {
     struct astarte_bson_serializer_t bs;
     astarte_bson_serializer_init(&bs);
-    astarte_bson_serializer_append_binary_array(&bs, "v", binary_blobs, sizes, count);
+    astarte_bson_serializer_append_binary_array(&bs, "v", values, sizes, count);
     maybe_append_timestamp(&bs, ts_epoch_millis);
     astarte_bson_serializer_append_end_of_document(&bs);
 
@@ -1055,6 +1054,7 @@ static void on_incoming(
     int control_prefix_len = strlen(control_prefix);
     if (strstr(topic, control_prefix)) {
         // Control message
+        // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) Remove once control_topic is used.
         char *control_topic = topic + control_prefix_len;
         ESP_LOGD(TAG, "Received control message on control topic %s", control_topic);
         // TODO: on_control_message(device, control_topic, data, data_len);

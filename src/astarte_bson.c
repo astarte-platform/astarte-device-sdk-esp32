@@ -98,7 +98,7 @@ const void *astarte_bson_key_lookup(const char *key, const void *document, uint8
         uint8_t elementType = (uint8_t) docBytes[offset];
         int keyLen = strnlen(docBytes + offset + 1, docLen - offset);
 
-        if (!strncmp(key, docBytes + offset + 1, docLen - offset)) {
+        if (strncmp(key, docBytes + offset + 1, docLen - offset) == 0) {
             if (type) {
                 *type = elementType;
             }

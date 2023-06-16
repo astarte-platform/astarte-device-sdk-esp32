@@ -128,9 +128,8 @@ int uuid_from_string(const char *in, uuid_t uuid)
             if (c != '-') {
                 ESP_LOGW(TAG, "Found invalid character %c in hyphen position %d", c, i);
                 return -1;
-            } else {
-                continue;
             }
+            continue;
         }
 
         // Check that everything else is an hexadecimal digit
