@@ -16,16 +16,16 @@
 
 #define TAG "ASTARTE_BSON"
 
-static uint32_t read_uint32(const void *u)
+static uint32_t read_uint32(const void *buff)
 {
-    const unsigned char *b = (const unsigned char *) u;
+    const unsigned char *b = (const unsigned char *) buff;
     return le32toh(((uint32_t) b[0]) | (((uint32_t) b[1]) << 8U) | (((uint32_t) b[2]) << 16U)
         | (((uint32_t) b[3]) << 24U));
 }
 
-static uint64_t read_uint64(const void *u)
+static uint64_t read_uint64(const void *buff)
 {
-    const unsigned char *b = (const unsigned char *) u;
+    const unsigned char *b = (const unsigned char *) buff;
     return le64toh((uint64_t) b[0] | ((uint64_t) b[1] << 8U) | ((uint64_t) b[2] << 16U)
         | ((uint64_t) b[3] << 24U) | ((uint64_t) b[4] << 32U) | ((uint64_t) b[5] << 40U)
         | ((uint64_t) b[6] << 48U) | ((uint64_t) b[7] << 56U));

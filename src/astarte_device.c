@@ -66,7 +66,7 @@ static astarte_err_t astarte_device_init_connection(
 static astarte_err_t retrieve_credentials(struct astarte_pairing_config *pairing_config);
 static astarte_err_t check_device(astarte_device_handle_t device);
 static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name,
-    const char *path, const struct astarte_bson_serializer_t *bs, int qos);
+    const char *path, const struct astarte_bson_serializer_t *bson, int qos);
 static astarte_err_t publish_data(astarte_device_handle_t device, const char *interface_name,
     const char *path, const void *data, int length, int qos);
 static void setup_subscriptions(astarte_device_handle_t device);
@@ -80,7 +80,8 @@ static void on_certificate_error(astarte_device_handle_t device);
 static void mqtt_event_handler(
     void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
 static int has_connectivity();
-static void maybe_append_timestamp(struct astarte_bson_serializer_t *bs, uint64_t ts_epoch_millis);
+static void maybe_append_timestamp(
+    struct astarte_bson_serializer_t *bson, uint64_t ts_epoch_millis);
 
 astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 {
@@ -497,10 +498,10 @@ astarte_err_t astarte_device_stop(astarte_device_handle_t device)
 }
 
 static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name,
-    const char *path, const struct astarte_bson_serializer_t *bs, int qos)
+    const char *path, const struct astarte_bson_serializer_t *bson, int qos)
 {
     size_t len = 0;
-    const void *data = astarte_bson_serializer_get_document(bs, &len);
+    const void *data = astarte_bson_serializer_get_document(bson, &len);
     if (!data) {
         ESP_LOGE(TAG, "Error during BSON serialization");
         return ASTARTE_ERR;
@@ -549,10 +550,10 @@ static astarte_err_t publish_data(astarte_device_handle_t device, const char *in
     return ASTARTE_OK;
 }
 
-static void maybe_append_timestamp(struct astarte_bson_serializer_t *bs, uint64_t ts_epoch_millis)
+static void maybe_append_timestamp(struct astarte_bson_serializer_t *bson, uint64_t ts_epoch_millis)
 {
     if (ts_epoch_millis != ASTARTE_INVALID_TIMESTAMP) {
-        astarte_bson_serializer_append_datetime(bs, "t", ts_epoch_millis);
+        astarte_bson_serializer_append_datetime(bson, "t", ts_epoch_millis);
     }
 }
 

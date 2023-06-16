@@ -51,7 +51,6 @@ Checks: >
   -cppcoreguidelines-avoid-magic-numbers,
   -readability-function-cognitive-complexity,
   -readability-function-size,
-  -readability-identifier-length,
   -readability-identifier-naming,
   -readability-magic-numbers
 
@@ -60,9 +59,8 @@ Checks: >
 #   1. cert-err33-c
 #   2. readability-function-cognitive-complexity
 #   3. readability-function-size
-#   4. readability-identifier-length
-#   5. readability-identifier-naming
-#   6. readability-magic-numbers
+#   4. readability-identifier-naming
+#   5. readability-magic-numbers
 #   N.B. The following rules will be fixed as a consequence:
 #   - cppcoreguidelines-avoid-magic-numbers (readability-magic-numbers)
 
@@ -80,6 +78,15 @@ CheckOptions:
   - { key: readability-function-size.ParameterThreshold, value: 5 }
   - { key: readability-function-size.NestingThreshold, value: 2 }
   - { key: readability-function-size.VariableThreshold, value: 15 }
+
+  - { key: readability-identifier-length.MinimumVariableNameLength, value: 3 }
+  - { key: readability-identifier-length.IgnoredVariableNames, value: ".*" }
+  - { key: readability-identifier-length.MinimumParameterNameLength, value: 3 }
+  - { key: readability-identifier-length.IgnoredParameterNames, value: "" }
+  - { key: readability-identifier-length.MinimumLoopCounterNameLength, value: 3 }
+  - { key: readability-identifier-length.IgnoredLoopCounterNames, value: "^[ijk_]$" }
+
+
   - { key: readability-identifier-naming.ConstantCase, value: lower_case }
   - { key: readability-identifier-naming.ConstantParameterCase, value: lower_case }
   - { key: readability-identifier-naming.ConstantPointerParameterCase, value: lower_case }
