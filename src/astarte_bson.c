@@ -32,31 +32,31 @@ static uint64_t read_uint64(const void *buff)
 }
 
 static unsigned int astarte_bson_next_item_offset(
-    unsigned int offset, unsigned int keyLen, const void *document)
+    unsigned int offset, unsigned int key_len, const void *document)
 {
-    const char *docBytes = (const char *) document;
-    uint8_t elementType = (uint8_t) docBytes[offset];
+    const char *doc_bytes = (const char *) document;
+    uint8_t element_type = (uint8_t) doc_bytes[offset];
 
     /* offset <- type (uint8_t) + key (const char *) + '\0' (char) */
-    offset += 1 + keyLen + 1;
+    offset += 1 + key_len + 1;
 
-    switch (elementType) {
+    switch (element_type) {
         case BSON_TYPE_STRING: {
-            uint32_t stringLen = read_uint32(docBytes + offset);
-            offset += stringLen + 4;
+            uint32_t string_len = read_uint32(doc_bytes + offset);
+            offset += string_len + 4;
             break;
         }
 
         case BSON_TYPE_ARRAY:
         case BSON_TYPE_DOCUMENT: {
-            uint32_t docLen = read_uint32(docBytes + offset);
-            offset += docLen;
+            uint32_t doc_len = read_uint32(doc_bytes + offset);
+            offset += doc_len;
             break;
         }
 
         case BSON_TYPE_BINARY: {
-            uint32_t binLen = read_uint32(docBytes + offset);
-            offset += 4 + 1 + binLen; /* int32 (len) + byte (subtype) + binLen */
+            uint32_t bin_len = read_uint32(doc_bytes + offset);
+            offset += 4 + 1 + bin_len; /* int32 (len) + byte (subtype) + bin_len */
             break;
         }
 
@@ -78,7 +78,7 @@ static unsigned int astarte_bson_next_item_offset(
         }
 
         default: {
-            ESP_LOGW(TAG, "unrecognized BSON type: %i", (int) elementType);
+            ESP_LOGW(TAG, "unrecognized BSON type: %i", (int) element_type);
             return 0;
         }
     }
@@ -88,28 +88,28 @@ static unsigned int astarte_bson_next_item_offset(
 
 const void *astarte_bson_key_lookup(const char *key, const void *document, uint8_t *type)
 {
-    const char *docBytes = (const char *) document;
-    uint32_t docLen = read_uint32(document);
+    const char *doc_bytes = (const char *) document;
+    uint32_t doc_len = read_uint32(document);
 
     /* TODO: it would be nice to check len validity here */
 
     unsigned int offset = 4;
-    while (offset + 1 < docLen) {
-        uint8_t elementType = (uint8_t) docBytes[offset];
-        size_t keyLen = strnlen(docBytes + offset + 1, docLen - offset);
+    while (offset + 1 < doc_len) {
+        uint8_t element_type = (uint8_t) doc_bytes[offset];
+        size_t key_len = strnlen(doc_bytes + offset + 1, doc_len - offset);
 
-        if (strncmp(key, docBytes + offset + 1, docLen - offset) == 0) {
+        if (strncmp(key, doc_bytes + offset + 1, doc_len - offset) == 0) {
             if (type) {
-                *type = elementType;
+                *type = element_type;
             }
-            return (void *) (docBytes + offset + 1 + keyLen + 1);
+            return (void *) (doc_bytes + offset + 1 + key_len + 1);
         }
 
-        unsigned int newOffset = astarte_bson_next_item_offset(offset, keyLen, document);
-        if (!newOffset) {
+        unsigned int new_offset = astarte_bson_next_item_offset(offset, key_len, document);
+        if (!new_offset) {
             return NULL;
         }
-        offset = newOffset;
+        offset = new_offset;
     }
 
     return NULL;
@@ -117,32 +117,32 @@ const void *astarte_bson_key_lookup(const char *key, const void *document, uint8
 
 void *astarte_bson_next_item(const void *document, const void *current_item)
 {
-    const char *docBytes = (const char *) document;
-    uint32_t docLen = read_uint32(document);
-    unsigned int offset = ((const char *) current_item) - docBytes;
+    const char *doc_bytes = (const char *) document;
+    uint32_t doc_len = read_uint32(document);
+    unsigned int offset = ((const char *) current_item) - doc_bytes;
 
-    if (offset + 1 >= docLen) {
+    if (offset + 1 >= doc_len) {
         return NULL;
     }
 
-    size_t keyLen = strnlen(docBytes + offset + 1, docLen - offset);
-    unsigned int newOffset = astarte_bson_next_item_offset(offset, keyLen, document);
+    size_t key_len = strnlen(doc_bytes + offset + 1, doc_len - offset);
+    unsigned int new_offset = astarte_bson_next_item_offset(offset, key_len, document);
 
-    if (!newOffset) {
+    if (!new_offset) {
         return NULL;
     }
 
-    if (newOffset + 1 >= docLen) {
+    if (new_offset + 1 >= doc_len) {
         return NULL;
     }
 
-    return ((char *) docBytes) + newOffset;
+    return ((char *) doc_bytes) + new_offset;
 }
 
 const void *astarte_bson_first_item(const void *document)
 {
-    const char *docBytes = (const char *) document;
-    return docBytes + 4;
+    const char *doc_bytes = (const char *) document;
+    return doc_bytes + 4;
 }
 
 const char *astarte_bson_key(const void *item)
@@ -150,101 +150,101 @@ const char *astarte_bson_key(const void *item)
     return ((const char *) item) + 1;
 }
 
-const char *astarte_bson_value_to_string(const void *valuePtr, uint32_t *len)
+const char *astarte_bson_value_to_string(const void *value_ptr, uint32_t *len)
 {
-    const char *valueBytes = (const char *) valuePtr;
-    uint32_t stringLen = read_uint32(valueBytes);
+    const char *value_bytes = (const char *) value_ptr;
+    uint32_t string_len = read_uint32(value_bytes);
 
     if (len) {
-        *len = stringLen - 1;
+        *len = string_len - 1;
     }
 
-    return valueBytes + 4;
+    return value_bytes + 4;
 }
 
-const char *astarte_bson_value_to_binary(const void *valuePtr, uint32_t *len)
+const char *astarte_bson_value_to_binary(const void *value_ptr, uint32_t *len)
 {
-    const char *valueBytes = (const char *) valuePtr;
-    uint32_t binLen = read_uint32(valueBytes);
+    const char *value_bytes = (const char *) value_ptr;
+    uint32_t bin_len = read_uint32(value_bytes);
 
     if (len) {
-        *len = binLen;
+        *len = bin_len;
     }
 
-    return valueBytes + 5;
+    return value_bytes + 5;
 }
 
-const void *astarte_bson_value_to_document(const void *valuePtr, uint32_t *len)
+const void *astarte_bson_value_to_document(const void *value_ptr, uint32_t *len)
 {
-    const char *valueBytes = (const char *) valuePtr;
-    uint32_t binLen = read_uint32(valueBytes);
+    const char *value_bytes = (const char *) value_ptr;
+    uint32_t bin_len = read_uint32(value_bytes);
 
     if (len) {
-        *len = binLen;
+        *len = bin_len;
     }
 
-    return valueBytes;
+    return value_bytes;
 }
 
-int8_t astarte_bson_value_to_int8(const void *valuePtr)
+int8_t astarte_bson_value_to_int8(const void *value_ptr)
 {
-    return ((int8_t *) valuePtr)[0];
+    return ((int8_t *) value_ptr)[0];
 }
 
-int32_t astarte_bson_value_to_int32(const void *valuePtr)
+int32_t astarte_bson_value_to_int32(const void *value_ptr)
 {
-    return (int32_t) read_uint32(valuePtr);
+    return (int32_t) read_uint32(value_ptr);
 }
 
-int64_t astarte_bson_value_to_int64(const void *valuePtr)
+int64_t astarte_bson_value_to_int64(const void *value_ptr)
 {
-    return (int64_t) read_uint64(valuePtr);
+    return (int64_t) read_uint64(value_ptr);
 }
 
-double astarte_bson_value_to_double(const void *valuePtr)
+double astarte_bson_value_to_double(const void *value_ptr)
 {
     union data64
     {
         uint64_t u64value;
         double dvalue;
     } value;
-    value.u64value = read_uint64(valuePtr);
+    value.u64value = read_uint64(value_ptr);
     return value.dvalue;
 }
 
-bool astarte_bson_check_validity(const void *document, unsigned int fileSize)
+bool astarte_bson_check_validity(const void *document, unsigned int file_size)
 {
-    const char *docBytes = (const char *) document;
-    uint32_t docLen = read_uint32(document);
+    const char *doc_bytes = (const char *) document;
+    uint32_t doc_len = read_uint32(document);
 
-    if (!fileSize) {
+    if (!file_size) {
         ESP_LOGW(TAG, "Empty buffer: no BSON document found");
         return false;
     }
 
-    if ((docLen == 5) && (fileSize >= 5) && (docBytes[4] == 0)) {
+    if ((doc_len == 5) && (file_size >= 5) && (doc_bytes[4] == 0)) {
         // empty document
         return true;
     }
 
-    if (fileSize < 4 + 1 + 2 + 1) {
+    if (file_size < 4 + 1 + 2 + 1) {
         ESP_LOGW(TAG, "BSON data too small");
         return false;
     }
 
-    if (docLen > fileSize) {
-        ESP_LOGW(TAG, "BSON document is bigger than data: data: %ui document: %i", fileSize,
-            (int) docLen);
+    if (doc_len > file_size) {
+        ESP_LOGW(TAG, "BSON document is bigger than data: data: %ui document: %i", file_size,
+            (int) doc_len);
         return false;
     }
 
-    if (docBytes[docLen - 1] != 0) {
+    if (doc_bytes[doc_len - 1] != 0) {
         ESP_LOGW(TAG, "BSON document is not terminated by null byte.");
         return false;
     }
 
     int offset = 4;
-    switch (docBytes[offset]) {
+    switch (doc_bytes[offset]) {
         case BSON_TYPE_DOUBLE:
         case BSON_TYPE_STRING:
         case BSON_TYPE_DOCUMENT:

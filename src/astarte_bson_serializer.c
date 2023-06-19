@@ -162,54 +162,54 @@ void astarte_bson_serializer_append_end_of_document(struct astarte_bson_serializ
 {
     astarte_byte_array_append_byte(&bson->ba, '\0');
 
-    uint8_t sizeBuf[4];
-    uint32_to_bytes(bson->ba.size, sizeBuf);
+    uint8_t size_buf[4];
+    uint32_to_bytes(bson->ba.size, size_buf);
 
-    astarte_byte_array_replace(&bson->ba, 0, sizeof(int32_t), sizeBuf);
+    astarte_byte_array_replace(&bson->ba, 0, sizeof(int32_t), size_buf);
 }
 
 void astarte_bson_serializer_append_double(
     struct astarte_bson_serializer_t *bson, const char *name, double value)
 {
-    uint8_t valBuf[8];
-    double_to_bytes(value, valBuf);
+    uint8_t val_buf[8];
+    double_to_bytes(value, val_buf);
 
     astarte_byte_array_append_byte(&bson->ba, BSON_TYPE_DOUBLE);
     astarte_byte_array_append(&bson->ba, name, strlen(name) + 1);
-    astarte_byte_array_append(&bson->ba, valBuf, 8);
+    astarte_byte_array_append(&bson->ba, val_buf, 8);
 }
 
 void astarte_bson_serializer_append_int32(
     struct astarte_bson_serializer_t *bson, const char *name, int32_t value)
 {
-    uint8_t valBuf[4];
-    int32_to_bytes(value, valBuf);
+    uint8_t val_buf[4];
+    int32_to_bytes(value, val_buf);
 
     astarte_byte_array_append_byte(&bson->ba, BSON_TYPE_INT32);
     astarte_byte_array_append(&bson->ba, name, strlen(name) + 1);
-    astarte_byte_array_append(&bson->ba, valBuf, sizeof(int32_t));
+    astarte_byte_array_append(&bson->ba, val_buf, sizeof(int32_t));
 }
 
 void astarte_bson_serializer_append_int64(
     struct astarte_bson_serializer_t *bson, const char *name, int64_t value)
 {
-    uint8_t valBuf[8];
-    int64_to_bytes(value, valBuf);
+    uint8_t val_buf[8];
+    int64_to_bytes(value, val_buf);
 
     astarte_byte_array_append_byte(&bson->ba, BSON_TYPE_INT64);
     astarte_byte_array_append(&bson->ba, name, strlen(name) + 1);
-    astarte_byte_array_append(&bson->ba, valBuf, sizeof(int64_t));
+    astarte_byte_array_append(&bson->ba, val_buf, sizeof(int64_t));
 }
 
 void astarte_bson_serializer_append_binary(
     struct astarte_bson_serializer_t *bson, const char *name, const void *value, size_t size)
 {
-    uint8_t lenBuf[4];
-    uint32_to_bytes(size, lenBuf);
+    uint8_t len_buf[4];
+    uint32_to_bytes(size, len_buf);
 
     astarte_byte_array_append_byte(&bson->ba, BSON_TYPE_BINARY);
     astarte_byte_array_append(&bson->ba, name, strlen(name) + 1);
-    astarte_byte_array_append(&bson->ba, lenBuf, sizeof(int32_t));
+    astarte_byte_array_append(&bson->ba, len_buf, sizeof(int32_t));
     astarte_byte_array_append_byte(&bson->ba, BSON_SUBTYPE_DEFAULT_BINARY);
     astarte_byte_array_append(&bson->ba, value, size);
 }
@@ -219,24 +219,24 @@ void astarte_bson_serializer_append_string(
 {
     size_t string_len = strlen(string);
 
-    uint8_t lenBuf[4];
-    uint32_to_bytes(string_len + 1, lenBuf);
+    uint8_t len_buf[4];
+    uint32_to_bytes(string_len + 1, len_buf);
 
     astarte_byte_array_append_byte(&bson->ba, BSON_TYPE_STRING);
     astarte_byte_array_append(&bson->ba, name, strlen(name) + 1);
-    astarte_byte_array_append(&bson->ba, lenBuf, sizeof(int32_t));
+    astarte_byte_array_append(&bson->ba, len_buf, sizeof(int32_t));
     astarte_byte_array_append(&bson->ba, string, string_len + 1);
 }
 
 void astarte_bson_serializer_append_datetime(
     struct astarte_bson_serializer_t *bson, const char *name, uint64_t epoch_millis)
 {
-    uint8_t valBuf[8];
-    uint64_to_bytes(epoch_millis, valBuf);
+    uint8_t val_buf[8];
+    uint64_to_bytes(epoch_millis, val_buf);
 
     astarte_byte_array_append_byte(&bson->ba, BSON_TYPE_DATETIME);
     astarte_byte_array_append(&bson->ba, name, strlen(name) + 1);
-    astarte_byte_array_append(&bson->ba, valBuf, sizeof(int64_t));
+    astarte_byte_array_append(&bson->ba, val_buf, sizeof(int64_t));
 }
 
 void astarte_bson_serializer_append_boolean(

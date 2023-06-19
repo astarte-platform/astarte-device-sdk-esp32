@@ -14,7 +14,7 @@
 #define TAG "ASTARTE_EXAMPLE_WIFI_CFG"
 
 static EventGroupHandle_t wifi_event_group;
-const static int CONNECTED_BIT = BIT0;
+const static int connected_bit = BIT0;
 
 /************************************************
  * Static functions declaration
@@ -68,7 +68,7 @@ void wifi_init(void)
     ESP_LOGI(TAG, "start the WIFI SSID:[%s] password:[%s]", CONFIG_WIFI_SSID, "******");
     ESP_ERROR_CHECK(esp_wifi_start());
     ESP_LOGI(TAG, "Waiting for wifi");
-    xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
+    xEventGroupWaitBits(wifi_event_group, connected_bit, false, true, portMAX_DELAY);
 }
 
 /************************************************
@@ -85,8 +85,8 @@ static void wifi_event_handler(
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
         esp_wifi_connect();
-        xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
+        xEventGroupClearBits(wifi_event_group, connected_bit);
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
-        xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
+        xEventGroupSetBits(wifi_event_group, connected_bit);
     }
 }
