@@ -24,7 +24,7 @@
  *
  * @detail Astarte Device SDK return codes. ASTARTE_OK is always returned when no errors occurred.
  */
-enum astarte_err_t
+enum astarte_err
 {
     ASTARTE_OK = 0, /**< No errors. */
     ASTARTE_ERR = 1, /**< A generic error occurred. This is usually an internal error in the SDK */
@@ -51,6 +51,6 @@ enum astarte_err_t
 
 // clang-format on
 
-typedef enum astarte_err_t astarte_err_t;
+typedef enum astarte_err astarte_err_t;
 
 #endif

@@ -58,7 +58,7 @@ static void double_to_bytes(double input, uint8_t out[static 8])
     }
 }
 
-static void astarte_byte_array_init(struct astarte_byte_array_t *byte_arr, void *bytes, size_t size)
+static void astarte_byte_array_init(struct astarte_byte_array *byte_arr, void *bytes, size_t size)
 {
     byte_arr->capacity = size;
     byte_arr->size = size;
@@ -72,7 +72,7 @@ static void astarte_byte_array_init(struct astarte_byte_array_t *byte_arr, void 
     memcpy(byte_arr->buf, bytes, size);
 }
 
-static void astarte_byte_array_destroy(struct astarte_byte_array_t *byte_arr)
+static void astarte_byte_array_destroy(struct astarte_byte_array *byte_arr)
 {
     byte_arr->capacity = 0;
     byte_arr->size = 0;
@@ -80,7 +80,7 @@ static void astarte_byte_array_destroy(struct astarte_byte_array_t *byte_arr)
     byte_arr->buf = NULL;
 }
 
-static void astarte_byte_array_grow(struct astarte_byte_array_t *byte_arr, size_t needed)
+static void astarte_byte_array_grow(struct astarte_byte_array *byte_arr, size_t needed)
 {
     if (byte_arr->size + needed >= byte_arr->capacity) {
         size_t new_capacity = byte_arr->capacity * 2;
@@ -95,7 +95,7 @@ static void astarte_byte_array_grow(struct astarte_byte_array_t *byte_arr, size_
     }
 }
 
-static void astarte_byte_array_append_byte(struct astarte_byte_array_t *byte_arr, uint8_t byte)
+static void astarte_byte_array_append_byte(struct astarte_byte_array *byte_arr, uint8_t byte)
 {
     astarte_byte_array_grow(byte_arr, sizeof(uint8_t));
     byte_arr->buf[byte_arr->size] = byte;
@@ -103,7 +103,7 @@ static void astarte_byte_array_append_byte(struct astarte_byte_array_t *byte_arr
 }
 
 static void astarte_byte_array_append(
-    struct astarte_byte_array_t *byte_arr, const void *bytes, size_t count)
+    struct astarte_byte_array *byte_arr, const void *bytes, size_t count)
 {
     astarte_byte_array_grow(byte_arr, count);
 
@@ -112,23 +112,23 @@ static void astarte_byte_array_append(
 }
 
 static void astarte_byte_array_replace(
-    struct astarte_byte_array_t *byte_arr, unsigned int pos, size_t count, const uint8_t *bytes)
+    struct astarte_byte_array *byte_arr, unsigned int pos, size_t count, const uint8_t *bytes)
 {
     memcpy(byte_arr->buf + pos, bytes, count);
 }
 
-void astarte_bson_serializer_init(struct astarte_bson_serializer_t *bson)
+void astarte_bson_serializer_init(struct astarte_bson_serializer *bson)
 {
     astarte_byte_array_init(&bson->ba, "\0\0\0\0", 4);
 }
 
-void astarte_bson_serializer_destroy(struct astarte_bson_serializer_t *bson)
+void astarte_bson_serializer_destroy(struct astarte_bson_serializer *bson)
 {
     astarte_byte_array_destroy(&bson->ba);
 }
 
 const void *astarte_bson_serializer_get_document(
-    const struct astarte_bson_serializer_t *bson, size_t *size)
+    const struct astarte_bson_serializer *bson, size_t *size)
 {
     if (size) {
         *size = bson->ba.size;
@@ -136,7 +136,7 @@ const void *astarte_bson_serializer_get_document(
     return bson->ba.buf;
 }
 
-astarte_err_t astarte_bson_serializer_write_document(const struct astarte_bson_serializer_t *bson,
+astarte_err_t astarte_bson_serializer_write_document(const struct astarte_bson_serializer *bson,
     void *out_buf, int out_buf_len, size_t *out_doc_size)
 {
     size_t doc_size = bson->ba.size;
@@ -153,12 +153,12 @@ astarte_err_t astarte_bson_serializer_write_document(const struct astarte_bson_s
     return ASTARTE_OK;
 }
 
-size_t astarte_bson_serializer_document_size(const struct astarte_bson_serializer_t *bson)
+size_t astarte_bson_serializer_document_size(const struct astarte_bson_serializer *bson)
 {
     return bson->ba.size;
 }
 
-void astarte_bson_serializer_append_end_of_document(struct astarte_bson_serializer_t *bson)
+void astarte_bson_serializer_append_end_of_document(struct astarte_bson_serializer *bson)
 {
     astarte_byte_array_append_byte(&bson->ba, '\0');
 
@@ -169,7 +169,7 @@ void astarte_bson_serializer_append_end_of_document(struct astarte_bson_serializ
 }
 
 void astarte_bson_serializer_append_double(
-    struct astarte_bson_serializer_t *bson, const char *name, double value)
+    struct astarte_bson_serializer *bson, const char *name, double value)
 {
     uint8_t val_buf[8];
     double_to_bytes(value, val_buf);
@@ -180,7 +180,7 @@ void astarte_bson_serializer_append_double(
 }
 
 void astarte_bson_serializer_append_int32(
-    struct astarte_bson_serializer_t *bson, const char *name, int32_t value)
+    struct astarte_bson_serializer *bson, const char *name, int32_t value)
 {
     uint8_t val_buf[4];
     int32_to_bytes(value, val_buf);
@@ -191,7 +191,7 @@ void astarte_bson_serializer_append_int32(
 }
 
 void astarte_bson_serializer_append_int64(
-    struct astarte_bson_serializer_t *bson, const char *name, int64_t value)
+    struct astarte_bson_serializer *bson, const char *name, int64_t value)
 {
     uint8_t val_buf[8];
     int64_to_bytes(value, val_buf);
@@ -202,7 +202,7 @@ void astarte_bson_serializer_append_int64(
 }
 
 void astarte_bson_serializer_append_binary(
-    struct astarte_bson_serializer_t *bson, const char *name, const void *value, size_t size)
+    struct astarte_bson_serializer *bson, const char *name, const void *value, size_t size)
 {
     uint8_t len_buf[4];
     uint32_to_bytes(size, len_buf);
@@ -215,7 +215,7 @@ void astarte_bson_serializer_append_binary(
 }
 
 void astarte_bson_serializer_append_string(
-    struct astarte_bson_serializer_t *bson, const char *name, const char *string)
+    struct astarte_bson_serializer *bson, const char *name, const char *string)
 {
     size_t string_len = strlen(string);
 
@@ -229,7 +229,7 @@ void astarte_bson_serializer_append_string(
 }
 
 void astarte_bson_serializer_append_datetime(
-    struct astarte_bson_serializer_t *bson, const char *name, uint64_t epoch_millis)
+    struct astarte_bson_serializer *bson, const char *name, uint64_t epoch_millis)
 {
     uint8_t val_buf[8];
     uint64_to_bytes(epoch_millis, val_buf);
@@ -240,7 +240,7 @@ void astarte_bson_serializer_append_datetime(
 }
 
 void astarte_bson_serializer_append_boolean(
-    struct astarte_bson_serializer_t *bson, const char *name, bool value)
+    struct astarte_bson_serializer *bson, const char *name, bool value)
 {
     astarte_byte_array_append_byte(&bson->ba, BSON_TYPE_BOOLEAN);
     astarte_byte_array_append(&bson->ba, name, strlen(name) + 1);
@@ -248,7 +248,7 @@ void astarte_bson_serializer_append_boolean(
 }
 
 void astarte_bson_serializer_append_document(
-    struct astarte_bson_serializer_t *bson, const char *name, const void *document)
+    struct astarte_bson_serializer *bson, const char *name, const void *document)
 {
     uint32_t size = 0U;
     memcpy(&size, document, sizeof(uint32_t));
@@ -262,10 +262,10 @@ void astarte_bson_serializer_append_document(
 
 #define IMPLEMENT_ASTARTE_BSON_SERIALIZER_APPEND_TYPE_ARRAY(TYPE, TYPE_NAME)                       \
     astarte_err_t astarte_bson_serializer_append_##TYPE_NAME##_array(                              \
-        struct astarte_bson_serializer_t *bson, const char *name, TYPE arr, int count)             \
+        struct astarte_bson_serializer *bson, const char *name, TYPE arr, int count)               \
     {                                                                                              \
         astarte_err_t result = ASTARTE_OK;                                                         \
-        struct astarte_bson_serializer_t array_ser;                                                \
+        struct astarte_bson_serializer array_ser;                                                  \
         astarte_bson_serializer_init(&array_ser);                                                  \
         for (int i = 0; i < count; i++) {                                                          \
             char key[12];                                                                          \
@@ -297,11 +297,11 @@ IMPLEMENT_ASTARTE_BSON_SERIALIZER_APPEND_TYPE_ARRAY(const char *const *, string)
 IMPLEMENT_ASTARTE_BSON_SERIALIZER_APPEND_TYPE_ARRAY(const int64_t *, datetime)
 IMPLEMENT_ASTARTE_BSON_SERIALIZER_APPEND_TYPE_ARRAY(const bool *, boolean)
 
-astarte_err_t astarte_bson_serializer_append_binary_array(struct astarte_bson_serializer_t *bson,
+astarte_err_t astarte_bson_serializer_append_binary_array(struct astarte_bson_serializer *bson,
     const char *name, const void *const *arr, const int *sizes, int count)
 {
     astarte_err_t result = ASTARTE_OK;
-    struct astarte_bson_serializer_t array_ser;
+    struct astarte_bson_serializer array_ser;
     astarte_bson_serializer_init(&array_ser);
     for (int i = 0; i < count; i++) {
         char key[12];

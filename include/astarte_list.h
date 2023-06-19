@@ -10,15 +10,15 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-struct astarte_list_head_t
+struct astarte_list_head
 {
-    struct astarte_list_head_t *next;
-    struct astarte_list_head_t *prev;
+    struct astarte_list_head *next;
+    struct astarte_list_head *prev;
 };
 
-struct astarte_ptr_list_entry_t
+struct astarte_ptr_list_entry
 {
-    struct astarte_list_head_t head;
+    struct astarte_list_head head;
     const void *value;
 };
 
@@ -55,8 +55,8 @@ struct astarte_ptr_list_entry_t
  * @param prev_head the linked list head that comes before the element that is going to be inserted
  * @param next_head the linked list head that comes after the element that is going to be inserted
  */
-static inline void astarte_list_insert(struct astarte_list_head_t *new_item,
-    struct astarte_list_head_t *prev_head, struct astarte_list_head_t *next_head)
+static inline void astarte_list_insert(struct astarte_list_head *new_item,
+    struct astarte_list_head *prev_head, struct astarte_list_head *next_head)
 {
     new_item->prev = prev_head;
     new_item->next = next_head;
@@ -74,7 +74,7 @@ static inline void astarte_list_insert(struct astarte_list_head_t *new_item,
  * @param new_item the item that is going to be appended to the end of the list
  */
 static inline void astarte_list_append(
-    struct astarte_list_head_t *head, struct astarte_list_head_t *new_item)
+    struct astarte_list_head *head, struct astarte_list_head *new_item)
 {
     astarte_list_insert(new_item, head->prev, head);
 }
@@ -87,7 +87,7 @@ static inline void astarte_list_append(
  * @param new_item the list head that is going to be prepended to the list
  */
 static inline void astarte_list_prepend(
-    struct astarte_list_head_t *head, struct astarte_list_head_t *new_item)
+    struct astarte_list_head *head, struct astarte_list_head *new_item)
 {
     astarte_list_insert(new_item, head, head->next);
 }
@@ -100,7 +100,7 @@ static inline void astarte_list_prepend(
  * set to NULL if no items are left
  * @param remove_item the item that is going to be removed
  */
-static inline void astarte_list_remove(struct astarte_list_head_t *remove_item)
+static inline void astarte_list_remove(struct astarte_list_head *remove_item)
 {
     remove_item->prev->next = remove_item->next;
     remove_item->next->prev = remove_item->prev;
@@ -112,7 +112,7 @@ static inline void astarte_list_remove(struct astarte_list_head_t *remove_item)
  * @details This function must be called to initialized a newly created list
  * @param head a pointer to the linked list
  */
-static inline void astarte_list_init(struct astarte_list_head_t *head)
+static inline void astarte_list_init(struct astarte_list_head *head)
 {
     head->prev = head;
     head->next = head;
@@ -124,7 +124,7 @@ static inline void astarte_list_init(struct astarte_list_head_t *head)
  * @details This function returns true if the linked list is empty
  * @return true if the list is empty, false otherwise
  */
-static inline bool astarte_list_is_empty(struct astarte_list_head_t *list_item)
+static inline bool astarte_list_is_empty(struct astarte_list_head *list_item)
 {
     return (list_item->next == list_item) && (list_item->prev == list_item);
 }
@@ -136,7 +136,7 @@ static inline bool astarte_list_is_empty(struct astarte_list_head_t *list_item)
  * @param head a pointer to the linked list
  * @return A pointer to the first item of the list
  */
-static inline struct astarte_list_head_t *astarte_list_first(struct astarte_list_head_t *head)
+static inline struct astarte_list_head *astarte_list_first(struct astarte_list_head *head)
 {
     return head->next;
 }
@@ -148,7 +148,7 @@ static inline struct astarte_list_head_t *astarte_list_first(struct astarte_list
  * @param head a pointer to the linked list
  * @return A pointer to the last item of the list
  */
-static inline struct astarte_list_head_t *astarte_list_last(struct astarte_list_head_t *head)
+static inline struct astarte_list_head *astarte_list_last(struct astarte_list_head *head)
 {
     return head->prev;
 }

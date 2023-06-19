@@ -204,7 +204,7 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
         ESP_LOGI(TAG, "doubleanarray_endpoint: {%lf, %lf, %lf, %lf}", doubleanarray_endpoint[0],
             doubleanarray_endpoint[1], doubleanarray_endpoint[2], doubleanarray_endpoint[3]);
 
-        struct astarte_bson_serializer_t aggregate_bson;
+        struct astarte_bson_serializer aggregate_bson;
         astarte_bson_serializer_init(&aggregate_bson);
         astarte_bson_serializer_append_double(&aggregate_bson, "double_endpoint", double_endpoint);
         astarte_bson_serializer_append_int32(&aggregate_bson, "integer_endpoint", integer_endpoint);

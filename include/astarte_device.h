@@ -22,7 +22,7 @@
 
 #define ASTARTE_INVALID_TIMESTAMP 0
 
-typedef struct astarte_device_t *astarte_device_handle_t;
+typedef struct astarte_device *astarte_device_handle_t;
 
 typedef struct
 {
