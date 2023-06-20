@@ -24,8 +24,8 @@ extern "C" {
 
 struct astarte_byte_array_t
 {
-    int capacity;
-    int size;
+    size_t capacity;
+    size_t size;
     uint8_t *buf;
 };
 
@@ -61,7 +61,7 @@ void astarte_bson_serializer_destroy(struct astarte_bson_serializer_t *bs);
  * @return Reference to the internal buffer.
  */
 const void *astarte_bson_serializer_get_document(
-    const struct astarte_bson_serializer_t *bs, int *size);
+    const struct astarte_bson_serializer_t *bs, size_t *size);
 
 /**
  * @brief copy bson serializer internal buffer to a different buffer.
@@ -74,8 +74,8 @@ const void *astarte_bson_serializer_get_document(
  * @param[out] out_doc_size BSON document size (that is <= out_buf_len).
  * @return astarte_err_t ASTARTE_OK on success, otherwise an error is returned.
  */
-astarte_err_t astarte_bson_serializer_write_document(
-    const struct astarte_bson_serializer_t *bs, void *out_buf, int out_buf_len, int *out_doc_size);
+astarte_err_t astarte_bson_serializer_write_document(const struct astarte_bson_serializer_t *bs,
+    void *out_buf, int out_buf_len, size_t *out_doc_size);
 
 /**
  * @brief return document size
@@ -83,7 +83,7 @@ astarte_err_t astarte_bson_serializer_write_document(
  * @details This function returns BSON document size in bytes.
  * @param[in] bs a astarte_bson_serializer_t.
  */
-int astarte_bson_serializer_document_size(const struct astarte_bson_serializer_t *bs);
+size_t astarte_bson_serializer_document_size(const struct astarte_bson_serializer_t *bs);
 
 /**
  * @brief append end of document marker.
@@ -140,7 +140,7 @@ void astarte_bson_serializer_append_int64(
  * @param[in] size blob size in bytes.
  */
 void astarte_bson_serializer_append_binary(
-    struct astarte_bson_serializer_t *bs, const char *name, const void *value, int size);
+    struct astarte_bson_serializer_t *bs, const char *name, const void *value, size_t size);
 
 /**
  * @brief append an UTF-8 string

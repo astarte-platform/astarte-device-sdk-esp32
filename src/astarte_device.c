@@ -45,7 +45,7 @@ struct astarte_device_t
     char *encoded_hwid;
     char *credentials_secret;
     char *device_topic;
-    int device_topic_len;
+    size_t device_topic_len;
     char *client_cert_pem;
     char *key_pem;
     bool connected;
@@ -68,7 +68,7 @@ static astarte_err_t check_device(astarte_device_handle_t device);
 static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name,
     const char *path, const struct astarte_bson_serializer_t *bs, int qos);
 static astarte_err_t publish_data(astarte_device_handle_t device, const char *interface_name,
-    const char *path, const void *data, size_t length, int qos);
+    const char *path, const void *data, int length, int qos);
 static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void send_emptycache(astarte_device_handle_t device);
@@ -499,18 +499,23 @@ astarte_err_t astarte_device_stop(astarte_device_handle_t device)
 static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name,
     const char *path, const struct astarte_bson_serializer_t *bs, int qos)
 {
-    int len = 0;
+    size_t len = 0;
     const void *data = astarte_bson_serializer_get_document(bs, &len);
     if (!data) {
         ESP_LOGE(TAG, "Error during BSON serialization");
         return ASTARTE_ERR;
     }
+    if ((int) len < 0) {
+        ESP_LOGE(TAG, "BSON document is too short for MQTT publish.");
+        ESP_LOGE(TAG, "Interface: %s, path: %s", interface_name, path);
+        return ASTARTE_ERR;
+    }
 
-    return publish_data(device, interface_name, path, data, len, qos);
+    return publish_data(device, interface_name, path, data, (int) len, qos);
 }
 
 static astarte_err_t publish_data(astarte_device_handle_t device, const char *interface_name,
-    const char *path, const void *data, size_t length, int qos)
+    const char *path, const void *data, int length, int qos)
 {
     if (path[0] != '/') {
         ESP_LOGE(TAG, "Invalid path: %s (must be start with /)", path);
@@ -1053,7 +1058,7 @@ static void on_incoming(
 
     char control_prefix[512];
     snprintf(control_prefix, 512, "%s/control", device->device_topic);
-    int control_prefix_len = strlen(control_prefix);
+    size_t control_prefix_len = strlen(control_prefix);
     if (strstr(topic, control_prefix)) {
         // Control message
         // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) Remove once control_topic is used.
@@ -1081,7 +1086,7 @@ static void on_incoming(
     char interface_name[512];
     snprintf(interface_name, 512, "%.*s", interface_name_len, interface_name_begin);
 
-    int path_len = topic_len - device->device_topic_len - strlen("/") - interface_name_len;
+    size_t path_len = topic_len - device->device_topic_len - strlen("/") - interface_name_len;
     char path[512];
     snprintf(path, 512, "%.*s", path_len, path_begin);
 

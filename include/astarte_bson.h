@@ -32,7 +32,7 @@ int32_t astarte_bson_value_to_int32(const void *valuePtr);
 int64_t astarte_bson_value_to_int64(const void *valuePtr);
 double astarte_bson_value_to_double(const void *valuePtr);
 bool astarte_bson_check_validity(const void *document, unsigned int fileSize);
-int32_t astarte_bson_document_size(const void *document);
+uint32_t astarte_bson_document_size(const void *document);
 
 #ifdef __cplusplus
 }

@@ -214,7 +214,7 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
             &aggregate_bson, "doublearray_endpoint", doubleanarray_endpoint, 4);
         astarte_bson_serializer_append_end_of_document(&aggregate_bson);
 
-        int doc_len = 0;
+        size_t doc_len = 0;
         const void *doc = astarte_bson_serializer_get_document(&aggregate_bson, &doc_len);
         astarte_err_t res = astarte_device_stream_aggregate(
             event->device, device_datastream_interface.name, "/24", doc, 0);

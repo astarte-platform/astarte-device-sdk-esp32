@@ -199,9 +199,9 @@ astarte_err_t astarte_credentials_store(
         return ASTARTE_ERR_IO;
     }
 
-    int written = fwrite(credential, sizeof(unsigned char), length, outf);
+    size_t written = fwrite(credential, sizeof(unsigned char), length, outf);
     if (written != length) {
-        ESP_LOGE(TAG, "Cannot write credential to %s (len: %i, written: %i)", path, (int) length,
+        ESP_LOGE(TAG, "Cannot write credential to %s (len: %i, written: %zu)", path, (int) length,
             written);
         return ASTARTE_ERR_IO;
     }
@@ -230,9 +230,9 @@ astarte_err_t astarte_credentials_fetch(
         return ASTARTE_ERR_NOT_FOUND;
     }
 
-    int ret = fread(out, 1, length, infile);
-    if (ret < 0) {
-        ESP_LOGE(TAG, "fread on %s returned %d", path, ret);
+    fread(out, 1, length, infile);
+    if (ferror(infile)) {
+        ESP_LOGE(TAG, "Error calling fread on %s", path);
         fclose(infile);
         return ASTARTE_ERR_IO;
     }

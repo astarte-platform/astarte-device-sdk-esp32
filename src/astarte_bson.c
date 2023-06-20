@@ -96,7 +96,7 @@ const void *astarte_bson_key_lookup(const char *key, const void *document, uint8
     unsigned int offset = 4;
     while (offset + 1 < docLen) {
         uint8_t elementType = (uint8_t) docBytes[offset];
-        int keyLen = strnlen(docBytes + offset + 1, docLen - offset);
+        size_t keyLen = strnlen(docBytes + offset + 1, docLen - offset);
 
         if (strncmp(key, docBytes + offset + 1, docLen - offset) == 0) {
             if (type) {
@@ -125,7 +125,7 @@ void *astarte_bson_next_item(const void *document, const void *current_item)
         return NULL;
     }
 
-    int keyLen = strnlen(docBytes + offset + 1, docLen - offset);
+    size_t keyLen = strnlen(docBytes + offset + 1, docLen - offset);
     unsigned int newOffset = astarte_bson_next_item_offset(offset, keyLen, document);
 
     if (!newOffset) {
@@ -264,7 +264,7 @@ bool astarte_bson_check_validity(const void *document, unsigned int fileSize)
     return true;
 }
 
-int32_t astarte_bson_document_size(const void *document)
+uint32_t astarte_bson_document_size(const void *document)
 {
     return read_uint32(document);
 }
