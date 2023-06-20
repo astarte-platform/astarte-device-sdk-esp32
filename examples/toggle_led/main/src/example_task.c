@@ -107,7 +107,7 @@ void astarte_example_task(void *ctx)
             // Button pressed, send 1 and current uptime
             astarte_device_stream_boolean(
                 device, "org.astarteplatform.esp32.examples.DeviceDatastream", "/userButton", 1, 0);
-            int uptimeSeconds = (xTaskGetTickCount() * portTICK_PERIOD_MS) / 1000;
+            int uptimeSeconds = (int) ((xTaskGetTickCount() * portTICK_PERIOD_MS) / 1000);
             astarte_device_stream_integer(device,
                 "org.astarteplatform.esp32.examples.DeviceDatastream", "/uptimeSeconds",
                 uptimeSeconds, 0);
