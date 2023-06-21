@@ -16,19 +16,19 @@
 
 #define TAG "ASTARTE_BSON"
 
-static uint32_t read_uint32(const void *u)
+static uint32_t read_uint32(const void *buff)
 {
-    const unsigned char *b = (const unsigned char *) u;
-    return le32toh(((uint32_t) b[0]) | (((uint32_t) b[1]) << 8U) | (((uint32_t) b[2]) << 16U)
-        | (((uint32_t) b[3]) << 24U));
+    const unsigned char *bytes = (const unsigned char *) buff;
+    return le32toh(((uint32_t) bytes[0]) | (((uint32_t) bytes[1]) << 8U)
+        | (((uint32_t) bytes[2]) << 16U) | (((uint32_t) bytes[3]) << 24U));
 }
 
-static uint64_t read_uint64(const void *u)
+static uint64_t read_uint64(const void *buff)
 {
-    const unsigned char *b = (const unsigned char *) u;
-    return le64toh((uint64_t) b[0] | ((uint64_t) b[1] << 8U) | ((uint64_t) b[2] << 16U)
-        | ((uint64_t) b[3] << 24U) | ((uint64_t) b[4] << 32U) | ((uint64_t) b[5] << 40U)
-        | ((uint64_t) b[6] << 48U) | ((uint64_t) b[7] << 56U));
+    const unsigned char *bytes = (const unsigned char *) buff;
+    return le64toh((uint64_t) bytes[0] | ((uint64_t) bytes[1] << 8U) | ((uint64_t) bytes[2] << 16U)
+        | ((uint64_t) bytes[3] << 24U) | ((uint64_t) bytes[4] << 32U) | ((uint64_t) bytes[5] << 40U)
+        | ((uint64_t) bytes[6] << 48U) | ((uint64_t) bytes[7] << 56U));
 }
 
 static unsigned int astarte_bson_next_item_offset(
@@ -207,9 +207,9 @@ double astarte_bson_value_to_double(const void *valuePtr)
     {
         uint64_t u64value;
         double dvalue;
-    } v;
-    v.u64value = read_uint64(valuePtr);
-    return v.dvalue;
+    } value;
+    value.u64value = read_uint64(valuePtr);
+    return value.dvalue;
 }
 
 bool astarte_bson_check_validity(const void *document, unsigned int fileSize)

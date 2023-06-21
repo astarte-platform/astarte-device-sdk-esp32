@@ -32,32 +32,32 @@ struct uuid
     uint8_t node[6];
 };
 
-static void uuid_from_struct(const struct uuid *in, uuid_t out)
+static void uuid_from_struct(const struct uuid *input, uuid_t out)
 {
     uint32_t tmp32 = 0U;
     uint16_t tmp16 = 0U;
     uint8_t *out_p = out;
 
-    tmp32 = htonl(in->time_low);
+    tmp32 = htonl(input->time_low);
     memcpy(out_p, &tmp32, sizeof(uint32_t));
 
-    tmp16 = htons(in->time_mid);
+    tmp16 = htons(input->time_mid);
     memcpy(out_p + 4, &tmp16, sizeof(uint16_t));
 
-    tmp16 = htons(in->time_hi_and_version);
+    tmp16 = htons(input->time_hi_and_version);
     memcpy(out_p + 6, &tmp16, sizeof(uint16_t));
 
-    out_p[8] = in->clock_seq_hi_res;
-    out_p[9] = in->clock_seq_low;
+    out_p[8] = input->clock_seq_hi_res;
+    out_p[9] = input->clock_seq_low;
 
-    memcpy(out_p + 10, in->node, 6);
+    memcpy(out_p + 10, input->node, 6);
 }
 
-static void uuid_to_struct(const uuid_t in, struct uuid *out)
+static void uuid_to_struct(const uuid_t input, struct uuid *out)
 {
     uint32_t tmp32 = 0U;
     uint16_t tmp16 = 0U;
-    const uint8_t *in_p = in;
+    const uint8_t *in_p = input;
 
     memcpy(&tmp32, in_p, sizeof(uint32_t));
     out->time_low = ntohl(tmp32);
@@ -74,7 +74,7 @@ static void uuid_to_struct(const uuid_t in, struct uuid *out)
     memcpy(out->node, in_p + 10, 6);
 }
 
-void uuid_generate_v5(const uuid_t ns, const void *data, size_t length, uuid_t out)
+void uuid_generate_v5(const uuid_t namespace, const void *data, size_t length, uuid_t out)
 {
     uint8_t sha_result[32];
 
@@ -84,7 +84,7 @@ void uuid_generate_v5(const uuid_t ns, const void *data, size_t length, uuid_t o
     mbedtls_md_init(&ctx);
     mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 0);
     mbedtls_md_starts(&ctx);
-    mbedtls_md_update(&ctx, ns, UUID_LEN);
+    mbedtls_md_update(&ctx, namespace, UUID_LEN);
     mbedtls_md_update(&ctx, data, length);
     mbedtls_md_finish(&ctx, sha_result);
     mbedtls_md_free(&ctx);
@@ -113,29 +113,29 @@ void uuid_to_string(const uuid_t uuid, char *out)
         uuid_struct.node[3], uuid_struct.node[4], uuid_struct.node[5]);
 }
 
-int uuid_from_string(const char *in, uuid_t uuid)
+int uuid_from_string(const char *input, uuid_t uuid)
 {
     // Length check
-    if (strlen(in) != UUID_STR_LEN) {
+    if (strlen(input) != UUID_STR_LEN) {
         return -1;
     }
 
     // Sanity check
     for (int i = 0; i < 36; i++) {
-        char c = in[i];
+        char char_i = input[i];
         // Check that hyphens are in the right place
         if ((i == 8) || (i == 13) || (i == 18) || (i == 23)) {
-            if (c != '-') {
-                ESP_LOGW(TAG, "Found invalid character %c in hyphen position %d", c, i);
+            if (char_i != '-') {
+                ESP_LOGW(TAG, "Found invalid character %c in hyphen position %d", char_i, i);
                 return -1;
             }
             continue;
         }
 
         // Check that everything else is an hexadecimal digit
-        if (!((c >= '0') && (c <= '9')) && !((c >= 'a') && (c <= 'f'))
-            && !((c >= 'A') && (c <= 'F'))) {
-            ESP_LOGW(TAG, "Found invalid character %c in position %d", c, i);
+        if (!((char_i >= '0') && (char_i <= '9')) && !((char_i >= 'a') && (char_i <= 'f'))
+            && !((char_i >= 'A') && (char_i <= 'F'))) {
+            ESP_LOGW(TAG, "Found invalid character %c in position %d", char_i, i);
             return -1;
         }
     }
@@ -143,21 +143,21 @@ int uuid_from_string(const char *in, uuid_t uuid)
     char tmp[3];
     struct uuid uuid_struct;
 
-    uuid_struct.time_low = strtoul(in, NULL, 16);
-    uuid_struct.time_mid = strtoul(in + 9, NULL, 16);
-    uuid_struct.time_hi_and_version = strtoul(in + 14, NULL, 16);
+    uuid_struct.time_low = strtoul(input, NULL, 16);
+    uuid_struct.time_mid = strtoul(input + 9, NULL, 16);
+    uuid_struct.time_hi_and_version = strtoul(input + 14, NULL, 16);
 
-    tmp[0] = in[19];
-    tmp[1] = in[20];
+    tmp[0] = input[19];
+    tmp[1] = input[20];
     uuid_struct.clock_seq_hi_res = strtoul(tmp, NULL, 16);
 
-    tmp[0] = in[21];
-    tmp[1] = in[22];
+    tmp[0] = input[21];
+    tmp[1] = input[22];
     uuid_struct.clock_seq_low = strtoul(tmp, NULL, 16);
 
     for (int i = 0; i < 6; i++) {
-        tmp[0] = in[24 + i * 2];
-        tmp[1] = in[24 + i * 2 + 1];
+        tmp[0] = input[24 + i * 2];
+        tmp[1] = input[24 + i * 2 + 1];
         uuid_struct.node[i] = strtoul(tmp, NULL, 16);
     }
 
