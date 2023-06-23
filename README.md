@@ -70,6 +70,38 @@ This can be done using the following command:
 | ------------- | ------------ | ------------ |
 | `idf.py -p <DEVICE_PORT> erase-flash` | `idf.py -p <DEVICE_PORT> erase_flash` | `make ESPPORT=<DEVICE_PORT> erase_flash` |
 
+## Notes on ignoring TLS certificates
+
+**N.B. Do not ignore TLS certificates errors in production!**
+
+Ignoring TLS certificates errors can be useful when trying out the device libraries in a prototyping
+context.
+For example when using a local Astarte instance with self signed certificates.
+
+To disable the TLS certificates checks in the device libraries add the following to your
+`sdkconfig.defaults` file:
+```
+#
+# ESP-TLS
+#
+CONFIG_ESP_TLS_INSECURE=y
+CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY=y
+# end of ESP-TLS
+
+#
+# Certificate Bundle
+#
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=n
+# end of Certificate Bundle
+```
+The certificate bundle feature has been introduced in ESP-IDF `v4.3.5` as such the
+`CONFIG_MBEDTLS_CERTIFICATE_BUNDLE` flag should be removed when using previous versions.
+
+If you are not using an `sdkconfig.defaults` file, run `idf.py menuconfig` and set the three options
+listed above manually. The insecure and skip certificate options can be found in the ESP-TLS
+component. While the bundle option can be found in the mbedTLS component.
+
+
 ## Notes on custom certificate bundle
 
 The Astarte ESP32 Device uses the
