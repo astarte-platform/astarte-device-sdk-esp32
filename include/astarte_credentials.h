@@ -22,20 +22,19 @@
 
 #define ASTARTE_CREDENTIALS_DEFAULT_NVS_PARTITION NULL
 
-enum credential_type_t
+typedef enum
 {
     ASTARTE_CREDENTIALS_CSR = 1,
     ASTARTE_CREDENTIALS_KEY,
     ASTARTE_CREDENTIALS_CERTIFICATE
-};
+} credential_type_t;
 
 typedef astarte_err_t (*astarte_credentials_store_t)(
-    void *opaque, enum credential_type_t cred_type, const void *credential, size_t length);
+    void *opaque, credential_type_t cred_type, const void *credential, size_t length);
 typedef astarte_err_t (*astarte_credentials_fetch_t)(
-    void *opaque, enum credential_type_t cred_type, char *out, size_t length);
-typedef bool (*astarte_credentials_exists_t)(void *opaque, enum credential_type_t cred_type);
-typedef astarte_err_t (*astarte_credentials_remove_t)(
-    void *opaque, enum credential_type_t cred_type);
+    void *opaque, credential_type_t cred_type, char *out, size_t length);
+typedef bool (*astarte_credentials_exists_t)(void *opaque, credential_type_t cred_type);
+typedef astarte_err_t (*astarte_credentials_remove_t)(void *opaque, credential_type_t cred_type);
 
 typedef struct
 {
@@ -245,7 +244,7 @@ bool astarte_credentials_has_key();
  * @details this API might change in future versions.
  */
 astarte_err_t astarte_credentials_store(
-    void *opaque, enum credential_type_t cred_type, const void *credential, size_t length);
+    void *opaque, credential_type_t cred_type, const void *credential, size_t length);
 
 /*
  * @brief fetch a credential using filesystem storage
@@ -253,21 +252,21 @@ astarte_err_t astarte_credentials_store(
  * @details this API might change in future versions.
  */
 astarte_err_t astarte_credentials_fetch(
-    void *opaque, enum credential_type_t cred_type, char *out, size_t length);
+    void *opaque, credential_type_t cred_type, char *out, size_t length);
 
 /*
  * @brief return true whether a credential exists on fileystem storage
  *
  * @details this API might change in future versions.
  */
-bool astarte_credentials_exists(void *opaque, enum credential_type_t cred_type);
+bool astarte_credentials_exists(void *opaque, credential_type_t cred_type);
 
 /*
  * @brief remove a credential from filesystem storage
  *
  * @details this API might change in future versions.
  */
-astarte_err_t astarte_credentials_remove(void *opaque, enum credential_type_t cred_type);
+astarte_err_t astarte_credentials_remove(void *opaque, credential_type_t cred_type);
 
 /*
  * @brief store a credential using NVS
@@ -275,7 +274,7 @@ astarte_err_t astarte_credentials_remove(void *opaque, enum credential_type_t cr
  * @details this API might change in future versions.
  */
 astarte_err_t astarte_credentials_nvs_store(
-    void *opaque, enum credential_type_t cred_type, const void *credential, size_t length);
+    void *opaque, credential_type_t cred_type, const void *credential, size_t length);
 
 /*
  * @brief fetch a credential using NVS
@@ -283,21 +282,21 @@ astarte_err_t astarte_credentials_nvs_store(
  * @details this API might change in future versions.
  */
 astarte_err_t astarte_credentials_nvs_fetch(
-    void *opaque, enum credential_type_t cred_type, char *out, size_t length);
+    void *opaque, credential_type_t cred_type, char *out, size_t length);
 
 /*
  * @brief return true whether a credential exists on NVS
  *
  * @details this API might change in future versions.
  */
-bool astarte_credentials_nvs_exists(void *opaque, enum credential_type_t cred_type);
+bool astarte_credentials_nvs_exists(void *opaque, credential_type_t cred_type);
 
 /*
  * @brief remove a credential from NVS
  *
  * @details this API might change in future versions.
  */
-astarte_err_t astarte_credentials_nvs_remove(void *opaque, enum credential_type_t cred_type);
+astarte_err_t astarte_credentials_nvs_remove(void *opaque, credential_type_t cred_type);
 
 #ifdef __cplusplus
 }

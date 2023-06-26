@@ -22,7 +22,7 @@
 
 #define ASTARTE_INVALID_TIMESTAMP 0
 
-typedef struct astarte_device_t *astarte_device_handle_t;
+typedef struct astarte_device *astarte_device_handle_t;
 
 typedef struct
 {
@@ -726,13 +726,16 @@ static inline astarte_err_t astarte_device_stream_datetime_array(astarte_device_
  * @param bson_document A pointer to the document buffer containing the aggregate. Here's an example
  * of how you can obtain the bson_document for an AirSensor interface containing 3 endpoints:
  *
- *  astarte_bson_serializer_init(&bs);
- *  astarte_bson_serializer_append_double(&bs, "co2", 4.0);
- *  astarte_bson_serializer_append_double(&bs, "temperature", 20.0);
- *  astarte_bson_serializer_append_double(&bs, "humidity", 77.2);
- *  astarte_bson_serializer_append_end_of_document(&bs);
+ *  astarte_bson_serializer_handle_t bs = astarte_bson_serializer_new();
+ *  astarte_bson_serializer_append_double(bs, "co2", 4.0);
+ *  astarte_bson_serializer_append_double(bs, "temperature", 20.0);
+ *  astarte_bson_serializer_append_double(bs, "humidity", 77.2);
+ *  astarte_bson_serializer_append_end_of_document(bs);
  *  int size;
- *  const void *document = astarte_bson_serializer_get_document(&bs, &size);
+ *  const void *document = astarte_bson_serializer_get_document(bs, &size);
+ *  // Use the returned buffer before destroy call
+ *  astarte_bson_serializer_destroy(bs);
+ *
  * @param qos The MQTT QoS to be used for the publish (0, 1 or 2).
  * @return ASTARTE_OK if the value was correctly published, another astarte_err_t otherwise. Note
  * that this just checks that the publish sequence correctly started, i.e. it doesn't wait for
@@ -754,13 +757,16 @@ astarte_err_t astarte_device_stream_aggregate(astarte_device_handle_t device,
  * @param bson_document A pointer to the document buffer containing the aggregate. Here's an example
  * of how you can obtain the bson_document for an AirSensor interface containing 3 endpoints:
  *
- *  astarte_bson_serializer_init(&bs);
- *  astarte_bson_serializer_append_double(&bs, "co2", 4.0);
- *  astarte_bson_serializer_append_double(&bs, "temperature", 20.0);
- *  astarte_bson_serializer_append_double(&bs, "humidity", 77.2);
- *  astarte_bson_serializer_append_end_of_document(&bs);
+ *  astarte_bson_serializer_handle_t bs = astarte_bson_serializer_new();
+ *  astarte_bson_serializer_append_double(bs, "co2", 4.0);
+ *  astarte_bson_serializer_append_double(bs, "temperature", 20.0);
+ *  astarte_bson_serializer_append_double(bs, "humidity", 77.2);
+ *  astarte_bson_serializer_append_end_of_document(bs);
  *  int size;
- *  const void *document = astarte_bson_serializer_get_document(&bs, &size);
+ *  const void *document = astarte_bson_serializer_get_document(bs, &size);
+ *  // Use the returned buffer before destroy call
+ *  astarte_bson_serializer_destroy(bs);
+ *
  * @param ts_epoch_millis The timestamp of the datastream. This is useful only on mappings with
  * explicit_timestamp set to true and it's represented as milliseconds since epoch. A value of
  * ASTARTE_INVALID_TIMESTAMP is ignored.

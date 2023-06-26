@@ -204,25 +204,24 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
         ESP_LOGI(TAG, "doubleanarray_endpoint: {%lf, %lf, %lf, %lf}", doubleanarray_endpoint[0],
             doubleanarray_endpoint[1], doubleanarray_endpoint[2], doubleanarray_endpoint[3]);
 
-        struct astarte_bson_serializer_t aggregate_bson;
-        astarte_bson_serializer_init(&aggregate_bson);
-        astarte_bson_serializer_append_double(&aggregate_bson, "double_endpoint", double_endpoint);
-        astarte_bson_serializer_append_int32(&aggregate_bson, "integer_endpoint", integer_endpoint);
+        astarte_bson_serializer_handle_t aggregate_bson = astarte_bson_serializer_new();
+        astarte_bson_serializer_append_double(aggregate_bson, "double_endpoint", double_endpoint);
+        astarte_bson_serializer_append_int32(aggregate_bson, "integer_endpoint", integer_endpoint);
         astarte_bson_serializer_append_boolean(
-            &aggregate_bson, "boolean_endpoint", boolean_endpoint);
+            aggregate_bson, "boolean_endpoint", boolean_endpoint);
         astarte_bson_serializer_append_double_array(
-            &aggregate_bson, "doublearray_endpoint", doubleanarray_endpoint, 4);
-        astarte_bson_serializer_append_end_of_document(&aggregate_bson);
+            aggregate_bson, "doublearray_endpoint", doubleanarray_endpoint, 4);
+        astarte_bson_serializer_append_end_of_document(aggregate_bson);
 
         size_t doc_len = 0;
-        const void *doc = astarte_bson_serializer_get_document(&aggregate_bson, &doc_len);
+        const void *doc = astarte_bson_serializer_get_document(aggregate_bson, &doc_len);
         astarte_err_t res = astarte_device_stream_aggregate(
             event->device, device_datastream_interface.name, "/24", doc, 0);
         if (res != ASTARTE_OK) {
             ESP_LOGE(TAG, "Error streaming the aggregate");
         }
 
-        astarte_bson_serializer_destroy(&aggregate_bson);
+        astarte_bson_serializer_destroy(aggregate_bson);
         ESP_LOGI(TAG, "Device aggregate sent, using sensor_id: 24.");
     } else {
         ESP_LOGE(TAG, "Server aggregate incorrectly received.");

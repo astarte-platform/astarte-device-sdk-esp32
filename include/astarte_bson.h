@@ -24,14 +24,14 @@ const void *astarte_bson_key_lookup(const char *key, const void *document, uint8
 void *astarte_bson_next_item(const void *document, const void *current_item);
 const void *astarte_bson_first_item(const void *document);
 const char *astarte_bson_key(const void *item);
-const char *astarte_bson_value_to_string(const void *valuePtr, uint32_t *len);
-const char *astarte_bson_value_to_binary(const void *valuePtr, uint32_t *len);
-const void *astarte_bson_value_to_document(const void *valuePtr, uint32_t *len);
-int8_t astarte_bson_value_to_int8(const void *valuePtr);
-int32_t astarte_bson_value_to_int32(const void *valuePtr);
-int64_t astarte_bson_value_to_int64(const void *valuePtr);
-double astarte_bson_value_to_double(const void *valuePtr);
-bool astarte_bson_check_validity(const void *document, unsigned int fileSize);
+const char *astarte_bson_value_to_string(const void *value_ptr, uint32_t *len);
+const char *astarte_bson_value_to_binary(const void *value_ptr, uint32_t *len);
+const void *astarte_bson_value_to_document(const void *value_ptr, uint32_t *len);
+int8_t astarte_bson_value_to_int8(const void *value_ptr);
+int32_t astarte_bson_value_to_int32(const void *value_ptr);
+int64_t astarte_bson_value_to_int64(const void *value_ptr);
+double astarte_bson_value_to_double(const void *value_ptr);
+bool astarte_bson_check_validity(const void *document, unsigned int file_size);
 uint32_t astarte_bson_document_size(const void *document);
 
 #ifdef __cplusplus

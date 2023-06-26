@@ -79,7 +79,7 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 }
 
 astarte_err_t astarte_pairing_get_credentials_secret(
-    const struct astarte_pairing_config *config, char *out, size_t length)
+    const astarte_pairing_config_t *config, char *out, size_t length)
 {
     if (config->credentials_secret) {
         // We have an explicit credentials_secret in the config, we're done
@@ -118,7 +118,7 @@ astarte_err_t astarte_pairing_get_credentials_secret(
 }
 
 astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
-    const struct astarte_pairing_config *config, const char *csr, char *out, size_t length)
+    const astarte_pairing_config_t *config, const char *csr, char *out, size_t length)
 {
     astarte_err_t ret = ASTARTE_ERR;
     char *cred_secret = NULL;
@@ -261,7 +261,7 @@ exit:
 }
 
 astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
-    const struct astarte_pairing_config *config, char *out, size_t length)
+    const astarte_pairing_config_t *config, char *out, size_t length)
 {
     astarte_err_t ret = ASTARTE_ERR;
     char *cred_secret = NULL;
@@ -390,7 +390,7 @@ exit:
     return ret;
 }
 
-astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_config *config)
+astarte_err_t astarte_pairing_register_device(const astarte_pairing_config_t *config)
 {
     if (!config->jwt || strlen(config->jwt) == 0) {
         ESP_LOGE(TAG,
