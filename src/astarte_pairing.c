@@ -149,8 +149,14 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
         goto exit;
     }
 
-    snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s/protocols/astarte_mqtt_v1/credentials",
-        config->base_url, config->realm, config->hw_id);
+    int print_ret
+        = snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s/protocols/astarte_mqtt_v1/credentials",
+            config->base_url, config->realm, config->hw_id);
+    if ((print_ret < 0) || (print_ret >= MAX_URL_LENGTH)) {
+        ESP_LOGE(TAG, "Error encoding credentials url");
+        ret = ASTARTE_ERR;
+        goto exit;
+    }
 
     esp_http_client_config_t http_config
         = {.url = url,
@@ -187,7 +193,12 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
         goto exit;
     }
 
-    snprintf(auth_header, MAX_CRED_SECR_HEADER_LENGTH, "Bearer %s", cred_secret);
+    print_ret = snprintf(auth_header, MAX_CRED_SECR_HEADER_LENGTH, "Bearer %s", cred_secret);
+    if ((print_ret < 0) || (print_ret >= MAX_CRED_SECR_HEADER_LENGTH)) {
+        ESP_LOGE(TAG, "Error encoding authorization header");
+        ret = ASTARTE_ERR;
+        goto exit;
+    }
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Authorization", auth_header));
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Content-Type", "application/json"));
 
@@ -280,8 +291,13 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
         goto exit;
     }
 
-    snprintf(
+    int print_ret = snprintf(
         url, MAX_URL_LENGTH, "%s/v1/%s/devices/%s", config->base_url, config->realm, config->hw_id);
+    if ((print_ret < 0) || (print_ret >= MAX_URL_LENGTH)) {
+        ESP_LOGE(TAG, "Error encoding HTTPS request URL");
+        ret = ASTARTE_ERR;
+        goto exit;
+    }
 
     esp_http_client_config_t http_config
         = {.url = url,
@@ -309,7 +325,12 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
         goto exit;
     }
 
-    snprintf(auth_header, MAX_CRED_SECR_HEADER_LENGTH, "Bearer %s", cred_secret);
+    print_ret = snprintf(auth_header, MAX_CRED_SECR_HEADER_LENGTH, "Bearer %s", cred_secret);
+    if ((print_ret < 0) || (print_ret >= MAX_CRED_SECR_HEADER_LENGTH)) {
+        ESP_LOGE(TAG, "Error encoding authorization header");
+        ret = ASTARTE_ERR;
+        goto exit;
+    }
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Authorization", auth_header));
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Content-Type", "application/json"));
 
@@ -392,7 +413,13 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
         goto exit;
     }
 
-    snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/agent/devices", config->base_url, config->realm);
+    int print_ret
+        = snprintf(url, MAX_URL_LENGTH, "%s/v1/%s/agent/devices", config->base_url, config->realm);
+    if ((print_ret < 0) || (print_ret >= MAX_URL_LENGTH)) {
+        ESP_LOGE(TAG, "Error encoding HTTPS request URL");
+        ret = ASTARTE_ERR;
+        goto exit;
+    }
 
     esp_http_client_config_t http_config
         = {.url = url,
@@ -429,7 +456,12 @@ astarte_err_t astarte_pairing_register_device(const struct astarte_pairing_confi
         goto exit;
     }
 
-    snprintf(auth_header, CONFIG_ASTARTE_PAIRING_JWT_MAX_LEN, "Bearer %s", config->jwt);
+    print_ret = snprintf(auth_header, CONFIG_ASTARTE_PAIRING_JWT_MAX_LEN, "Bearer %s", config->jwt);
+    if ((print_ret < 0) || (print_ret >= CONFIG_ASTARTE_PAIRING_JWT_MAX_LEN)) {
+        ESP_LOGE(TAG, "Error encoding authorization header");
+        ret = ASTARTE_ERR;
+        goto exit;
+    }
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Authorization", auth_header));
     ESP_ERROR_CHECK(esp_http_client_set_header(client, "Content-Type", "application/json"));
 

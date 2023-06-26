@@ -230,14 +230,17 @@ astarte_err_t astarte_credentials_fetch(
         return ASTARTE_ERR_NOT_FOUND;
     }
 
-    fread(out, 1, length, infile);
+    (void) fread(out, 1, length, infile);
     if (ferror(infile)) {
         ESP_LOGE(TAG, "Error calling fread on %s", path);
-        fclose(infile);
+        (void) fclose(infile);
         return ASTARTE_ERR_IO;
     }
 
-    fclose(infile);
+    if (fclose(infile) != 0) {
+        ESP_LOGE(TAG, "Cannot close %s", path);
+        return ASTARTE_ERR_IO;
+    }
     return ASTARTE_OK;
 }
 
@@ -714,7 +717,12 @@ astarte_err_t astarte_credentials_get_certificate_common_name(
         goto exit;
     }
 
-    snprintf(out, length, "%.*s", subj_it->val.len, subj_it->val.p);
+    ret = snprintf(out, length, "%.*s", subj_it->val.len, subj_it->val.p);
+    if ((ret < 0) || (ret >= length)) {
+        ESP_LOGE(TAG, "Error encoding certificate common name");
+        exit_code = ASTARTE_ERR;
+        goto exit;
+    }
     exit_code = ASTARTE_OK;
 
 exit:

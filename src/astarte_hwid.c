@@ -48,12 +48,16 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
     uint16_t revision = chip_info.revision;
 #endif
 
-    snprintf(info_string, 160,
+    int res = snprintf(info_string, 160,
         "ESP_MAC_WIFI_STA: %02x:%02x:%02x:%02x:%02x:%02x, model: %i, cores: %i, revision: %i "
         "embedded flash: %i, bluetooth: %i, BLE: %i.",
         (unsigned int) mac_addr[0], (unsigned int) mac_addr[1], (unsigned int) mac_addr[2],
         (unsigned int) mac_addr[3], (unsigned int) mac_addr[4], (unsigned int) mac_addr[5],
         chip_info.model, chip_info.cores, revision, embedded_flash, bluetooth, ble);
+    if ((res < 0) || (res >= 160)) {
+        ESP_LOGE(HWID_TAG, "Error generating the encoding device specific info string.");
+        return ASTARTE_ERR;
+    }
 
     ESP_LOGD(HWID_TAG, "Astarte Device SDK running on: %s", info_string);
 

@@ -529,7 +529,12 @@ static astarte_err_t publish_data(astarte_device_handle_t device, const char *in
     }
 
     char topic[TOPIC_LENGTH];
-    snprintf(topic, TOPIC_LENGTH, "%s/%s%s", device->device_topic, interface_name, path);
+    int print_ret
+        = snprintf(topic, TOPIC_LENGTH, "%s/%s%s", device->device_topic, interface_name, path);
+    if ((print_ret < 0) || (print_ret >= TOPIC_LENGTH)) {
+        ESP_LOGE(TAG, "Error encoding topic");
+        return ASTARTE_ERR;
+    }
 
     if (xSemaphoreTake(device->reinit_mutex, (TickType_t) 10) == pdFALSE) {
         ESP_LOGE(TAG, "Trying to publish to a device that is being reinitialized");
@@ -694,11 +699,14 @@ astarte_err_t astarte_device_stream_binaryblob_array_with_timestamp(astarte_devi
 {
     struct astarte_bson_serializer_t bson;
     astarte_bson_serializer_init(&bson);
-    astarte_bson_serializer_append_binary_array(&bson, "v", values, sizes, count);
+    astarte_err_t exit_code
+        = astarte_bson_serializer_append_binary_array(&bson, "v", values, sizes, count);
     maybe_append_timestamp(&bson, ts_epoch_millis);
     astarte_bson_serializer_append_end_of_document(&bson);
 
-    astarte_err_t exit_code = publish_bson(device, interface_name, path, &bson, qos);
+    if (exit_code == ASTARTE_OK) {
+        exit_code = publish_bson(device, interface_name, path, &bson, qos);
+    }
 
     astarte_bson_serializer_destroy(&bson);
     return exit_code;
@@ -974,7 +982,12 @@ static void setup_subscriptions(astarte_device_handle_t device)
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
 
     // Subscribe to control messages
-    snprintf(topic, TOPIC_LENGTH, "%s/control/consumer/properties", device->device_topic);
+    int ret = snprintf(topic, TOPIC_LENGTH, "%s/control/consumer/properties", device->device_topic);
+    if ((ret < 0) || (ret >= TOPIC_LENGTH)) {
+        ESP_LOGE(TAG, "Error encoding topic");
+        return;
+    }
+
     ESP_LOGD(TAG, "Subscribing to %s", topic);
     esp_mqtt_client_subscribe(mqtt, topic, 2);
 
@@ -986,7 +999,11 @@ static void setup_subscriptions(astarte_device_handle_t device)
         const astarte_interface_t *interface = entry->value;
         if (interface->ownership == OWNERSHIP_SERVER) {
             // Subscribe to server interface subtopics
-            snprintf(topic, TOPIC_LENGTH, "%s/%s/#", device->device_topic, interface->name);
+            ret = snprintf(topic, TOPIC_LENGTH, "%s/%s/#", device->device_topic, interface->name);
+            if ((ret < 0) || (ret >= TOPIC_LENGTH)) {
+                ESP_LOGE(TAG, "Error encoding topic");
+                continue;
+            }
             ESP_LOGD(TAG, "Subscribing to %s", topic);
             esp_mqtt_client_subscribe(mqtt, topic, 2);
         }
@@ -1002,7 +1019,11 @@ static void send_emptycache(astarte_device_handle_t device)
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
 
     char topic[TOPIC_LENGTH];
-    snprintf(topic, TOPIC_LENGTH, "%s/control/emptyCache", device->device_topic);
+    int ret = snprintf(topic, TOPIC_LENGTH, "%s/control/emptyCache", device->device_topic);
+    if ((ret < 0) || (ret >= TOPIC_LENGTH)) {
+        ESP_LOGE(TAG, "Error encoding topic");
+        return;
+    }
     ESP_LOGD(TAG, "Sending emptyCache to %s", topic);
     esp_mqtt_client_publish(mqtt, topic, "1", 1, 2, 0);
 }
@@ -1058,7 +1079,12 @@ static void on_incoming(
     }
 
     char control_prefix[512];
-    snprintf(control_prefix, 512, "%s/control", device->device_topic);
+    int ret = snprintf(control_prefix, 512, "%s/control", device->device_topic);
+    if ((ret < 0) || (ret >= 512)) {
+        ESP_LOGE(TAG, "Error encoding control prefix");
+        return;
+    }
+
     size_t control_prefix_len = strlen(control_prefix);
     if (strstr(topic, control_prefix)) {
         // Control message
@@ -1085,11 +1111,19 @@ static void on_incoming(
 
     int interface_name_len = path_begin - interface_name_begin;
     char interface_name[512];
-    snprintf(interface_name, 512, "%.*s", interface_name_len, interface_name_begin);
+    ret = snprintf(interface_name, 512, "%.*s", interface_name_len, interface_name_begin);
+    if ((ret < 0) || (ret >= 512)) {
+        ESP_LOGE(TAG, "Error encoding interface name");
+        return;
+    }
 
     size_t path_len = topic_len - device->device_topic_len - strlen("/") - interface_name_len;
     char path[512];
-    snprintf(path, 512, "%.*s", path_len, path_begin);
+    ret = snprintf(path, 512, "%.*s", path_len, path_begin);
+    if ((ret < 0) || (ret >= 512)) {
+        ESP_LOGE(TAG, "Error encoding path");
+        return;
+    }
 
     if (!data && data_len == 0) {
         if (device->unset_event_callback) {
