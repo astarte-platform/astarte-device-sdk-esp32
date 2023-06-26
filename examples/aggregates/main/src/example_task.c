@@ -160,7 +160,7 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
             uint8_t boolean_type = 0U;
             char boolean_key[5];
             for (uint32_t i = 0; i < 4; i++) {
-                sprintf(boolean_key, "%" PRIu32 "", i);
+                (void) snprintf(boolean_key, 5, "%" PRIu32 "", i); // Can't fail (i is known)
                 const void *boolean
                     = astarte_bson_key_lookup((char *) &boolean_key, booleanarray, &boolean_type);
                 if ((boolean != NULL) && (boolean_type == BSON_TYPE_BOOLEAN)) {

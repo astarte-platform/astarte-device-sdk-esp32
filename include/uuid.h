@@ -10,6 +10,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "astarte.h"
+
 typedef uint8_t uuid_t[16];
 
 #ifdef __cplusplus
@@ -34,8 +36,10 @@ void uuid_generate_v5(const uuid_t namespace, const void *data, size_t len, uuid
  * @details Convert a UUID to its canonical (RFC4122) string representation.
  * @param uuid The UUID.
  * @param out A pointer to a previously allocated buffer where the result will be written.
+ * @param out_size Size of the out buffer.
+ * @return ASTARTE_ERR upon failure, ASTARTE_OK otherwise.
  */
-void uuid_to_string(const uuid_t uuid, char *out);
+astarte_err_t uuid_to_string(const uuid_t uuid, char *out, size_t out_size);
 
 /**
  * @brief parse a UUID from its string representation.
