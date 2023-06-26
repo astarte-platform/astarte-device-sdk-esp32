@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add support for server validation through ESP x509 Certificate Bundle.
 - Add maximum JWT size to SDK configuration options.
 
+### Changed
+- `struct astarte_bson_serializer_t` has been replaced by the type defined
+`astarte_bson_serializer_handle_t`.
+- `astarte_bson_serializer_init` has been replaced by `astarte_bson_serializer_new`.
+- `credential_type_t`, `astarte_ptr_list_entry_t` and `astarte_list_head_t` are now type defined.
+- `astarte_pairing_config` has been replaced by type defined `astarte_pairing_config_t`.
+
 ### Removed
 - Support for ESP IDF v3.x.
 
