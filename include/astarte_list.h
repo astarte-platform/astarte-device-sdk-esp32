@@ -10,17 +10,17 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-struct astarte_list_head
+typedef struct astarte_list_head
 {
     struct astarte_list_head *next;
     struct astarte_list_head *prev;
-};
+} astarte_list_head_t;
 
-struct astarte_ptr_list_entry
+typedef struct
 {
-    struct astarte_list_head head;
+    astarte_list_head_t head;
     const void *value;
-};
+} astarte_ptr_list_entry_t;
 
 /**
  * @brief gets a pointer to the struct that contains a certain list head
@@ -55,8 +55,8 @@ struct astarte_ptr_list_entry
  * @param prev_head the linked list head that comes before the element that is going to be inserted
  * @param next_head the linked list head that comes after the element that is going to be inserted
  */
-static inline void astarte_list_insert(struct astarte_list_head *new_item,
-    struct astarte_list_head *prev_head, struct astarte_list_head *next_head)
+static inline void astarte_list_insert(
+    astarte_list_head_t *new_item, astarte_list_head_t *prev_head, astarte_list_head_t *next_head)
 {
     new_item->prev = prev_head;
     new_item->next = next_head;
@@ -73,8 +73,7 @@ static inline void astarte_list_insert(struct astarte_list_head *new_item,
  * set to new_item if it is the first one
  * @param new_item the item that is going to be appended to the end of the list
  */
-static inline void astarte_list_append(
-    struct astarte_list_head *head, struct astarte_list_head *new_item)
+static inline void astarte_list_append(astarte_list_head_t *head, astarte_list_head_t *new_item)
 {
     astarte_list_insert(new_item, head->prev, head);
 }
@@ -86,8 +85,7 @@ static inline void astarte_list_append(
  * @param list a pointer to the linked list
  * @param new_item the list head that is going to be prepended to the list
  */
-static inline void astarte_list_prepend(
-    struct astarte_list_head *head, struct astarte_list_head *new_item)
+static inline void astarte_list_prepend(astarte_list_head_t *head, astarte_list_head_t *new_item)
 {
     astarte_list_insert(new_item, head, head->next);
 }
@@ -100,7 +98,7 @@ static inline void astarte_list_prepend(
  * set to NULL if no items are left
  * @param remove_item the item that is going to be removed
  */
-static inline void astarte_list_remove(struct astarte_list_head *remove_item)
+static inline void astarte_list_remove(astarte_list_head_t *remove_item)
 {
     remove_item->prev->next = remove_item->next;
     remove_item->next->prev = remove_item->prev;
@@ -112,7 +110,7 @@ static inline void astarte_list_remove(struct astarte_list_head *remove_item)
  * @details This function must be called to initialized a newly created list
  * @param head a pointer to the linked list
  */
-static inline void astarte_list_init(struct astarte_list_head *head)
+static inline void astarte_list_init(astarte_list_head_t *head)
 {
     head->prev = head;
     head->next = head;
@@ -124,7 +122,7 @@ static inline void astarte_list_init(struct astarte_list_head *head)
  * @details This function returns true if the linked list is empty
  * @return true if the list is empty, false otherwise
  */
-static inline bool astarte_list_is_empty(struct astarte_list_head *list_item)
+static inline bool astarte_list_is_empty(astarte_list_head_t *list_item)
 {
     return (list_item->next == list_item) && (list_item->prev == list_item);
 }
@@ -136,7 +134,7 @@ static inline bool astarte_list_is_empty(struct astarte_list_head *list_item)
  * @param head a pointer to the linked list
  * @return A pointer to the first item of the list
  */
-static inline struct astarte_list_head *astarte_list_first(struct astarte_list_head *head)
+static inline astarte_list_head_t *astarte_list_first(astarte_list_head_t *head)
 {
     return head->next;
 }
@@ -148,7 +146,7 @@ static inline struct astarte_list_head *astarte_list_first(struct astarte_list_h
  * @param head a pointer to the linked list
  * @return A pointer to the last item of the list
  */
-static inline struct astarte_list_head *astarte_list_last(struct astarte_list_head *head)
+static inline astarte_list_head_t *astarte_list_last(astarte_list_head_t *head)
 {
     return head->prev;
 }

@@ -169,7 +169,7 @@ astarte_err_t astarte_credentials_use_nvs_storage(const char *partition_label)
     return ASTARTE_OK;
 }
 
-static const char *astarte_credentials_filesystem_path(enum credential_type cred_type)
+static const char *astarte_credentials_filesystem_path(credential_type_t cred_type)
 {
     switch (cred_type) {
         case ASTARTE_CREDENTIALS_CSR:
@@ -184,7 +184,7 @@ static const char *astarte_credentials_filesystem_path(enum credential_type cred
 }
 
 astarte_err_t astarte_credentials_store(
-    void *opaque, enum credential_type cred_type, const void *credential, size_t length)
+    void *opaque, credential_type_t cred_type, const void *credential, size_t length)
 {
     (void) opaque;
 
@@ -215,7 +215,7 @@ astarte_err_t astarte_credentials_store(
 }
 
 astarte_err_t astarte_credentials_fetch(
-    void *opaque, enum credential_type cred_type, char *out, size_t length)
+    void *opaque, credential_type_t cred_type, char *out, size_t length)
 {
     (void) opaque;
 
@@ -244,7 +244,7 @@ astarte_err_t astarte_credentials_fetch(
     return ASTARTE_OK;
 }
 
-bool astarte_credentials_exists(void *opaque, enum credential_type cred_type)
+bool astarte_credentials_exists(void *opaque, credential_type_t cred_type)
 {
     (void) opaque;
 
@@ -255,7 +255,7 @@ bool astarte_credentials_exists(void *opaque, enum credential_type cred_type)
     return access(path, R_OK) == 0;
 }
 
-astarte_err_t astarte_credentials_remove(void *opaque, enum credential_type cred_type)
+astarte_err_t astarte_credentials_remove(void *opaque, credential_type_t cred_type)
 {
     (void) opaque;
 
@@ -338,7 +338,7 @@ astarte_err_t astarte_nvs_rw_err_to_astarte(esp_err_t err)
     }
 }
 
-static const char *astarte_credentials_nvs_key(enum credential_type cred_type)
+static const char *astarte_credentials_nvs_key(credential_type_t cred_type)
 {
     switch (cred_type) {
         case ASTARTE_CREDENTIALS_CSR:
@@ -353,7 +353,7 @@ static const char *astarte_credentials_nvs_key(enum credential_type cred_type)
 }
 
 astarte_err_t astarte_credentials_nvs_store(
-    void *opaque, enum credential_type cred_type, const void *credential, size_t length)
+    void *opaque, credential_type_t cred_type, const void *credential, size_t length)
 {
     (void) length;
 
@@ -383,7 +383,7 @@ err:
 }
 
 astarte_err_t astarte_credentials_nvs_fetch(
-    void *opaque, enum credential_type cred_type, char *out, size_t length)
+    void *opaque, credential_type_t cred_type, char *out, size_t length)
 {
     const char *partition_label = opaque;
     const char *key = astarte_credentials_nvs_key(cred_type);
@@ -408,7 +408,7 @@ err:
     return res;
 }
 
-bool astarte_credentials_nvs_exists(void *opaque, enum credential_type cred_type)
+bool astarte_credentials_nvs_exists(void *opaque, credential_type_t cred_type)
 {
     const char *partition_label = opaque;
     const char *key = astarte_credentials_nvs_key(cred_type);
@@ -431,7 +431,7 @@ err:
     return res == ASTARTE_OK;
 }
 
-astarte_err_t astarte_credentials_nvs_remove(void *opaque, enum credential_type cred_type)
+astarte_err_t astarte_credentials_nvs_remove(void *opaque, credential_type_t cred_type)
 {
     const char *partition_label = opaque;
     const char *key = astarte_credentials_nvs_key(cred_type);
