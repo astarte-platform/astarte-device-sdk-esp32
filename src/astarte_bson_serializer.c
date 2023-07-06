@@ -255,7 +255,7 @@ void astarte_bson_serializer_append_datetime(
 
     astarte_byte_array_append_byte(&bson->ba, BSON_TYPE_DATETIME);
     astarte_byte_array_append(&bson->ba, name, strlen(name) + 1);
-    astarte_byte_array_append(&bson->ba, val_buf, sizeof(int64_t));
+    astarte_byte_array_append(&bson->ba, val_buf, sizeof(uint64_t));
 }
 
 void astarte_bson_serializer_append_boolean(

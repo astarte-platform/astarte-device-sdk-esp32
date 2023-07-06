@@ -9,6 +9,10 @@
 #include <esp_log.h>
 #include <esp_system.h>
 
+#ifdef UNIT_TEST
+#include <esp_random.h>
+#endif
+
 #include <arpa/inet.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -107,7 +111,7 @@ astarte_err_t uuid_to_string(const uuid_t uuid, char *out, size_t out_size)
     struct uuid uuid_struct;
 
     uuid_to_struct(uuid, &uuid_struct);
-    int res = snprintf(out, out_size, "%08" PRIu32 "-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+    int res = snprintf(out, out_size, "%08" PRIx32 "-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
         uuid_struct.time_low, uuid_struct.time_mid, uuid_struct.time_hi_and_version,
         uuid_struct.clock_seq_hi_res, uuid_struct.clock_seq_low, uuid_struct.node[0],
         uuid_struct.node[1], uuid_struct.node[2], uuid_struct.node[3], uuid_struct.node[4],
@@ -119,7 +123,7 @@ astarte_err_t uuid_to_string(const uuid_t uuid, char *out, size_t out_size)
     return ASTARTE_OK;
 }
 
-int uuid_from_string(const char *input, uuid_t uuid)
+int uuid_from_string(const char *input, uuid_t out)
 {
     // Length check
     if (strlen(input) != UUID_STR_LEN) {
@@ -167,7 +171,7 @@ int uuid_from_string(const char *input, uuid_t uuid)
         uuid_struct.node[i] = strtoul(tmp, NULL, 16);
     }
 
-    uuid_from_struct(&uuid_struct, uuid);
+    uuid_from_struct(&uuid_struct, out);
     return 0;
 }
 

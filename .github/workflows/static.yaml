@@ -41,6 +41,11 @@ jobs:
     - name: Check formatting examples
       run: |
         ./run-clang-format --style=file examples/**/main/*.c examples/**/main/src/*.c examples/**/main/include/*.h
+    - name: Check formatting unit tests
+      run: |
+        ./run-clang-format --style=file tests/host/*.c tests/host/*.h
+        ./run-clang-format --style=file tests/common/*.h tests/common/*.c
+        ./run-clang-format --style=file tests/host_app/main/*.c tests/target_app/main/*.c
   clang-tidy-check:
     runs-on: ubuntu-latest
     strategy:
