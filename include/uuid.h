@@ -23,7 +23,7 @@ extern "C" {
  *
  * @details This function computes a deterministic UUID starting from a namespace UUID and binary
  * data.
- * @param namespace The UUID to be used as namespace.
+ * @param namespace The string representation of an UUID to be used as namespace.
  * @param data A pointer to the data that will be hashed to produce the UUID.
  * @param len The lenght of the data.
  * @param out The UUID where the result will be written.
@@ -46,10 +46,10 @@ astarte_err_t uuid_to_string(const uuid_t uuid, char *out, size_t out_size);
  *
  * @details parse a UUID from its canonical (RFC4122) string representation.
  * @param input A pointer to the string to be parsed.
- * @param uuid The UUID where the result will be written.
+ * @param out The UUID where the result will be written.
  * @return 0 if the parsing was succesfull, -1 otherwise.
  */
-int uuid_from_string(const char *input, uuid_t uuid);
+int uuid_from_string(const char *input, uuid_t out);
 
 /**
  * @brief generate a UUIDv4.
