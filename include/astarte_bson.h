@@ -40,8 +40,8 @@ extern "C" {
  * matched or the BSON file is malformed.
  */
 const void *astarte_bson_key_lookup(const char *key, const void *document, uint8_t *type)
-    __attribute__((
-        deprecated("Please use the deserialization functions in astarte_bson_deserializer.h")));
+    __attribute__((deprecated("Please use the 'astarte_bson_deserializer_element_lookup' function "
+                              "in astarte_bson_deserializer.h")));
 /**
  * @brief Get a pointer to the first item in a document's list.
  *
@@ -52,8 +52,9 @@ const void *astarte_bson_key_lookup(const char *key, const void *document, uint8
  * @param[in] document Document containing the list.
  * @return Pointer to the first element. NULL when no next element exists.
  */
-const void *astarte_bson_first_item(const void *document) __attribute__((
-    deprecated("Please use the deserialization functions in astarte_bson_deserializer.h")));
+const void *astarte_bson_first_item(const void *document)
+    __attribute__((deprecated("Please use the 'astarte_bson_deserializer_first_element' function "
+                              "in astarte_bson_deserializer.h")));
 /**
  * @brief Get a pointer to the next item in a document's list.
  *
@@ -65,8 +66,9 @@ const void *astarte_bson_first_item(const void *document) __attribute__((
  * @param[in] current_item Pointer to the current element.
  * @return Pointer to the next element. NULL when no next element exists.
  */
-void *astarte_bson_next_item(const void *document, const void *current_item) __attribute__((
-    deprecated("Please use the deserialization functions in astarte_bson_deserializer.h")));
+void *astarte_bson_next_item(const void *document, const void *current_item)
+    __attribute__((deprecated("Please use the 'astarte_bson_deserializer_next_element' function "
+                              "in astarte_bson_deserializer.h")));
 /**
  * @brief Get a pointer to the string containing an element name.
  *
@@ -87,7 +89,8 @@ const char *astarte_bson_key(const void *item) __attribute__((
  * @return Pointer to the begginning of the UTF-8 string.
  */
 const char *astarte_bson_value_to_string(const void *value_ptr, uint32_t *len) __attribute__((
-    deprecated("Please use the deserialization functions in astarte_bson_deserializer.h")));
+    deprecated("Please use the 'astarte_bson_deserializer_element_to_string' function "
+               "in astarte_bson_deserializer.h")));
 /**
  * @brief Parse a BSON binary and return a pointer to the beginning of the byte array.
  *
@@ -98,7 +101,8 @@ const char *astarte_bson_value_to_string(const void *value_ptr, uint32_t *len) _
  * @return Pointer to the beginning of the byte array.
  */
 const char *astarte_bson_value_to_binary(const void *value_ptr, uint32_t *len) __attribute__((
-    deprecated("Please use the deserialization functions in astarte_bson_deserializer.h")));
+    deprecated("Please use the 'astarte_bson_deserializer_element_to_binary' function "
+               "in astarte_bson_deserializer.h")));
 /**
  * @brief Parse a BSON document and return a pointer to the beginning of the document.
  *
@@ -112,7 +116,8 @@ const char *astarte_bson_value_to_binary(const void *value_ptr, uint32_t *len) _
  * @return Pointer to the beginning of the document.
  */
 const void *astarte_bson_value_to_document(const void *value_ptr, uint32_t *len) __attribute__((
-    deprecated("Please use the deserialization functions in astarte_bson_deserializer.h")));
+    deprecated("Please use the 'astarte_bson_deserializer_element_to_document' function "
+               "in astarte_bson_deserializer.h")));
 /**
  * @brief Cast the input element to a int8.
  *
@@ -124,8 +129,9 @@ const void *astarte_bson_value_to_document(const void *value_ptr, uint32_t *len)
  * @param[in] value_ptr Pointer to the value to parse.
  * @return Casted value.
  */
-int8_t astarte_bson_value_to_int8(const void *value_ptr) __attribute__((
-    deprecated("Please use the deserialization functions in astarte_bson_deserializer.h")));
+int8_t astarte_bson_value_to_int8(const void *value_ptr)
+    __attribute__((deprecated("Please use the 'astarte_bson_deserializer_element_to_bool' function "
+                              "in astarte_bson_deserializer.h")));
 /**
  * @brief Cast the input element to a int32.
  *
@@ -135,7 +141,8 @@ int8_t astarte_bson_value_to_int8(const void *value_ptr) __attribute__((
  * @return Casted value.
  */
 int32_t astarte_bson_value_to_int32(const void *value_ptr) __attribute__((
-    deprecated("Please use the deserialization functions in astarte_bson_deserializer.h")));
+    deprecated("Please use the 'astarte_bson_deserializer_element_to_int32' function "
+               "in astarte_bson_deserializer.h")));
 /**
  * @brief Cast the input element to a int64.
  *
@@ -145,7 +152,8 @@ int32_t astarte_bson_value_to_int32(const void *value_ptr) __attribute__((
  * @return Casted value.
  */
 int64_t astarte_bson_value_to_int64(const void *value_ptr) __attribute__((
-    deprecated("Please use the deserialization functions in astarte_bson_deserializer.h")));
+    deprecated("Please use the 'astarte_bson_deserializer_element_to_int64' function "
+               "in astarte_bson_deserializer.h")));
 /**
  * @brief Cast the input element to a double.
  *
@@ -155,7 +163,8 @@ int64_t astarte_bson_value_to_int64(const void *value_ptr) __attribute__((
  * @return Casted value.
  */
 double astarte_bson_value_to_double(const void *value_ptr) __attribute__((
-    deprecated("Please use the deserialization functions in astarte_bson_deserializer.h")));
+    deprecated("Please use the 'astarte_bson_deserializer_element_to_double' function "
+               "in astarte_bson_deserializer.h")));
 /**
  * @brief Perform some checks on the validity of the BSON.
  *
@@ -168,8 +177,9 @@ double astarte_bson_value_to_double(const void *value_ptr) __attribute__((
  * @param[in] file_size Size of the allocated buffer containing document.
  * @return True when BSON file is valid, false otherwise.
  */
-bool astarte_bson_check_validity(const void *document, unsigned int file_size) __attribute__((
-    deprecated("Please use the deserialization functions in astarte_bson_deserializer.h")));
+bool astarte_bson_check_validity(const void *document, unsigned int file_size)
+    __attribute__((deprecated("Please use the 'astarte_bson_deserializer_check_validity' function "
+                              "in astarte_bson_deserializer.h")));
 /**
  * @brief Get the size of the document.
  *

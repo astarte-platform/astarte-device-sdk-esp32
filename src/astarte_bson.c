@@ -31,7 +31,7 @@ static uint32_t read_uint32(const void *buff)
 }
 
 /**
- * @brief Cast the first eight bytes of a little-endian buffer to a uint32_t in the host byte order.
+ * @brief Cast the first eight bytes of a little-endian buffer to a uint64_t in the host byte order.
  *
  * @details This function expects the input buffer to be in little-endian order.
  * @param[in] buff Buffer containing the data to read.
@@ -272,7 +272,7 @@ bool astarte_bson_check_validity(const void *document, unsigned int file_size)
         return false;
     }
 
-    // Check document is terminated with 0x00
+    // Check if the document is terminated with 0x00
     if (doc_bytes[doc_len - 1] != 0) {
         ESP_LOGW(TAG, "BSON document is not terminated by null byte.");
         return false;

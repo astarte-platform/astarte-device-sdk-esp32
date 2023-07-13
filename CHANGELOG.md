@@ -1,13 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [1.2.0] - Unreleased
 ### Added
 - Add support for server validation through ESP x509 Certificate Bundle.
 - Add maximum JWT size to SDK configuration options.
+- Add new deserialization utilities contained in `astarte_bson_deserializer.h`.
+- Add README section on how to use the (de)serialization utilities.
 
 ### Changed
 - `struct astarte_bson_serializer_t` has been replaced by the type defined
@@ -15,6 +17,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `astarte_bson_serializer_init` has been replaced by `astarte_bson_serializer_new`.
 - `credential_type_t`, `astarte_ptr_list_entry_t` and `astarte_list_head_t` are now type defined.
 - `astarte_pairing_config` has been replaced by type defined `astarte_pairing_config_t`.
+
+### Deprecated
+- BSON deserialization utility `astarte_bson.h`. Use the new deserialization functions contained
+  in `astarte_bson_deserializer.h`.
 
 ### Removed
 - Support for ESP IDF v3.x.

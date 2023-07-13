@@ -95,3 +95,148 @@ CONFIG_MBEDTLS_CUSTOM_CERTIFICATE_BUNDLE=y
 CONFIG_MBEDTLS_CUSTOM_CERTIFICATE_BUNDLE_PATH="/path/to/certificate/file/astarte_instance.pem"
 # end of Certificate Bundle
 ```
+
+## Notes on BSON (de)serialization
+
+The data exchange with an Astarte instance is encoded in the
+[BSON format](https://bsonspec.org/spec.html).
+This library provides utility functions for serializing and deserializing BSONs. Handling BSON
+directly is only required when dealing with interfaces with object aggregation. Sending and
+receiving on individually aggregated interfaces can be done using standard C types and structures.
+
+Note that not all the element types defined by the BSON 1.1 specification are supported by Astarte.
+The subset of the supported element types can be found in the
+[Astarte MQTT v1](https://docs.astarte-platform.org/latest/080-mqtt-v1-protocol.html) protocol
+specification.
+
+### The serialization utility
+
+Serializing data to a BSON format should be used during transmission of aggregates to Astarte.
+The serialization utility is exposed by the `astarte_bson_serializer.h` header.
+
+A BSON object can be created using the `astarte_bson_serializer_new` function. Which will return an
+empty BSON document that can be filled by appending new elements using one of the
+`astarte_bson_serializer_append_*` functions. Once all the required elements have been added to the
+document it must be terminated using the `astarte_bson_serializer_append_end_of_document` function.
+The serialized document can then be extracted using the `astarte_bson_serializer_get_document`
+function. This function will return a buffer that will live for as long as the BSON object.
+
+Since the memory for the BSON document is dynamically allocated it should be freed once the document
+is no longer required. This can be done with the `astarte_bson_serializer_get_document` function.
+
+A simple usage example is reported here.
+```C
+#include "astarte_bson_serializer.h"
+
+astarte_bson_serializer_handle_t bson = astarte_bson_serializer_new();
+astarte_bson_serializer_append_double(bson, "co2", 4.0);
+astarte_bson_serializer_append_int64(bson, "temperature", 42);
+astarte_bson_serializer_append_string(bson, "identifier", "si383o33dm2");
+astarte_bson_serializer_append_end_of_document(bson);
+
+int serialized_doc_size;
+const void *serialized_doc = astarte_bson_serializer_get_document(bson, &serialized_doc_size);
+
+// Use the returned serialized document before destroy call
+// For example send the buffer to Astarte by calling astarte_device_stream_aggregate()
+
+astarte_bson_serializer_destroy(bson);
+```
+
+### The deserialization utility
+
+Deserializing data from the BSON format is required when receiving aggregates from Astarte.
+The deserialization utility is exposed by the `astarte_bson_deserializer.h` header.
+
+A BSON object can be initialized from a buffer containing serialized data using the function
+`astarte_bson_deserializer_init_doc`. This will return a document object of type
+`astarte_bson_document_t`, which provides information regarding the document such as its
+total size.
+
+Accessing the list of elements in the BSON document can be performed
+in two ways. By looping over all the elements using the `astarte_bson_deserializer_first_element`
+and `astarte_bson_deserializer_next_element` functions or, when the required element name is known,
+by lookup using the function `astarte_bson_deserializer_element_lookup`. Both functions return an
+element object of the type `astarte_bson_element_t`, which provides information regarding the
+element such as its type and name.
+
+To extract the data contained in a single element one of the
+`astarte_bson_deserializer_element_to_*` functions should be used.
+
+A common use case of the deserializer is in the Astarte `data_event_callback`.
+This function exposes the received data though the member `bson_element` of the parameter struct
+`event`. The `bson_element` variable is a BSON element object of the type `astarte_bson_element_t`.
+
+The BSON deserializer utility will not perform dynamic allocation of memory but will use directly
+the buffer passed during initialization. Make sure the buffer remains valid throughout the
+deserialization process.
+
+Two deserialization examples are reported here.
+The first one is a very simple deserialization example for a BSON containing a single element of
+double type.
+```C
+#include "astarte_bson_deserializer.h"
+
+astarte_bson_document_t doc = astarte_bson_deserializer_init_doc(input_buffer);
+
+astarte_bson_element_t element;
+astarte_err_t astarte_err = astarte_bson_deserializer_element_lookup(doc, "name", &element);
+if ((astarte_err != ASTARTE_OK) || (element.type != BSON_TYPE_DOUBLE)) {
+    abort();
+}
+double element_value = astarte_bson_deserializer_element_to_double(element);
+```
+
+The second is a more complex example of a document containing an array of elements of type
+double and a single boolean element.
+```C
+#include "astarte_bson_deserializer.h"
+
+astarte_err_t astarte_err;
+
+// Initializing the document from a raw buffer
+astarte_bson_document_t doc = astarte_bson_deserializer_init_doc(input_buffer);
+
+// Extracting the element with name `boolean` using lookup
+astarte_bson_element_t element_bool;
+astarte_err = astarte_bson_deserializer_element_lookup(doc, "boolean", &element_bool);
+if ((astarte_err != ASTARTE_OK) || (element_bool.type != BSON_TYPE_BOOLEAN)) {
+    abort();
+}
+bool value_bool = astarte_bson_deserializer_element_to_bool(element_bool);
+
+// Extracting the element with name `array` using lookup
+astarte_bson_element_t element_arr;
+astarte_err = astarte_bson_deserializer_element_lookup(doc, "array", &element_arr);
+if ((astarte_err != ASTARTE_OK) || (element_arr.type != BSON_TYPE_ARRAY)) {
+    abort();
+}
+// Arrays are just special documents in the BSON specification
+astarte_bson_document_t arr_doc = astarte_bson_deserializer_element_to_document(element_arr);
+
+// Extract the first element
+astarte_bson_element_t element_arr_0;
+astarte_err = astarte_bson_deserializer_first_element(arr_doc, &element_arr_0);
+if ((astarte_err != ASTARTE_OK) || (element_arr_0.type != BSON_TYPE_DOUBLE)) {
+    abort();
+}
+double element_arr_0_value = astarte_bson_deserializer_element_to_double(element_arr_0);
+
+// Extract each of the successive elements
+astarte_bson_element_t element_arr_prev = element_arr_0;
+astarte_bson_element_t element_arr_next;
+while (1) {
+    astarte_err = astarte_bson_deserializer_next_element(
+                        arr_doc, element_arr_prev, &element_arr_next);
+    if (astarte_err == ASTARTE_ERR_NOT_FOUND) {
+        break;
+    }
+    if ((astarte_err != ASTARTE_OK) || (element_arr_next.type != BSON_TYPE_DOUBLE)) {
+        abort();
+    }
+
+    double element_arr_X_value = astarte_bson_deserializer_element_to_double(element_arr_next);
+
+    element_arr_prev = element_arr_next;
+}
+```
