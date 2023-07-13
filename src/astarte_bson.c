@@ -16,6 +16,13 @@
 
 #define TAG "ASTARTE_BSON"
 
+/**
+ * @brief Cast the first four bytes of a little-endian buffer to a uint32_t in the host byte order.
+ *
+ * @details This function expects the input buffer to be in little-endian order.
+ * @param[in] buff Buffer containing the data to read.
+ * @return Resulting uint32_t value.
+ */
 static uint32_t read_uint32(const void *buff)
 {
     const unsigned char *bytes = (const unsigned char *) buff;
@@ -23,6 +30,13 @@ static uint32_t read_uint32(const void *buff)
         | (((uint32_t) bytes[2]) << 16U) | (((uint32_t) bytes[3]) << 24U));
 }
 
+/**
+ * @brief Cast the first eight bytes of a little-endian buffer to a uint64_t in the host byte order.
+ *
+ * @details This function expects the input buffer to be in little-endian order.
+ * @param[in] buff Buffer containing the data to read.
+ * @return Resulting uint64_t value.
+ */
 static uint64_t read_uint64(const void *buff)
 {
     const unsigned char *bytes = (const unsigned char *) buff;
@@ -31,6 +45,14 @@ static uint64_t read_uint64(const void *buff)
         | ((uint64_t) bytes[6] << 48U) | ((uint64_t) bytes[7] << 56U));
 }
 
+/**
+ * @brief Fetch the next element from a document's list.
+ *
+ * @param[in] offset Starting offset of the current element.
+ * @param[in] key_len Length of the current element name.
+ * @param[in] document Document to use for the search.
+ * @return Offset for the next element.
+ */
 static unsigned int astarte_bson_next_item_offset(
     unsigned int offset, unsigned int key_len, const void *document)
 {
@@ -43,7 +65,7 @@ static unsigned int astarte_bson_next_item_offset(
     switch (element_type) {
         case BSON_TYPE_STRING: {
             uint32_t string_len = read_uint32(doc_bytes + offset);
-            offset += string_len + 4;
+            offset += 4 + string_len; /* int32 (len) + ((byte*) + 1)  */
             break;
         }
 
@@ -115,6 +137,12 @@ const void *astarte_bson_key_lookup(const char *key, const void *document, uint8
     return NULL;
 }
 
+const void *astarte_bson_first_item(const void *document)
+{
+    const char *doc_bytes = (const char *) document;
+    return doc_bytes + 4;
+}
+
 void *astarte_bson_next_item(const void *document, const void *current_item)
 {
     const char *doc_bytes = (const char *) document;
@@ -139,15 +167,9 @@ void *astarte_bson_next_item(const void *document, const void *current_item)
     return ((char *) doc_bytes) + new_offset;
 }
 
-const void *astarte_bson_first_item(const void *document)
-{
-    const char *doc_bytes = (const char *) document;
-    return doc_bytes + 4;
-}
-
 const char *astarte_bson_key(const void *item)
 {
-    return ((const char *) item) + 1;
+    return 1 + ((const char *) item);
 }
 
 const char *astarte_bson_value_to_string(const void *value_ptr, uint32_t *len)
@@ -159,7 +181,7 @@ const char *astarte_bson_value_to_string(const void *value_ptr, uint32_t *len)
         *len = string_len - 1;
     }
 
-    return value_bytes + 4;
+    return 4 + value_bytes;
 }
 
 const char *astarte_bson_value_to_binary(const void *value_ptr, uint32_t *len)
@@ -171,7 +193,7 @@ const char *astarte_bson_value_to_binary(const void *value_ptr, uint32_t *len)
         *len = bin_len;
     }
 
-    return value_bytes + 5;
+    return 4 + 1 + value_bytes;
 }
 
 const void *astarte_bson_value_to_document(const void *value_ptr, uint32_t *len)
@@ -217,32 +239,46 @@ bool astarte_bson_check_validity(const void *document, unsigned int file_size)
     const char *doc_bytes = (const char *) document;
     uint32_t doc_len = read_uint32(document);
 
+    // Validate buffer size is not 0
     if (!file_size) {
         ESP_LOGW(TAG, "Empty buffer: no BSON document found");
         return false;
     }
 
+    // Validate an empty document:
+    // - Document size is 5 (4 bytes for the size and 1 for the trailing 0x00)
+    // - Buffer size is at least size of empty document
+    // - Last byte is 0x00
     if ((doc_len == 5) && (file_size >= 5) && (doc_bytes[4] == 0)) {
-        // empty document
         return true;
     }
 
-    if (file_size < 4 + 1 + 2 + 1) {
-        ESP_LOGW(TAG, "BSON data too small");
-        return false;
-    }
-
+    // Ensure the buffer is larger or equal compared to the decoded document size
     if (doc_len > file_size) {
         ESP_LOGW(TAG, "BSON document is bigger than data: data: %ui document: %i", file_size,
             (int) doc_len);
         return false;
     }
 
+    // Check on the minimum buffer size for a non empty document, composed of at least:
+    // - 4 bytes for the document size
+    // - 1 byte for the element index
+    // - 1 byte for the element name (could be an empty string)
+    // - 1 byte for the element content (for example a boolean)
+    // - 1 byte for the trailing 0x00
+    // NB this check could fail on the NULL value element described in the BSON specifications
+    if (doc_len < 4 + 1 + 2 + 1) {
+        ESP_LOGW(TAG, "BSON data too small");
+        return false;
+    }
+
+    // Check if the document is terminated with 0x00
     if (doc_bytes[doc_len - 1] != 0) {
         ESP_LOGW(TAG, "BSON document is not terminated by null byte.");
         return false;
     }
 
+    // Check that the first element of the document has a supported index
     int offset = 4;
     switch (doc_bytes[offset]) {
         case BSON_TYPE_DOUBLE:
@@ -255,7 +291,6 @@ bool astarte_bson_check_validity(const void *document, unsigned int file_size)
         case BSON_TYPE_INT32:
         case BSON_TYPE_INT64:
             break;
-
         default:
             ESP_LOGW(TAG, "Unrecognized BSON document first type\n");
             return false;

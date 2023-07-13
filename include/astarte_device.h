@@ -14,7 +14,8 @@
 
 #include "astarte.h"
 
-#include <astarte_interface.h>
+#include "astarte_bson_deserializer.h"
+#include "astarte_interface.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -29,8 +30,11 @@ typedef struct
     astarte_device_handle_t device;
     const char *interface_name;
     const char *path;
-    const void *bson_value;
-    int bson_value_type;
+    const void *bson_value __attribute__((
+        deprecated("Please use bson_element with the functions from astarte_bson_deserializer.h")));
+    int bson_value_type __attribute__((
+        deprecated("Please use bson_element with the functions from astarte_bson_deserializer.h")));
+    astarte_bson_element_t bson_element;
 } astarte_device_data_event_t;
 
 typedef struct

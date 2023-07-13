@@ -1122,14 +1122,26 @@ static void on_incoming(
         return;
     }
 
-    if (!astarte_bson_check_validity(data, data_len)) {
+    if (!astarte_bson_deserializer_check_validity(data, data_len)) {
         ESP_LOGE(TAG, "Invalid BSON document in data");
         return;
     }
 
+    // Keep old deserializer for compatibility
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     uint8_t bson_value_type = 0U;
     const void *bson_value = astarte_bson_key_lookup("v", data, &bson_value_type);
     if (!bson_value) {
+        ESP_LOGE(TAG, "Cannot retrieve BSON value from data");
+        return;
+    }
+#pragma GCC diagnostic pop
+
+    // Use new deserializer
+    astarte_bson_document_t full_document = astarte_bson_deserializer_init_doc(data);
+    astarte_bson_element_t v_elem;
+    if (astarte_bson_deserializer_element_lookup(full_document, "v", &v_elem) != ASTARTE_OK) {
         ESP_LOGE(TAG, "Cannot retrieve BSON value from data");
         return;
     }
@@ -1140,6 +1152,7 @@ static void on_incoming(
         .path = path,
         .bson_value = bson_value,
         .bson_value_type = bson_value_type,
+        .bson_element = v_elem,
     };
 
     device->data_event_callback(&event);

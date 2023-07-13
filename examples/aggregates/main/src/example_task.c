@@ -7,7 +7,6 @@
 #include <stdio.h>
 
 #include "astarte.h"
-#include "astarte_bson.h"
 #include "astarte_bson_serializer.h"
 #include "astarte_bson_types.h"
 #include "astarte_credentials.h"
@@ -46,7 +45,7 @@ const static astarte_interface_t server_datastream_interface = {
 
 struct rx_aggregate
 {
-    uint8_t booleans[4];
+    bool booleans[4];
     int64_t longinteger;
 };
 
@@ -72,6 +71,15 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event);
  * @param event Astarte device disconnection event pointer.
  */
 static void astarte_disconnection_events_handler(astarte_device_disconnection_event_t *event);
+/**
+ * @brief Parse the received BSON data for this example.
+ *
+ * @param bson_element The bson element to be parsed
+ * @param the resulting parsed data
+ * @return 0 when successful, 1 otherwise
+ */
+static uint8_t parse_received_bson(
+    astarte_bson_element_t bson_element, struct rx_aggregate *rx_data);
 
 /************************************************
  * Global functions definition
@@ -129,60 +137,16 @@ static void astarte_connection_events_handler(astarte_device_connection_event_t 
 static void astarte_data_events_handler(astarte_device_data_event_t *event)
 {
     ESP_LOGI(TAG, "Got Astarte data event, interface_name: %s, path: %s, bson_type: %d",
-        event->interface_name, event->path, event->bson_value_type);
+        event->interface_name, event->path, event->bson_element.type);
 
     uint8_t parsing_error = 0;
     struct rx_aggregate rx_data;
 
     if ((strcmp(event->interface_name, server_datastream_interface.name) == 0)
-        && (strcmp(event->path, "/11") == 0) && (event->bson_value_type == BSON_TYPE_DOCUMENT)
-        && (astarte_bson_document_size(event->bson_value) == 0x4F)) {
-        /*  event->bson_value should be containing:
-         *  0x4F 0x00 0x00 0x00 {
-         *      0x04 { "booleanarray_endpoint" }
-         *          0x15 0x00 0x00 0x00 {
-         *              0x08 { "0" } 0x00
-         *              0x08 { "1" } 0x00
-         *              0x08 { "2" } 0x00
-         *              0x08 { "3" } 0x01
-         *          } 0x00
-         *      0x12 { "longinteger_endpoint" } int64
-         *  } 0x00
-         */
+        && (strcmp(event->path, "/11") == 0)) {
 
-        char booleanarray_key[] = "booleanarray_endpoint";
-        uint8_t booleanarray_type = 0U;
-        const void *booleanarray = astarte_bson_key_lookup(
-            (char *) &booleanarray_key, event->bson_value, &booleanarray_type);
-        if ((booleanarray != NULL) && (booleanarray_type == BSON_TYPE_ARRAY)
-            && (astarte_bson_document_size(booleanarray) == 0x15)) {
+        parsing_error = parse_received_bson(event->bson_element, &rx_data);
 
-            uint8_t boolean_type = 0U;
-            char boolean_key[5];
-            for (uint32_t i = 0; i < 4; i++) {
-                (void) snprintf(boolean_key, 5, "%" PRIu32 "", i); // Can't fail (i is known)
-                const void *boolean
-                    = astarte_bson_key_lookup((char *) &boolean_key, booleanarray, &boolean_type);
-                if ((boolean != NULL) && (boolean_type == BSON_TYPE_BOOLEAN)) {
-                    rx_data.booleans[i] = astarte_bson_value_to_int8(boolean);
-                } else {
-                    parsing_error = 1U;
-                    break;
-                }
-            }
-        } else {
-            parsing_error = 1U;
-        }
-
-        char longinteger_key[] = "longinteger_endpoint";
-        uint8_t longinteger_type = 0U;
-        const void *longinteger = astarte_bson_key_lookup(
-            (char *) &longinteger_key, event->bson_value, &longinteger_type);
-        if ((longinteger != NULL) && (longinteger_type == BSON_TYPE_INT64)) {
-            rx_data.longinteger = astarte_bson_value_to_int64(longinteger);
-        } else {
-            parsing_error = 1U;
-        }
     } else {
         parsing_error = 1U;
     }
@@ -233,4 +197,55 @@ static void astarte_disconnection_events_handler(astarte_device_disconnection_ev
     (void) event;
 
     ESP_LOGI(TAG, "Astarte device disconnected");
+}
+
+static uint8_t parse_received_bson(
+    astarte_bson_element_t bson_element, struct rx_aggregate *rx_data)
+{
+    if (bson_element.type != BSON_TYPE_DOCUMENT) {
+        return 1U;
+    }
+
+    astarte_bson_document_t doc = astarte_bson_deserializer_element_to_document(bson_element);
+    if (doc.size != 0x4F) {
+        return 1U;
+    }
+
+    astarte_bson_element_t elem_longinteger_endpoint;
+    if ((astarte_bson_deserializer_element_lookup(
+             doc, "longinteger_endpoint", &elem_longinteger_endpoint)
+            != ASTARTE_OK)
+        || (elem_longinteger_endpoint.type != BSON_TYPE_INT64)) {
+        return 1U;
+    }
+    rx_data->longinteger = astarte_bson_deserializer_element_to_int64(elem_longinteger_endpoint);
+
+    astarte_bson_element_t elem_boolean_array;
+    if ((astarte_bson_deserializer_element_lookup(doc, "booleanarray_endpoint", &elem_boolean_array)
+            != ASTARTE_OK)
+        || (elem_boolean_array.type != BSON_TYPE_ARRAY)) {
+        return 1U;
+    }
+
+    astarte_bson_document_t arr = astarte_bson_deserializer_element_to_array(elem_boolean_array);
+    if (arr.size != 0x15) {
+        return 1U;
+    }
+
+    astarte_bson_element_t elem_boolean;
+    if ((astarte_bson_deserializer_first_element(arr, &elem_boolean) != ASTARTE_OK)
+        || (elem_boolean.type != BSON_TYPE_BOOLEAN)) {
+        return 1U;
+    }
+    rx_data->booleans[0] = astarte_bson_deserializer_element_to_bool(elem_boolean);
+
+    for (size_t i = 1; i < 4; i++) {
+        if ((astarte_bson_deserializer_next_element(arr, elem_boolean, &elem_boolean) != ASTARTE_OK)
+            || (elem_boolean.type != BSON_TYPE_BOOLEAN)) {
+            return 1U;
+        }
+        rx_data->booleans[i] = astarte_bson_deserializer_element_to_bool(elem_boolean);
+    }
+
+    return 0U;
 }

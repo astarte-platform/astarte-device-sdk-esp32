@@ -9,7 +9,6 @@
 #include "freertos/task.h"
 #endif
 
-#include "astarte_bson.h"
 #include "astarte_bson_types.h"
 #include "astarte_credentials.h"
 #include "astarte_device.h"
@@ -127,11 +126,11 @@ static void astarte_connection_events_handler(astarte_device_connection_event_t 
 static void astarte_data_events_handler(astarte_device_data_event_t *event)
 {
     ESP_LOGI(TAG, "Got Astarte data event, interface_name: %s, path: %s, bson_type: %d",
-        event->interface_name, event->path, event->bson_value_type);
+        event->interface_name, event->path, event->bson_element.type);
 
     if (strcmp(event->interface_name, "org.astarteplatform.esp32.examples.ServerDatastream") == 0
-        && strcmp(event->path, "/led") == 0 && event->bson_value_type == BSON_TYPE_BOOLEAN) {
-        if (astarte_bson_value_to_int8(event->bson_value) != 0) {
+        && strcmp(event->path, "/led") == 0 && event->bson_element.type == BSON_TYPE_BOOLEAN) {
+        if (astarte_bson_deserializer_element_to_bool(event->bson_element)) {
             led_set_level(1);
         } else {
             led_set_level(0);
