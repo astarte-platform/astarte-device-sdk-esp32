@@ -58,7 +58,7 @@ def setup_clang_tidy(prj_dir: str, verbose: bool):
         + "/clang-tidy/tool/run-clang-tidy.py"
     )
     cmds = [
-        "idf_tools.py install xtensa-clang",
+        "idf_tools.py install esp-clang",
         f"wget -O run-clang-tidy.py {run_clang_tidy_py}",
         "chmod +x run-clang-tidy.py",
     ]

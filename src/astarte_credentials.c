@@ -467,25 +467,25 @@ astarte_err_t astarte_credentials_create_key()
     mbedtls_pk_init(&key);
     mbedtls_entropy_init(&entropy);
 
-    int ret = 0;
     ESP_LOGD(TAG, "Initializing entropy");
-    if ((ret = mbedtls_ctr_drbg_seed(
-             &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, strlen(pers)))
-        != 0) {
+    int ret = mbedtls_ctr_drbg_seed(
+        &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, strlen(pers));
+    if (ret != 0) {
         ESP_LOGE(TAG, "mbedtls_ctr_drbg_seed returned %d", ret);
         goto exit;
     }
 
     ESP_LOGD(TAG, "Generating the EC key (using curve secp256r1)");
 
-    if ((ret = mbedtls_pk_setup(&key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY))) != 0) {
+    ret = mbedtls_pk_setup(&key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
+    if (ret != 0) {
         ESP_LOGE(TAG, "mbedtls_pk_setup returned %d", ret);
         goto exit;
     }
 
-    if ((ret = mbedtls_ecp_gen_key(
-             MBEDTLS_ECP_DP_SECP256R1, mbedtls_pk_ec(key), mbedtls_ctr_drbg_random, &ctr_drbg))
-        != 0) {
+    ret = mbedtls_ecp_gen_key(
+        MBEDTLS_ECP_DP_SECP256R1, mbedtls_pk_ec(key), mbedtls_ctr_drbg_random, &ctr_drbg);
+    if (ret != 0) {
         ESP_LOGE(TAG, "mbedtls_ecp_gen_key returned %d", ret);
         goto exit;
     }
@@ -499,7 +499,8 @@ astarte_err_t astarte_credentials_create_key()
         goto exit;
     }
 
-    if ((ret = mbedtls_pk_write_key_pem(&key, privkey_buffer, PRIVKEY_BUFFER_LENGTH)) != 0) {
+    ret = mbedtls_pk_write_key_pem(&key, privkey_buffer, PRIVKEY_BUFFER_LENGTH);
+    if (ret != 0) {
         ESP_LOGE(TAG, "mbedtls_pk_write_key_pem returned %d", ret);
         goto exit;
     }
@@ -557,17 +558,17 @@ astarte_err_t astarte_credentials_create_csr()
     mbedtls_x509write_csr_set_md_alg(&req, MBEDTLS_MD_SHA256);
     mbedtls_x509write_csr_set_ns_cert_type(&req, MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT);
 
-    int ret = 0;
     // We set the CN to a temporary value, it's just a placeholder since Pairing API will change it
-    if ((ret = mbedtls_x509write_csr_set_subject_name(&req, "CN=temporary")) != 0) {
+    int ret = mbedtls_x509write_csr_set_subject_name(&req, "CN=temporary");
+    if (ret != 0) {
         ESP_LOGE(TAG, "mbedtls_x509write_csr_set_subject_name returned %d", ret);
         goto exit;
     }
 
     ESP_LOGD(TAG, "Initializing entropy");
-    if ((ret = mbedtls_ctr_drbg_seed(
-             &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, strlen(pers)))
-        != 0) {
+    ret = mbedtls_ctr_drbg_seed(
+        &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, strlen(pers));
+    if (ret != 0) {
         ESP_LOGE(TAG, "mbedtls_ctr_drbg_seed returned %d", ret);
         goto exit;
     }
@@ -590,18 +591,15 @@ astarte_err_t astarte_credentials_create_csr()
     }
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-    if ((ret = mbedtls_pk_parse_key(&key, privkey_buffer, PRIVKEY_BUFFER_LENGTH, NULL, 0,
-             mbedtls_ctr_drbg_random, &ctr_drbg))
-        != 0) {
-        ESP_LOGE(TAG, "mbedtls_pk_parse_key returned %d", ret);
-        goto exit;
-    }
+    ret = mbedtls_pk_parse_key(
+        &key, privkey_buffer, PRIVKEY_BUFFER_LENGTH, NULL, 0, mbedtls_ctr_drbg_random, &ctr_drbg);
 #else
-    if ((ret = mbedtls_pk_parse_key(&key, privkey_buffer, PRIVKEY_BUFFER_LENGTH, NULL, 0)) != 0) {
+    ret = mbedtls_pk_parse_key(&key, privkey_buffer, PRIVKEY_BUFFER_LENGTH, NULL, 0);
+#endif
+    if (ret != 0) {
         ESP_LOGE(TAG, "mbedtls_pk_parse_key returned %d", ret);
         goto exit;
     }
-#endif
 
     mbedtls_x509write_csr_set_key(&req, &key);
 
@@ -612,9 +610,9 @@ astarte_err_t astarte_credentials_create_csr()
         goto exit;
     }
 
-    if ((ret = mbedtls_x509write_csr_pem(
-             &req, csr_buffer, CSR_BUFFER_LENGTH, mbedtls_ctr_drbg_random, &ctr_drbg))
-        != 0) {
+    ret = mbedtls_x509write_csr_pem(
+        &req, csr_buffer, CSR_BUFFER_LENGTH, mbedtls_ctr_drbg_random, &ctr_drbg);
+    if (ret != 0) {
         ESP_LOGE(TAG, "mbedtls_x509write_csr_pem returned %d", ret);
         goto exit;
     }
