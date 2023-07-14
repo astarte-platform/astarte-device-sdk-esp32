@@ -46,6 +46,7 @@ Checks: >
   -zircon-*,
   -bugprone-easily-swappable-parameters,
   -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -clang-diagnostic-deprecated-declarations,
   -cppcoreguidelines-avoid-non-const-global-variables,
   -cppcoreguidelines-avoid-magic-numbers,
   -readability-function-cognitive-complexity,

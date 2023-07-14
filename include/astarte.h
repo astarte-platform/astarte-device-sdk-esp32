@@ -24,7 +24,7 @@
  *
  * @detail Astarte Device SDK return codes. ASTARTE_OK is always returned when no errors occurred.
  */
-typedef enum
+enum astarte_err_t
 {
     ASTARTE_OK = 0, /**< No errors. */
     ASTARTE_ERR = 1, /**< A generic error occurred. This is usually an internal error in the SDK */
@@ -47,8 +47,13 @@ typedef enum
     ASTARTE_ERR_PUBLISH = 18, /**< An error occurred while publishing data on MQTT */
     ASTARTE_ERR_INVALID_INTROSPECTION = 19, /**< The introspection is not valid or empty */
     ASTARTE_ERR_INVALID_INTERFACE_VERSION = 20 /**< The interface is not valid */
-} astarte_err_t;
+} __attribute__((deprecated("Please use the typedef astarte_err_t")));
 
 // clang-format on
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+typedef enum astarte_err_t astarte_err_t;
+#pragma GCC diagnostic pop
 
 #endif

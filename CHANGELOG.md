@@ -10,17 +10,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add maximum JWT size to SDK configuration options.
 - Add new deserialization utilities contained in `astarte_bson_deserializer.h`.
 - Add README section on how to use the (de)serialization utilities.
-
-### Changed
-- `struct astarte_bson_serializer_t` has been replaced by the type defined
-`astarte_bson_serializer_handle_t`.
-- `astarte_bson_serializer_init` has been replaced by `astarte_bson_serializer_new`.
-- `credential_type_t`, `astarte_ptr_list_entry_t` and `astarte_list_head_t` are now type defined.
-- `astarte_pairing_config` has been replaced by type defined `astarte_pairing_config_t`.
+- Add the typedefines `astarte_bson_serializer_handle_t`, `credential_type_t`,
+  `astarte_ptr_list_entry_t` and `astarte_pairing_config_t`.
+- Add new `astarte_bson_serializer_new` function.
 
 ### Deprecated
 - BSON deserialization utility `astarte_bson.h`. Use the new deserialization functions contained
   in `astarte_bson_deserializer.h`.
+- Direct use of the enums and structs `astarte_err_t`, `astarte_byte_array_t`,
+  `astarte_bson_serializer_t`, `credential_type_t`, `astarte_list_head_t`, `astarte_ptr_list_entry_t`
+  and `astarte_pairing_config`.
+- Serializer initialization function `astarte_bson_serializer_init`. Use the new
+  `astarte_bson_serializer_new` instead.
 
 ### Removed
 - Support for ESP IDF v3.x.

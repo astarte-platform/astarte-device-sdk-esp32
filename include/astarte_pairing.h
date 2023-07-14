@@ -16,14 +16,19 @@
 
 #include <string.h>
 
-typedef struct
+struct astarte_pairing_config
 {
     const char *base_url;
     const char *jwt;
     const char *realm;
     const char *hw_id;
     const char *credentials_secret;
-} astarte_pairing_config_t;
+} __attribute__((deprecated("Please use astarte_pairing_config_t")));
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+typedef struct astarte_pairing_config astarte_pairing_config_t;
+#pragma GCC diagnostic pop
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,6 +39,7 @@ extern "C" {
  *
  * @details Get the credentials secret from NVS. If it isn't present, register the device to obtain
  * it, save it and return it.
+ *
  * @param config A struct containing the pairing configuration.
  * @param out A pointer to an allocated string which the credentials secret will be written to.
  * @param length The length of the out buffer.
@@ -46,6 +52,7 @@ astarte_err_t astarte_pairing_get_credentials_secret(
  * @brief register a device.
  *
  * @details Perform a device registration as agent.
+ *
  * @param config A struct containing the pairing configuration.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned.
  */
@@ -55,6 +62,7 @@ astarte_err_t astarte_pairing_register_device(const astarte_pairing_config_t *co
  * @brief obtain a new Astarte MQTT v1 certificate.
  *
  * @details Call Pairing API to obtain a new Astarte MQTT v1 certificate.
+ *
  * @param config A struct containing the pairing configuration.
  * @param csr A PEM encoded NULL-terminated string containing the CSR
  * @param out A pointer to an allocated buffer where the certificat will be written.
@@ -68,6 +76,7 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
  * @brief get the Astarte MQTT v1 broker URL.
  *
  * @details Get the URL of the broker which the device will connect to.
+ *
  * @param config A struct containing the pairing configuration.
  * @param out A pointer to an allocated string where the URL will be written.
  * @param length The length of the out buffer.
