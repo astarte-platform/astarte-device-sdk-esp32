@@ -18,17 +18,16 @@
 
 #define TAG "ASTARTE_BSON_SERIALIZER"
 
-struct astarte_byte_array
-{
-    size_t capacity;
-    size_t size;
-    uint8_t *buf;
-};
-
-struct astarte_bson_serializer
-{
-    struct astarte_byte_array ba;
-};
+// NOTE: this is a temporary typedef, once the structs astarte_byte_array_t and
+// astarte_bson_serializer_t deprecation period ends they should be moved here and renamed to
+// astarte_byte_array and astarte_bson_serializer respectively.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+// NOLINTBEGIN(readability-identifier-naming)
+typedef struct astarte_byte_array_t astarte_byte_array;
+typedef struct astarte_bson_serializer_t astarte_bson_serializer;
+// NOLINTEND(readability-identifier-naming)
+#pragma GCC diagnostic pop
 
 static void uint32_to_bytes(uint32_t input, uint8_t out[static 4])
 {
@@ -70,7 +69,7 @@ static void double_to_bytes(double input, uint8_t out[static 8])
     }
 }
 
-static void astarte_byte_array_init(struct astarte_byte_array *byte_arr, void *bytes, size_t size)
+static void astarte_byte_array_init(astarte_byte_array *byte_arr, void *bytes, size_t size)
 {
     byte_arr->capacity = size;
     byte_arr->size = size;
@@ -84,7 +83,7 @@ static void astarte_byte_array_init(struct astarte_byte_array *byte_arr, void *b
     memcpy(byte_arr->buf, bytes, size);
 }
 
-static void astarte_byte_array_destroy(struct astarte_byte_array *byte_arr)
+static void astarte_byte_array_destroy(astarte_byte_array *byte_arr)
 {
     byte_arr->capacity = 0;
     byte_arr->size = 0;
@@ -92,7 +91,7 @@ static void astarte_byte_array_destroy(struct astarte_byte_array *byte_arr)
     byte_arr->buf = NULL;
 }
 
-static void astarte_byte_array_grow(struct astarte_byte_array *byte_arr, size_t needed)
+static void astarte_byte_array_grow(astarte_byte_array *byte_arr, size_t needed)
 {
     if (byte_arr->size + needed >= byte_arr->capacity) {
         size_t new_capacity = byte_arr->capacity * 2;
@@ -107,15 +106,14 @@ static void astarte_byte_array_grow(struct astarte_byte_array *byte_arr, size_t 
     }
 }
 
-static void astarte_byte_array_append_byte(struct astarte_byte_array *byte_arr, uint8_t byte)
+static void astarte_byte_array_append_byte(astarte_byte_array *byte_arr, uint8_t byte)
 {
     astarte_byte_array_grow(byte_arr, sizeof(uint8_t));
     byte_arr->buf[byte_arr->size] = byte;
     byte_arr->size++;
 }
 
-static void astarte_byte_array_append(
-    struct astarte_byte_array *byte_arr, const void *bytes, size_t count)
+static void astarte_byte_array_append(astarte_byte_array *byte_arr, const void *bytes, size_t count)
 {
     astarte_byte_array_grow(byte_arr, count);
 
@@ -124,14 +122,19 @@ static void astarte_byte_array_append(
 }
 
 static void astarte_byte_array_replace(
-    struct astarte_byte_array *byte_arr, unsigned int pos, size_t count, const uint8_t *bytes)
+    astarte_byte_array *byte_arr, unsigned int pos, size_t count, const uint8_t *bytes)
 {
     memcpy(byte_arr->buf + pos, bytes, count);
 }
 
+void astarte_bson_serializer_init(astarte_bson_serializer_handle_t bson)
+{
+    astarte_byte_array_init(&bson->ba, "\0\0\0\0", 4);
+}
+
 astarte_bson_serializer_handle_t astarte_bson_serializer_new(void)
 {
-    astarte_bson_serializer_handle_t bson = calloc(1, sizeof(struct astarte_bson_serializer));
+    astarte_bson_serializer_handle_t bson = calloc(1, sizeof(astarte_bson_serializer));
     if (!bson) {
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         return NULL;

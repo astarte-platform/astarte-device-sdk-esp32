@@ -22,7 +22,36 @@
 extern "C" {
 #endif
 
-typedef struct astarte_bson_serializer *astarte_bson_serializer_handle_t;
+struct astarte_byte_array_t
+{
+    size_t capacity;
+    size_t size;
+    uint8_t *buf;
+} __attribute__((
+    deprecated("This sould never be used directly, use astarte_bson_serializer_handle_t")));
+
+struct astarte_bson_serializer_t
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    struct astarte_byte_array_t ba;
+#pragma GCC diagnostic pop
+} __attribute__((deprecated("Use the new typedefined astarte_bson_serializer_handle_t")));
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+typedef struct astarte_bson_serializer_t *astarte_bson_serializer_handle_t;
+#pragma GCC diagnostic pop
+
+/**
+ * @brief initialize given BSON serializer.
+ *
+ * @details This function has to be called to initialize and allocate memory for a serializer
+ * instance.
+ * @param[out] bson the astarte_bson_serializer_handle_t that will be initialized.
+ */
+void astarte_bson_serializer_init(astarte_bson_serializer_handle_t bson)
+    __attribute__((deprecated("Use astarte_bson_serializer_new instead")));
 
 /**
  * @brief create a new instance of the BSON serializer.

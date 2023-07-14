@@ -22,12 +22,17 @@
 
 #define ASTARTE_CREDENTIALS_DEFAULT_NVS_PARTITION NULL
 
-typedef enum
+enum credential_type_t
 {
     ASTARTE_CREDENTIALS_CSR = 1,
     ASTARTE_CREDENTIALS_KEY,
     ASTARTE_CREDENTIALS_CERTIFICATE
-} credential_type_t;
+} __attribute__((deprecated("Please use the typedef credential_type_t")));
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+typedef enum credential_type_t credential_type_t;
+#pragma GCC diagnostic pop
 
 typedef astarte_err_t (*astarte_credentials_store_t)(
     void *opaque, credential_type_t cred_type, const void *credential, size_t length);

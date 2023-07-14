@@ -10,17 +10,27 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-typedef struct astarte_list_head
+struct astarte_list_head_t
 {
-    struct astarte_list_head *next;
-    struct astarte_list_head *prev;
-} astarte_list_head_t;
+    struct astarte_list_head_t *next;
+    struct astarte_list_head_t *prev;
+} __attribute__((deprecated("Please use the typedef astarte_list_head_t")));
 
-typedef struct
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+typedef struct astarte_list_head_t astarte_list_head_t;
+#pragma GCC diagnostic pop
+
+struct astarte_ptr_list_entry_t
 {
     astarte_list_head_t head;
     const void *value;
-} astarte_ptr_list_entry_t;
+} __attribute__((deprecated("Please use the typedef astarte_ptr_list_entry_t")));
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+typedef struct astarte_ptr_list_entry_t astarte_ptr_list_entry_t;
+#pragma GCC diagnostic pop
 
 /**
  * @brief gets a pointer to the struct that contains a certain list head
