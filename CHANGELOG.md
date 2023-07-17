@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 - Support for ESP IDF v3.x.
 
+### Fixed
+- Fixed failure in writing the private TLS key following a hard reset performed during the partition
+formatting procedure (Available since IDF v5.1).
+
 ## [1.1.3] - 2023-05-18
 ### Fixed
 - Fix crash when using an invalid client certificate.
