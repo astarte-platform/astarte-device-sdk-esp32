@@ -14,7 +14,7 @@ void test_astarte_bson_serializer_empty_document(void)
     astarte_bson_serializer_handle_t bson = astarte_bson_serializer_new();
     astarte_bson_serializer_append_end_of_document(bson);
 
-    size_t ser_bson_len = 0;
+    int ser_bson_len = 0;
     const void *ser_bson = astarte_bson_serializer_get_document(bson, &ser_bson_len);
 
     TEST_ASSERT_EQUAL(sizeof(serialized_bson_empty_document), ser_bson_len);
@@ -61,7 +61,7 @@ void test_astarte_bson_serializer_complete_document(void)
 
     astarte_bson_serializer_append_end_of_document(bson);
 
-    size_t ser_bson_len = 0;
+    int ser_bson_len = 0;
     const void *ser_bson = astarte_bson_serializer_get_document(bson, &ser_bson_len);
 
     TEST_ASSERT_EQUAL(sizeof(serialized_bson_complete_document), ser_bson_len);
