@@ -106,17 +106,17 @@ void uuid_generate_v5(const uuid_t namespace, const void *data, size_t length, u
     uuid_from_struct(&sha_uuid_struct, out);
 }
 
-astarte_err_t uuid_to_string(const uuid_t uuid, char *out, size_t out_size)
+astarte_err_t uuid_to_string(const uuid_t uuid, char *out)
 {
     struct uuid uuid_struct;
 
     uuid_to_struct(uuid, &uuid_struct);
-    int res = snprintf(out, out_size, "%08" PRIx32 "-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+    int res = snprintf(out, 37, "%08" PRIx32 "-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
         uuid_struct.time_low, uuid_struct.time_mid, uuid_struct.time_hi_and_version,
         uuid_struct.clock_seq_hi_res, uuid_struct.clock_seq_low, uuid_struct.node[0],
         uuid_struct.node[1], uuid_struct.node[2], uuid_struct.node[3], uuid_struct.node[4],
         uuid_struct.node[5]);
-    if ((res < 0) || (res >= out_size)) {
+    if ((res < 0) || (res >= 37)) {
         ESP_LOGE(TAG, "Error converting UUID to string.");
         return ASTARTE_ERR;
     }

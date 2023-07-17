@@ -56,7 +56,7 @@ void test_uuid_to_string(void)
     char first_uuid_v4_byte_array[37];
     const uuid_t first_uuid_v4 = { 0x44, 0xb3, 0x5f, 0x73, 0xcf, 0xbd, 0x43, 0xb4, 0x8f, 0xef, 0xca,
         0x7b, 0xae, 0xa1, 0x37, 0x5f };
-    astarte_err_t err = uuid_to_string(first_uuid_v4, first_uuid_v4_byte_array, 37);
+    astarte_err_t err = uuid_to_string(first_uuid_v4, first_uuid_v4_byte_array);
     TEST_ASSERT_EQUAL(ASTARTE_OK, err);
     const char *expected_first_uuid_v4_string = "44b35f73-cfbd-43b4-8fef-ca7baea1375f";
     TEST_ASSERT_EQUAL_STRING(expected_first_uuid_v4_string, first_uuid_v4_byte_array);
@@ -64,7 +64,7 @@ void test_uuid_to_string(void)
     char second_uuid_v4_byte_array[37];
     const uuid_t second_uuid_v4 = { 0x6f, 0x2f, 0xd4, 0xcb, 0x94, 0xa0, 0x41, 0xc7, 0x8d, 0x27,
         0x86, 0x4c, 0x6b, 0x13, 0xb8, 0xc0 };
-    err = uuid_to_string(second_uuid_v4, second_uuid_v4_byte_array, 37);
+    err = uuid_to_string(second_uuid_v4, second_uuid_v4_byte_array);
     TEST_ASSERT_EQUAL(ASTARTE_OK, err);
     const char *expected_second_uuid_v4_string = "6f2fd4cb-94a0-41c7-8d27-864c6b13b8c0";
     TEST_ASSERT_EQUAL_STRING(expected_second_uuid_v4_string, second_uuid_v4_byte_array);
@@ -72,7 +72,7 @@ void test_uuid_to_string(void)
     char first_uuid_v5_byte_array[37];
     const uuid_t first_uuid_v5 = { 0x05, 0x75, 0xa5, 0x69, 0x51, 0xeb, 0x57, 0x5c, 0xaf, 0xe4, 0xce,
         0x7f, 0xc0, 0x3b, 0xcd, 0xc5 };
-    err = uuid_to_string(first_uuid_v5, first_uuid_v5_byte_array, 37);
+    err = uuid_to_string(first_uuid_v5, first_uuid_v5_byte_array);
     TEST_ASSERT_EQUAL(ASTARTE_OK, err);
     const char *expected_first_uuid_v5_string = "0575a569-51eb-575c-afe4-ce7fc03bcdc5";
     TEST_ASSERT_EQUAL_STRING(expected_first_uuid_v5_string, first_uuid_v5_byte_array);

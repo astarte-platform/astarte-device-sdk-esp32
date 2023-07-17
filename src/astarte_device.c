@@ -498,19 +498,19 @@ astarte_err_t astarte_device_stop(astarte_device_handle_t device)
 static astarte_err_t publish_bson(astarte_device_handle_t device, const char *interface_name,
     const char *path, astarte_bson_serializer_handle_t bson, int qos)
 {
-    size_t len = 0;
+    int len = 0;
     const void *data = astarte_bson_serializer_get_document(bson, &len);
     if (!data) {
         ESP_LOGE(TAG, "Error during BSON serialization");
         return ASTARTE_ERR;
     }
-    if ((int) len < 0) {
-        ESP_LOGE(TAG, "BSON document is too short for MQTT publish.");
+    if (len < 0) {
+        ESP_LOGE(TAG, "BSON document is too long for MQTT publish.");
         ESP_LOGE(TAG, "Interface: %s, path: %s", interface_name, path);
         return ASTARTE_ERR;
     }
 
-    return publish_data(device, interface_name, path, data, (int) len, qos);
+    return publish_data(device, interface_name, path, data, len, qos);
 }
 
 static astarte_err_t publish_data(astarte_device_handle_t device, const char *interface_name,

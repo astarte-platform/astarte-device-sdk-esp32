@@ -149,21 +149,20 @@ void astarte_bson_serializer_destroy(astarte_bson_serializer_handle_t bson)
     free(bson);
 }
 
-const void *astarte_bson_serializer_get_document(
-    astarte_bson_serializer_handle_t bson, size_t *size)
+const void *astarte_bson_serializer_get_document(astarte_bson_serializer_handle_t bson, int *size)
 {
     if (size) {
-        *size = bson->ba.size;
+        *size = (int) bson->ba.size;
     }
     return bson->ba.buf;
 }
 
 astarte_err_t astarte_bson_serializer_write_document(
-    astarte_bson_serializer_handle_t bson, void *out_buf, int out_buf_len, size_t *out_doc_size)
+    astarte_bson_serializer_handle_t bson, void *out_buf, int out_buf_len, int *out_doc_size)
 {
     size_t doc_size = bson->ba.size;
     if (out_doc_size) {
-        *out_doc_size = doc_size;
+        *out_doc_size = (int) doc_size;
     }
 
     if (out_buf_len < bson->ba.size) {
@@ -298,7 +297,7 @@ void astarte_bson_serializer_append_document(
         }                                                                                          \
         astarte_bson_serializer_append_end_of_document(array_ser);                                 \
                                                                                                    \
-        size_t size;                                                                               \
+        int size;                                                                                  \
         const void *document = astarte_bson_serializer_get_document(array_ser, &size);             \
                                                                                                    \
         astarte_byte_array_append_byte(&bson->ba, BSON_TYPE_ARRAY);                                \
@@ -333,7 +332,7 @@ astarte_err_t astarte_bson_serializer_append_binary_array(astarte_bson_serialize
     }
     astarte_bson_serializer_append_end_of_document(array_ser);
 
-    size_t size = 0;
+    int size = 0;
     const void *document = astarte_bson_serializer_get_document(array_ser, &size);
 
     astarte_byte_array_append_byte(&bson->ba, BSON_TYPE_ARRAY);

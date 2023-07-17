@@ -80,8 +80,7 @@ void astarte_bson_serializer_destroy(astarte_bson_serializer_handle_t bson);
  * @param[out] size the size of the internal buffer.
  * @return Reference to the internal buffer.
  */
-const void *astarte_bson_serializer_get_document(
-    astarte_bson_serializer_handle_t bson, size_t *size);
+const void *astarte_bson_serializer_get_document(astarte_bson_serializer_handle_t bson, int *size);
 
 /**
  * @brief copy BSON serializer internal buffer to a different buffer.
@@ -95,7 +94,7 @@ const void *astarte_bson_serializer_get_document(
  * @return astarte_err_t ASTARTE_OK on success, otherwise an error is returned.
  */
 astarte_err_t astarte_bson_serializer_write_document(
-    astarte_bson_serializer_handle_t bson, void *out_buf, int out_buf_len, size_t *out_doc_size);
+    astarte_bson_serializer_handle_t bson, void *out_buf, int out_buf_len, int *out_doc_size);
 
 /**
  * @brief return the document size
