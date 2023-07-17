@@ -294,8 +294,21 @@ static astarte_err_t ensure_mounted()
     if (stat(CREDENTIALS_DIR_PATH, &stats) < 0) {
         ESP_LOGD(TAG, "Directory %s doesn't exist, creating it", CREDENTIALS_DIR_PATH);
         if (mkdir(CREDENTIALS_DIR_PATH, 0700) < 0) {
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 1, 0)
             ESP_LOGE(TAG, "Cannot create %s directory", CREDENTIALS_DIR_PATH);
             return ASTARTE_ERR_IO;
+#else
+            ESP_LOGD(TAG, "First attempt at creating %s directory failed", CREDENTIALS_DIR_PATH);
+            err = esp_vfs_fat_spiflash_format_rw_wl(CREDENTIALS_MOUNTPOINT, PARTITION_NAME);
+            if (err != ESP_OK) {
+                ESP_LOGE(TAG, "Failed to format FATFS (%s)", esp_err_to_name(err));
+                return ASTARTE_ERR_IO;
+            }
+            if (mkdir(CREDENTIALS_DIR_PATH, 0700) < 0) {
+                ESP_LOGE(TAG, "Cannot create %s directory", CREDENTIALS_DIR_PATH);
+                return ASTARTE_ERR_IO;
+            }
+#endif
         }
     }
 
