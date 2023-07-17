@@ -35,7 +35,7 @@ jobs:
       matrix:
         idf-version:
         - "4.2"
-        - "5.0"
+        - "5.1"
         build-system:
         - make
         - idf
@@ -45,7 +45,7 @@ jobs:
         - "toggle_led"
         exclude:
           # Exclude make build with newer idf version, not supported
-          - idf-version: "5.0"
+          - idf-version: "5.1"
             build-system: make
     runs-on: ubuntu-latest
     container: espressif/idf:release-v${{ matrix.idf-version }}
