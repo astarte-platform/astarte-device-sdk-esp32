@@ -1,3 +1,9 @@
+<!---
+  Copyright 2018-2023 SECO Mind Srl
+
+  SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
+-->
+
 # Astarte ESP32 SDK
 
 Astarte ESP32 SDK lets you connect your ESP32 device to

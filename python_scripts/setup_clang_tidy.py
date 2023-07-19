@@ -1,7 +1,7 @@
 #
 # This file is part of Astarte.
 #
-# Copyright 2023 SECO Mind S.r.l.
+# Copyright 2018-2023 SECO Mind Srl
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# SPDX-License-Identifier: CC0-1.0
+# SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
+#
 
 """
 Utility script setting up the environment to run the 'idf.py clang-check' command.
