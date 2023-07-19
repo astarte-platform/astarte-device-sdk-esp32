@@ -1,3 +1,7 @@
+# Copyright 2018-2023 SECO Mind Srl
+#
+# SPDX-License-Identifier: CC0-1.0
+
 ---
 Language:        Cpp
 # BasedOnStyle:  WebKit
@@ -109,4 +113,3 @@ Standard:        Cpp11
 TabWidth:        8
 UseTab:          Never
 ...
-

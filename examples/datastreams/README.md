@@ -1,3 +1,9 @@
+<!---
+  Copyright 2018-2023 SECO Mind Srl
+
+  SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
+-->
+
 # Astarte datastreams example
 
 This example will guide you through setting up a simple ESP32 application running the Astarte SDK

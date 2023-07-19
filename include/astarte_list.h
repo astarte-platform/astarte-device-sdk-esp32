@@ -1,7 +1,7 @@
 /*
  * (C) Copyright 2018, Davide Bettio, davide@uninstall.it.
  *
- * SPDX-License-Identifier: LGPL-2.1+ OR Apache-2.0
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
  */
 
 #ifndef _ASTARTE_LIST_H_

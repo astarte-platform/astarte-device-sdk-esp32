@@ -1,7 +1,7 @@
 /*
- * (C) Copyright 2018-2021, Ispirata Srl, info@ispirata.com.
+ * (C) Copyright 2018-2023, SECO Mind Srl
  *
- * SPDX-License-Identifier: LGPL-2.1+ OR Apache-2.0
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
  */
 
 #include <astarte_device.h>
