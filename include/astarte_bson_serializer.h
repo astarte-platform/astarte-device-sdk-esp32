@@ -77,7 +77,7 @@ void astarte_bson_serializer_destroy(astarte_bson_serializer_handle_t bson);
  * @details This function might be used to get internal buffer without any data copy. The returned
  * buffer will be invalid after serializer destruction.
  * @param[in] bson a valid handle for the serializer instance.
- * @param[out] size the size of the internal buffer.
+ * @param[out] size the size of the internal buffer. Optional, pass NULL if not used.
  * @return Reference to the internal buffer.
  */
 const void *astarte_bson_serializer_get_document(astarte_bson_serializer_handle_t bson, int *size);
@@ -91,6 +91,7 @@ const void *astarte_bson_serializer_get_document(astarte_bson_serializer_handle_
  * @param[out] out_buf destination buffer, previously allocated.
  * @param[in] out_buf_len destination buffer length.
  * @param[out] out_doc_size BSON document size (that is <= out_buf_len).
+ * Optional, pass NULL if not used.
  * @return astarte_err_t ASTARTE_OK on success, otherwise an error is returned.
  */
 astarte_err_t astarte_bson_serializer_write_document(

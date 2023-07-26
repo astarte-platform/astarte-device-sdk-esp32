@@ -93,7 +93,7 @@ double astarte_bson_deserializer_element_to_double(astarte_bson_element_t elemen
  * @brief Extract the value from the passed element.
  *
  * @param[in] element Element to extract the value from.
- * @param[in] len Returned string length.
+ * @param[out] len Returned string length. Optional, pass NULL if not used.
  * @return Extracted value.
  */
 const char *astarte_bson_deserializer_element_to_string(
@@ -122,7 +122,7 @@ astarte_bson_document_t astarte_bson_deserializer_element_to_array(astarte_bson_
  * @brief Extract the value from the passed element.
  *
  * @param[in] element Element to extract the value from.
- * @param[in] len Returned bytes array length.
+ * @param[out] len Returned bytes array length. Optional, pass NULL if not used.
  * @return Extracted value.
  */
 const uint8_t *astarte_bson_deserializer_element_to_binary(
