@@ -27,7 +27,7 @@ extern "C" {
  * @param hardware_id a 16 bytes buffer where device ID will be written.
  * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned
  */
-astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id);
+astarte_err_t astarte_hwid_get_id(uint8_t hardware_id[static 16]);
 
 /**
  * @brief encode a binary hardware ID to a C string.
@@ -37,7 +37,7 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id);
  * @param dest_size the destination buffer size.
  * @param hardware_id 16 bytes hardware id.
  */
-void astarte_hwid_encode(char *encoded, int dest_size, const uint8_t *hardware_id);
+void astarte_hwid_encode(char *encoded, int dest_size, const uint8_t hardware_id[static 16]);
 
 #ifdef __cplusplus
 }

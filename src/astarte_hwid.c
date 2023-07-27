@@ -21,7 +21,7 @@
 
 #define HWID_TAG "ASTARTE_HWID"
 
-astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
+astarte_err_t astarte_hwid_get_id(uint8_t hardware_id[static 16])
 {
     uint8_t mac_addr[6];
     if (esp_efuse_mac_get_default(mac_addr)) {
@@ -88,7 +88,7 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
     return ASTARTE_OK;
 }
 
-void astarte_hwid_encode(char *encoded, int dest_size, const uint8_t *hardware_id)
+void astarte_hwid_encode(char *encoded, int dest_size, const uint8_t hardware_id[static 16])
 {
     size_t out_len = 0U;
     mbedtls_base64_encode((unsigned char *) encoded, dest_size, &out_len, hardware_id, 16);
