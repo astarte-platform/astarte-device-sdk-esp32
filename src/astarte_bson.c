@@ -249,6 +249,7 @@ bool astarte_bson_check_validity(const void *document, unsigned int file_size)
     // - Document size is 5 (4 bytes for the size and 1 for the trailing 0x00)
     // - Buffer size is at least size of empty document
     // - Last byte is 0x00
+    // NOLINTNEXTLINE(readability-magic-numbers) this file is deprecated, no need to make it pretty
     if ((doc_len == 5) && (file_size >= 5) && (doc_bytes[4] == 0)) {
         return true;
     }
