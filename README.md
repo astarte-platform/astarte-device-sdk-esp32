@@ -61,6 +61,12 @@ If you want to use NVS storage, add the
 astarte_credentials_use_nvs_storage(NVS_PARTITION);
 ```
 
+However, note that even when FAT32 is used, the device credential secret is always stored using
+the NVS library. This will require devices configured as using FAT32 to have two partitions,
+one using as name the macro `NVS_DEFAULT_PART_NAME` (NVS) and one named `astarte` (FAT32).
+
+### Re-flashing devices
+
 As a side effect of NVM usage, credentials will be preserved also between device flashes using
 `make` or `idf.py`.
 
