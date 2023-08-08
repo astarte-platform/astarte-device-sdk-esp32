@@ -19,11 +19,14 @@
 #include <mbedtls/base64.h>
 #include <mbedtls/md.h>
 
+#define HWID_LEN 16
+
 #define TAG "ASTARTE_HWID"
 
 astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
 {
-    uint8_t mac_addr[6];
+    const size_t max_48_len = 6;
+    uint8_t mac_addr[max_48_len];
     if (esp_efuse_mac_get_default(mac_addr)) {
         ESP_LOGE(TAG, "Cannot read MAC address.");
         return ASTARTE_ERR_ESP_SDK;
@@ -32,7 +35,8 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
     esp_chip_info_t chip_info;
     esp_chip_info(&chip_info);
 
-    char info_string[160];
+    const size_t info_string_max_len = 160;
+    char info_string[info_string_max_len];
 
     // CHIP_FEATURE_EMB_FLASH, CHIP_FEATURE_BT and CHIP_FEATURE_BLE are part of the esp-idf lib.
     // NOLINTBEGIN(hicpp-signed-bitwise)
@@ -43,18 +47,21 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
 
     // See changelog to v5.0 of ESP IDF: https://github.com/espressif/esp-idf/releases/tag/v5.0
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-    uint16_t revision = chip_info.revision / 100U;
+    const uint16_t chip_revision_mask_major = 100U;
+    uint16_t revision = chip_info.revision / chip_revision_mask_major;
 #else
     uint16_t revision = chip_info.revision;
 #endif
 
-    int res = snprintf(info_string, 160,
+    // NOLINTBEGIN(readability-magic-numbers)
+    int res = snprintf(info_string, info_string_max_len,
         "ESP_MAC_WIFI_STA: %02x:%02x:%02x:%02x:%02x:%02x, model: %i, cores: %i, revision: %i "
         "embedded flash: %i, bluetooth: %i, BLE: %i.",
         (unsigned int) mac_addr[0], (unsigned int) mac_addr[1], (unsigned int) mac_addr[2],
         (unsigned int) mac_addr[3], (unsigned int) mac_addr[4], (unsigned int) mac_addr[5],
         chip_info.model, chip_info.cores, revision, embedded_flash, bluetooth, ble);
-    if ((res < 0) || (res >= 160)) {
+    // NOLINTEND(readability-magic-numbers)
+    if ((res < 0) || (res >= info_string_max_len)) {
         ESP_LOGE(TAG, "Error generating the encoding device specific info string.");
         return ASTARTE_ERR;
     }
@@ -73,9 +80,10 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
         return uuid_err;
     }
 
-    memcpy(hardware_id, device_uuid, 16);
+    memcpy(hardware_id, device_uuid, HWID_LEN);
 #else
-    uint8_t sha_result[32];
+    const size_t sha_256_bytes = 32;
+    uint8_t sha_result[sha_256_bytes];
 
     mbedtls_md_context_t ctx;
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
@@ -94,7 +102,7 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
         return ASTARTE_ERR;
     }
 
-    memcpy(hardware_id, sha_result, 16);
+    memcpy(hardware_id, sha_result, HWID_LEN);
 #endif // ASTARTE_HWID_ENABLE_UUID
 
     return ASTARTE_OK;
@@ -103,8 +111,8 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
 astarte_err_t astarte_hwid_encode(char *encoded, int dest_size, const uint8_t *hardware_id)
 {
     size_t out_len = 0U;
-    int mbedtls_err
-        = mbedtls_base64_encode((unsigned char *) encoded, dest_size, &out_len, hardware_id, 16);
+    int mbedtls_err = mbedtls_base64_encode(
+        (unsigned char *) encoded, dest_size, &out_len, hardware_id, HWID_LEN);
     if (mbedtls_err != 0) {
         ESP_LOGE(TAG, "HWID encoding failed.");
         return ASTARTE_ERR;
