@@ -1,0 +1,13 @@
+{
+   "interface_name": "org.astarteplatform.esp32.examples.ServerDatastream",
+   "version_major": 0,
+   "version_minor": 1,
+   "type": "datastream",
+   "ownership": "server",
+   "mappings": [
+       {
+           "endpoint": "/question",
+           "type": "boolean"
+       }
+    ]
+}
