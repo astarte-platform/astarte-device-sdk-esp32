@@ -25,7 +25,7 @@ extern "C" {
  *
  * @details Generate an unique hardware ID using device MAC address and other identification bits.
  * @param hardware_id a 16 bytes buffer where device ID will be written.
- * @return The status code, ASTARTE_OK if successful, otherwise an error code is returned
+ * @return ASTARTE_OK if successful, otherwise an error code is returned.
  */
 astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id);
 
@@ -36,8 +36,9 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id);
  * @param encoded the destination buffer where encoded string will be written.
  * @param dest_size the destination buffer size.
  * @param hardware_id 16 bytes hardware id.
+ * @return ASTARTE_OK if successful, otherwise an error code is returned.
  */
-void astarte_hwid_encode(char *encoded, int dest_size, const uint8_t *hardware_id);
+astarte_err_t astarte_hwid_encode(char *encoded, int dest_size, const uint8_t *hardware_id);
 
 #ifdef __cplusplus
 }
