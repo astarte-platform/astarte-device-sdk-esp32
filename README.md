@@ -65,6 +65,9 @@ However, note that even when FAT32 is used, the device credential secret is alwa
 the NVS library. This will require devices configured as using FAT32 to have two partitions,
 one using as name the macro `NVS_DEFAULT_PART_NAME` (NVS) and one named `astarte` (FAT32).
 
+Furthermore, if you whish to use flash encryption for your device the only supported option is
+NVS.
+
 ### Re-flashing devices
 
 As a side effect of NVM usage, credentials will be preserved also between device flashes using

@@ -53,6 +53,7 @@ jobs:
         example:
         - "aggregates"
         - "datastreams"
+        - "encryption"
         - "non_volatile_storage"
         - "registration"
         - "toggle_led"
