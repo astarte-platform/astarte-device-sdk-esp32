@@ -78,20 +78,26 @@ static void uuid_to_struct(const uuid_t input, struct uuid *out)
     memcpy(out->node, in_p + 10, 6);
 }
 
-void uuid_generate_v5(const uuid_t namespace, const void *data, size_t length, uuid_t out)
+astarte_err_t uuid_generate_v5(const uuid_t namespace, const void *data, size_t length, uuid_t out)
 {
     uint8_t sha_result[32];
 
     mbedtls_md_context_t ctx;
-    mbedtls_md_type_t md_type = MBEDTLS_MD_SHA1;
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA1);
 
     mbedtls_md_init(&ctx);
-    mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 0);
-    mbedtls_md_starts(&ctx);
-    mbedtls_md_update(&ctx, namespace, UUID_LEN);
-    mbedtls_md_update(&ctx, data, length);
-    mbedtls_md_finish(&ctx, sha_result);
+    int mbedtls_err = mbedtls_md_setup(&ctx, md_info, 0);
+    // NOLINTBEGIN(hicpp-signed-bitwise) Only using the mbedtls_err to check if zero
+    mbedtls_err |= mbedtls_md_starts(&ctx);
+    mbedtls_err |= mbedtls_md_update(&ctx, namespace, UUID_LEN);
+    mbedtls_err |= mbedtls_md_update(&ctx, data, length);
+    mbedtls_err |= mbedtls_md_finish(&ctx, sha_result);
+    // NOLINTEND(hicpp-signed-bitwise)
     mbedtls_md_free(&ctx);
+    if (mbedtls_err != 0) {
+        ESP_LOGE(TAG, "UUID V5 generation failed.");
+        return ASTARTE_ERR;
+    }
 
     struct uuid sha_uuid_struct;
     // This will use the first 16 bytes of the SHA
@@ -104,6 +110,8 @@ void uuid_generate_v5(const uuid_t namespace, const void *data, size_t length, u
     sha_uuid_struct.clock_seq_hi_res |= 0x80U;
 
     uuid_from_struct(&sha_uuid_struct, out);
+
+    return ASTARTE_OK;
 }
 
 astarte_err_t uuid_to_string(const uuid_t uuid, char *out)
