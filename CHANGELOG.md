@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [1.2.1] - Unreleased
 
+### Added
+- `user_data` field is added to the `astarte_device_config_t` and `astarte_device_*_event_t`
+  structs. This field can be used to pass user data to callback functions.
+
 ### Changed
 - Return value of `uuid_generate_v5` and `astarte_hwid_encode` functions from `void` to
 `astarte_err_t`.`
