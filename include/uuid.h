@@ -27,8 +27,9 @@ extern "C" {
  * @param data A pointer to the data that will be hashed to produce the UUID.
  * @param len The lenght of the data.
  * @param out The UUID where the result will be written.
+ * @return ASTARTE_OK when successfull, ASTARTE_ERR otherwise.
  */
-void uuid_generate_v5(const uuid_t namespace, const void *data, size_t len, uuid_t out);
+astarte_err_t uuid_generate_v5(const uuid_t namespace, const void *data, size_t len, uuid_t out);
 
 /**
  * @brief convert a UUID to its string representation.

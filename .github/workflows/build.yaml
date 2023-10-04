@@ -44,6 +44,9 @@ jobs:
         example:
         - "aggregates"
         - "datastreams"
+        - "encryption"
+        - "non_volatile_storage"
+        - "registration"
         - "toggle_led"
         exclude:
           # Exclude make build with newer idf version, not supported

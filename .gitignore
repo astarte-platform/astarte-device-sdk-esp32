@@ -5,6 +5,7 @@
 build
 sdkconfig
 sdkconfig.old
+dependencies.lock
 doc/out
 .vscode
 

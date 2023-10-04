@@ -108,9 +108,17 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         encoded_hwid = cfg->hwid;
     } else {
         uint8_t generated_hwid[HWID_LENGTH];
-        astarte_hwid_get_id(generated_hwid);
+        astarte_err_t hwid_err = astarte_hwid_get_id(generated_hwid);
+        if (hwid_err != ASTARTE_OK) {
+            ESP_LOGE(TAG, "Cannot get device HWID: %d", hwid_err);
+            goto init_failed;
+        }
         char generated_encoded_hwid[ENCODED_HWID_LENGTH];
-        astarte_hwid_encode(generated_encoded_hwid, ENCODED_HWID_LENGTH, generated_hwid);
+        hwid_err = astarte_hwid_encode(generated_encoded_hwid, ENCODED_HWID_LENGTH, generated_hwid);
+        if (hwid_err != ASTARTE_OK) {
+            ESP_LOGE(TAG, "Cannot encode device HWID: %d", hwid_err);
+            goto init_failed;
+        }
         encoded_hwid = generated_encoded_hwid;
     }
 

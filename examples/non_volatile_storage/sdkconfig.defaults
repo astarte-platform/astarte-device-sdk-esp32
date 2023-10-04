@@ -1,0 +1,45 @@
+#
+# This file is part of Astarte.
+#
+# Copyright 2023 SECO Mind Srl
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
+#
+
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions_example.csv"
+CONFIG_PARTITION_TABLE_CUSTOM_APP_BIN_OFFSET=0x10000
+CONFIG_PARTITION_TABLE_FILENAME="partitions_example.csv"
+CONFIG_APP_OFFSET=0x10000
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+
+#
+# Astarte SDK
+#
+CONFIG_ASTARTE_REALM=""
+CONFIG_ASTARTE_PAIRING_BASE_URL=""
+CONFIG_ASTARTE_PAIRING_JWT=""
+CONFIG_ASTARTE_PAIRING_JWT_MAX_LEN=1024
+CONFIG_ASTARTE_CONNECTIVITY_TEST_URL="http://www.example.com"
+CONFIG_ASTARTE_HWID_ENABLE_UUID=y
+CONFIG_ASTARTE_HWID_UUID_NAMESPACE="30349dbb-85b6-489e-a8ed-532e65c55c38"
+# end of Astarte SDK
+
+#
+# Astarte non volatile storage example
+#
+CONFIG_WIFI_SSID=""
+CONFIG_WIFI_PASSWORD=""
+# end of Astarte non volatile storage example
