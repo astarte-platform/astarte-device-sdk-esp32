@@ -14,8 +14,8 @@
 
 // Version information
 #define ASTARTE_DEVICE_SDK_MAJOR 1
-#define ASTARTE_DEVICE_SDK_MINOR 1
-#define ASTARTE_DEVICE_SDK_PATCH 3
+#define ASTARTE_DEVICE_SDK_MINOR 2
+#define ASTARTE_DEVICE_SDK_PATCH 0
 
 // clang-format off
 
