@@ -178,10 +178,10 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
         ESP_LOGI(TAG, "booleanarray_endpoint: {%d, %d, %d, %d}", rx_data.booleans[0],
             rx_data.booleans[1], rx_data.booleans[2], rx_data.booleans[3]);
 
-        double double_endpoint = 43.2;
-        int32_t integer_endpoint = 54;
+        const double double_endpoint = 43.2;
+        const int32_t integer_endpoint = 54;
         bool boolean_endpoint = true;
-        double doubleanarray_endpoint[] = { 11.2, 2.2, 99.9, 421.1 };
+        const double doubleanarray_endpoint[] = { 11.2, 2.2, 99.9, 421.1 };
         ESP_LOGI(TAG, "Sending device aggregate with the following content:");
         ESP_LOGI(TAG, "double_endpoint: %lf", double_endpoint);
         ESP_LOGI(TAG, "integer_endpoint: %" PRIu32, integer_endpoint);
@@ -227,7 +227,8 @@ static uint8_t parse_received_bson(
     }
 
     astarte_bson_document_t doc = astarte_bson_deserializer_element_to_document(bson_element);
-    if (doc.size != 0x4F) {
+    const uint32_t expected_doc_size = 0x4F;
+    if (doc.size != expected_doc_size) {
         return 1U;
     }
 
@@ -248,7 +249,8 @@ static uint8_t parse_received_bson(
     }
 
     astarte_bson_document_t arr = astarte_bson_deserializer_element_to_array(elem_boolean_array);
-    if (arr.size != 0x15) {
+    const uint32_t expected_arr_size = 0x15;
+    if (arr.size != expected_arr_size) {
         return 1U;
     }
 
