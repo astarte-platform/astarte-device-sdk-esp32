@@ -120,7 +120,12 @@ astarte_err_t astarte_credentials_init()
     }
 
     TaskHandle_t task_handle = NULL;
-    xTaskCreate(credentials_init_task, "credentials_init_task", 16384, NULL, tskIDLE_PRIORITY,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0)
+    const configSTACK_DEPTH_TYPE stack_depth = 16384;
+#else
+    const uint32_t stack_depth = 16384;
+#endif
+    xTaskCreate(credentials_init_task, "credentials_init_task", stack_depth, NULL, tskIDLE_PRIORITY,
         &task_handle);
     if (!task_handle) {
         ESP_LOGE(TAG, "Cannot create credentials_init_task");
@@ -293,7 +298,11 @@ static astarte_err_t ensure_mounted()
     struct stat stats;
     if (stat(CREDENTIALS_DIR_PATH, &stats) < 0) {
         ESP_LOGD(TAG, "Directory %s doesn't exist, creating it", CREDENTIALS_DIR_PATH);
-        if (mkdir(CREDENTIALS_DIR_PATH, 0700) < 0) {
+        // mkdir uses the same modes as chmod.
+        // This macro will give: read/write/execute permission for the user class and no permissions
+        // for group and others classes.
+        const mode_t mkdir_mode = 0700;
+        if (mkdir(CREDENTIALS_DIR_PATH, mkdir_mode) < 0) {
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 1, 0)
             ESP_LOGE(TAG, "Cannot create %s directory", CREDENTIALS_DIR_PATH);
             return ASTARTE_ERR_IO;
@@ -304,7 +313,7 @@ static astarte_err_t ensure_mounted()
                 ESP_LOGE(TAG, "Failed to format FATFS (%s)", esp_err_to_name(err));
                 return ASTARTE_ERR_IO;
             }
-            if (mkdir(CREDENTIALS_DIR_PATH, 0700) < 0) {
+            if (mkdir(CREDENTIALS_DIR_PATH, mkdir_mode) < 0) {
                 ESP_LOGE(TAG, "Cannot create %s directory", CREDENTIALS_DIR_PATH);
                 return ASTARTE_ERR_IO;
             }
