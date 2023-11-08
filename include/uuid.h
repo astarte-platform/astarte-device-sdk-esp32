@@ -12,7 +12,9 @@
 
 #include "astarte.h"
 
-typedef uint8_t uuid_t[16];
+#define UUID_LEN 16
+
+typedef uint8_t uuid_t[UUID_LEN];
 
 #ifdef __cplusplus
 extern "C" {
