@@ -53,6 +53,7 @@ struct astarte_device
     astarte_device_unset_event_callback_t unset_event_callback;
     astarte_device_connection_event_callback_t connection_event_callback;
     astarte_device_disconnection_event_callback_t disconnection_event_callback;
+    void *callbacks_user_data;
     esp_mqtt_client_handle_t mqtt_client;
     TaskHandle_t reinit_task_handle;
     SemaphoreHandle_t reinit_mutex;
@@ -163,6 +164,7 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
     ret->unset_event_callback = cfg->unset_event_callback;
     ret->connection_event_callback = cfg->connection_event_callback;
     ret->disconnection_event_callback = cfg->disconnection_event_callback;
+    ret->callbacks_user_data = cfg->callbacks_user_data;
 
     return ret;
 
@@ -1035,8 +1037,11 @@ static void on_connected(astarte_device_handle_t device, int session_present)
     device->connected = true;
 
     if (device->connection_event_callback) {
-        astarte_device_connection_event_t event
-            = { .device = device, .session_present = session_present };
+        astarte_device_connection_event_t event = {
+            .device = device,
+            .session_present = session_present,
+            .user_data = device->callbacks_user_data,
+        };
 
         device->connection_event_callback(&event);
     }
@@ -1057,6 +1062,7 @@ static void on_disconnected(astarte_device_handle_t device)
     if (device->disconnection_event_callback) {
         astarte_device_disconnection_event_t event = {
             .device = device,
+            .user_data = device->callbacks_user_data,
         };
 
         device->disconnection_event_callback(&event);
@@ -1134,8 +1140,12 @@ static void on_incoming(
 
     if (!data && data_len == 0) {
         if (device->unset_event_callback) {
-            astarte_device_unset_event_t event
-                = { .device = device, .interface_name = interface_name, .path = path };
+            astarte_device_unset_event_t event = {
+                .device = device,
+                .interface_name = interface_name,
+                .path = path,
+                .user_data = device->callbacks_user_data,
+            };
             device->unset_event_callback(&event);
         } else {
             ESP_LOGE(
@@ -1175,6 +1185,7 @@ static void on_incoming(
         .bson_value = bson_value,
         .bson_value_type = bson_value_type,
         .bson_element = v_elem,
+        .user_data = device->callbacks_user_data,
     };
 
     device->data_event_callback(&event);

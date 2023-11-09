@@ -35,6 +35,7 @@ typedef struct
     int bson_value_type __attribute__((
         deprecated("Please use bson_element with the functions from astarte_bson_deserializer.h")));
     astarte_bson_element_t bson_element;
+    void *user_data;
 } astarte_device_data_event_t;
 
 typedef struct
@@ -42,6 +43,7 @@ typedef struct
     astarte_device_handle_t device;
     const char *interface_name;
     const char *path;
+    void *user_data;
 } astarte_device_unset_event_t;
 
 typedef void (*astarte_device_data_event_callback_t)(astarte_device_data_event_t *event);
@@ -50,6 +52,7 @@ typedef struct
 {
     astarte_device_handle_t device;
     int session_present;
+    void *user_data;
 } astarte_device_connection_event_t;
 
 typedef void (*astarte_device_connection_event_callback_t)(
@@ -59,6 +62,7 @@ typedef struct
 {
     astarte_device_handle_t device;
     int session_present;
+    void *user_data;
 } astarte_device_disconnection_event_t;
 
 typedef void (*astarte_device_disconnection_event_callback_t)(
@@ -72,6 +76,7 @@ typedef struct
     astarte_device_unset_event_callback_t unset_event_callback;
     astarte_device_connection_event_callback_t connection_event_callback;
     astarte_device_disconnection_event_callback_t disconnection_event_callback;
+    void *callbacks_user_data;
     const char *hwid;
     const char *credentials_secret;
     const char *realm;

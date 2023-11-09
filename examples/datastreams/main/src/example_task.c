@@ -91,15 +91,13 @@ void astarte_example_task(void *ctx)
         ESP_LOGE(TAG, "Failed to initialize credentials");
         return;
     }
-    /*
-     * For additional ways to define the hwid of your device, see the documentation for
-     * the astarte_device_init function in astarte_device.h
-     *
-     */
+
+    bool invert_reply = true;
     astarte_device_config_t cfg = {
         .data_event_callback = astarte_data_events_handler,
         .connection_event_callback = astarte_connection_events_handler,
         .disconnection_event_callback = astarte_disconnection_events_handler,
+        .callbacks_user_data = (void *) &invert_reply,
         .credentials_secret = cred_sec,
         .hwid = hwid,
         .realm = realm,
@@ -139,7 +137,8 @@ static void astarte_data_events_handler(astarte_device_data_event_t *event)
 
     if (strcmp(event->interface_name, "org.astarteplatform.esp32.examples.ServerDatastream") == 0
         && strcmp(event->path, "/question") == 0 && event->bson_element.type == BSON_TYPE_BOOLEAN) {
-        bool answer = !astarte_bson_deserializer_element_to_bool(event->bson_element);
+        bool invert_reply = *((bool *) event->user_data);
+        bool answer = invert_reply ^ astarte_bson_deserializer_element_to_bool(event->bson_element);
         ESP_LOGI(TAG, "Sending answer %d.", answer);
         astarte_device_stream_boolean(event->device,
             "org.astarteplatform.esp32.examples.DeviceDatastream", "/answer", answer, 0);
