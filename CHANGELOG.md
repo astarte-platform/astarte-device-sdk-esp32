@@ -10,8 +10,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.2.1] - Unreleased
-
+## [Unreleased]
 ### Added
 - `user_data` field is added to the `astarte_device_config_t` and `astarte_device_*_event_t`
   structs. This field can be used to pass user data to callback functions.
