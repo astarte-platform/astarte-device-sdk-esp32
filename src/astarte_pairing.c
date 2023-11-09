@@ -29,6 +29,15 @@ static_assert(sizeof(CONFIG_ASTARTE_PAIRING_JWT) <= CONFIG_ASTARTE_PAIRING_JWT_M
 #define MAX_URL_LENGTH 512
 #define MAX_CRED_SECR_HEADER_LENGTH 64
 
+#define HTTP_RESP_CODE_OK 200
+#define HTTP_RESP_CODE_CREATED 201
+#define HTTP_RESP_CODE_UNPROCESSABLE_CONTENT 422
+#define HTTP_RESP_CODE_UNAUTHORIZED 401
+#define HTTP_RESP_CODE_FORBIDDEN 403
+
+#define HTTP_BUFFER_SIZE 2048
+#define HTTP_BUFFER_SIZE_TX 2048
+
 #define TAG "ASTARTE_PAIRING"
 
 static esp_err_t http_event_handler(esp_http_client_event_t *evt);
@@ -135,7 +144,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
         goto exit;
     }
 
-    astarte_err_t err = astarte_pairing_get_credentials_secret(config, cred_secret, 256);
+    astarte_err_t err
+        = astarte_pairing_get_credentials_secret(config, cred_secret, CRED_SECRET_LENGTH);
     if (err != ASTARTE_OK) {
         ret = err;
         ESP_LOGE(TAG, "Can't retrieve credentials_secret");
@@ -165,8 +175,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
               .crt_bundle_attach = esp_crt_bundle_attach,
 #endif
               .method = HTTP_METHOD_POST,
-              .buffer_size = 2048,
-              .buffer_size_tx = 2048,
+              .buffer_size = HTTP_BUFFER_SIZE,
+              .buffer_size_tx = HTTP_BUFFER_SIZE_TX,
               .user_data = &resp,
           };
 
@@ -215,7 +225,7 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
 #endif
 
         const char *client_crt = NULL;
-        if (status_code == 201) {
+        if (status_code == HTTP_RESP_CODE_CREATED) {
             client_crt = extract_client_crt(resp);
             ESP_LOGD(TAG, "Got credentials, client_crt is %s", client_crt);
         } else {
@@ -229,7 +239,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
             }
 
             // Set ret to the right error
-            if (status_code == 401 || status_code == 403) {
+            if (status_code == HTTP_RESP_CODE_UNAUTHORIZED
+                || status_code == HTTP_RESP_CODE_FORBIDDEN) {
                 ret = ASTARTE_ERR_AUTH;
             } else {
                 ret = ASTARTE_ERR_API;
@@ -277,7 +288,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
         goto exit;
     }
 
-    astarte_err_t err = astarte_pairing_get_credentials_secret(config, cred_secret, 256);
+    astarte_err_t err
+        = astarte_pairing_get_credentials_secret(config, cred_secret, CRED_SECRET_LENGTH);
     if (err != ASTARTE_OK) {
         ret = err;
         ESP_LOGE(TAG, "Can't retrieve credentials_secret");
@@ -306,8 +318,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
               .crt_bundle_attach = esp_crt_bundle_attach,
 #endif
               .method = HTTP_METHOD_GET,
-              .buffer_size = 2048,
-              .buffer_size_tx = 2048,
+              .buffer_size = HTTP_BUFFER_SIZE,
+              .buffer_size_tx = HTTP_BUFFER_SIZE_TX,
               .user_data = &resp,
           };
 
@@ -347,7 +359,7 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
 #endif
 
         const char *broker_url = NULL;
-        if (status_code == 200) {
+        if (status_code == HTTP_RESP_CODE_OK) {
             broker_url = extract_broker_url(resp);
             ESP_LOGD(TAG, "Got info, broker_url is %s", broker_url);
         } else {
@@ -360,7 +372,8 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
             }
 
             // Set ret to the right error
-            if (status_code == 401 || status_code == 403) {
+            if (status_code == HTTP_RESP_CODE_UNAUTHORIZED
+                || status_code == HTTP_RESP_CODE_FORBIDDEN) {
                 ret = ASTARTE_ERR_AUTH;
             } else {
                 ret = ASTARTE_ERR_API;
@@ -428,8 +441,8 @@ astarte_err_t astarte_pairing_register_device(const astarte_pairing_config_t *co
               .crt_bundle_attach = esp_crt_bundle_attach,
 #endif
               .method = HTTP_METHOD_POST,
-              .buffer_size = 2048,
-              .buffer_size_tx = 2048,
+              .buffer_size = HTTP_BUFFER_SIZE,
+              .buffer_size_tx = HTTP_BUFFER_SIZE_TX,
               .user_data = &resp,
           };
 
@@ -478,7 +491,7 @@ astarte_err_t astarte_pairing_register_device(const astarte_pairing_config_t *co
 #endif
 
         const char *credentials_secret = NULL;
-        if (status_code == 201) {
+        if (status_code == HTTP_RESP_CODE_CREATED) {
             credentials_secret = extract_credentials_secret(resp);
             ESP_LOGD(TAG, "Device registered, credentials_secret is %s", credentials_secret);
         } else {
@@ -492,9 +505,10 @@ astarte_err_t astarte_pairing_register_device(const astarte_pairing_config_t *co
             }
 
             // Set ret to the right error
-            if (status_code == 401 || status_code == 403) {
+            if (status_code == HTTP_RESP_CODE_UNAUTHORIZED
+                || status_code == HTTP_RESP_CODE_FORBIDDEN) {
                 ret = ASTARTE_ERR_AUTH;
-            } else if (status_code == 422) {
+            } else if (status_code == HTTP_RESP_CODE_UNPROCESSABLE_CONTENT) {
                 ret = ASTARTE_ERR_ALREADY_EXISTS;
             } else {
                 ret = ASTARTE_ERR_API;

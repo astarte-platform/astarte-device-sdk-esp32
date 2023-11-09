@@ -52,5 +52,12 @@ void app_main()
 
     nvs_flash_init();
     wifi_init();
-    xTaskCreate(astarte_example_task, "astarte_example_task", 6000, NULL, tskIDLE_PRIORITY, NULL);
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0)
+    const configSTACK_DEPTH_TYPE stack_depth = 6000;
+#else
+    const uint32_t stack_depth = 6000;
+#endif
+    xTaskCreate(
+        astarte_example_task, "astarte_example_task", stack_depth, NULL, tskIDLE_PRIORITY, NULL);
 }

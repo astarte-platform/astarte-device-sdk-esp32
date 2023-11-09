@@ -96,7 +96,12 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         goto init_failed;
     }
 
-    xTaskCreate(astarte_device_reinit_task, "astarte_device_reinit_task", 6000, ret,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0)
+    const configSTACK_DEPTH_TYPE stack_depth = 6000;
+#else
+    const uint32_t stack_depth = 6000;
+#endif
+    xTaskCreate(astarte_device_reinit_task, "astarte_device_reinit_task", stack_depth, ret,
         tskIDLE_PRIORITY, &ret->reinit_task_handle);
     if (!ret->reinit_task_handle) {
         ESP_LOGE(TAG, "Cannot start astarte_device_reinit_task");
@@ -902,8 +907,10 @@ static astarte_err_t check_device(astarte_device_handle_t device)
 static size_t get_int_string_size(int number)
 {
     size_t digits = 1;
-    while (number > 9) {
-        number /= 10;
+    const int max_number_in_single_digit = 9;
+    const int min_number_in_double_digit = 10;
+    while (number > max_number_in_single_digit) {
+        number /= min_number_in_double_digit;
         digits++;
     }
     return digits;
@@ -938,7 +945,9 @@ static void send_introspection(astarte_device_handle_t device)
     astarte_list_head_t *item = NULL;
     size_t introspection_size = get_introspection_string_size(device);
 
-    if (introspection_size > 4096) { // if introspection size is > 4KiB print a warning
+    // if introspection size is > 4KiB print a warning
+    const size_t max_introspection_size = 4096;
+    if (introspection_size > max_introspection_size) {
         ESP_LOGW(TAG, "The introspection size is > 4KiB");
     }
 
@@ -1071,9 +1080,11 @@ static void on_incoming(
         return;
     }
 
-    char control_prefix[512];
-    int ret = snprintf(control_prefix, 512, "%s/control", device->device_topic);
-    if ((ret < 0) || (ret >= 512)) {
+    const size_t maximum_control_prefix_len = 512;
+    char control_prefix[maximum_control_prefix_len];
+    int ret
+        = snprintf(control_prefix, maximum_control_prefix_len, "%s/control", device->device_topic);
+    if ((ret < 0) || (ret >= maximum_control_prefix_len)) {
         ESP_LOGE(TAG, "Error encoding control prefix");
         return;
     }
@@ -1103,17 +1114,20 @@ static void on_incoming(
     }
 
     int interface_name_len = path_begin - interface_name_begin;
-    char interface_name[512];
-    ret = snprintf(interface_name, 512, "%.*s", interface_name_len, interface_name_begin);
-    if ((ret < 0) || (ret >= 512)) {
+    const size_t maximum_interface_name_len = 512;
+    char interface_name[maximum_interface_name_len];
+    ret = snprintf(interface_name, maximum_interface_name_len, "%.*s", interface_name_len,
+        interface_name_begin);
+    if ((ret < 0) || (ret >= maximum_interface_name_len)) {
         ESP_LOGE(TAG, "Error encoding interface name");
         return;
     }
 
     size_t path_len = topic_len - device->device_topic_len - strlen("/") - interface_name_len;
-    char path[512];
-    ret = snprintf(path, 512, "%.*s", path_len, path_begin);
-    if ((ret < 0) || (ret >= 512)) {
+    const size_t maximum_path_len = 512;
+    char path[maximum_path_len];
+    ret = snprintf(path, maximum_path_len, "%.*s", path_len, path_begin);
+    if ((ret < 0) || (ret >= maximum_path_len)) {
         ESP_LOGE(TAG, "Error encoding path");
         return;
     }
@@ -1178,7 +1192,8 @@ static int has_connectivity()
     esp_err_t err = esp_http_client_perform(client);
 
     int res = 0;
-    if ((err == ESP_OK) && (esp_http_client_get_status_code(client) < 400)) {
+    const int http_bad_request = 400;
+    if ((err == ESP_OK) && (esp_http_client_get_status_code(client) < http_bad_request)) {
         res = 1;
     }
     esp_http_client_cleanup(client);
