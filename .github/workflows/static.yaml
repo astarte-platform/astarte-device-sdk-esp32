@@ -55,6 +55,7 @@ jobs:
         - "datastreams"
         - "encryption"
         - "non_volatile_storage"
+        - "properties"
         - "registration"
         - "toggle_led"
     container: espressif/idf:release-v5.1
