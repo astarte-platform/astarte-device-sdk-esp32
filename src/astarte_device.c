@@ -10,8 +10,12 @@
 #include <astarte_bson_serializer.h>
 #include <astarte_credentials.h>
 #include <astarte_hwid.h>
+#include <astarte_linked_list.h>
 #include <astarte_list.h>
 #include <astarte_pairing.h>
+#include <astarte_set.h>
+#include <astarte_storage.h>
+#include <astarte_zlib.h>
 
 #include <mqtt_client.h>
 
@@ -73,15 +77,24 @@ static astarte_err_t publish_data(astarte_device_handle_t device, const char *in
 static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void send_emptycache(astarte_device_handle_t device);
+static void send_device_owned_properties(astarte_device_handle_t device);
+static void send_purge_device_properties(astarte_device_handle_t device,
+    astarte_set_handle_t properties_set_handle);
 static void on_connected(astarte_device_handle_t device, int session_present);
 static void on_disconnected(astarte_device_handle_t device);
 static void on_incoming(
     astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len);
+static void on_control_message(astarte_device_handle_t device, char *control_topic, char *data, int data_len);
+static void on_purge_properties(astarte_device_handle_t device, char *data, int data_len);
 static void on_certificate_error(astarte_device_handle_t device);
 static void mqtt_event_handler(
     void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
 static int has_connectivity();
 static void maybe_append_timestamp(astarte_bson_serializer_handle_t bson, uint64_t ts_epoch_millis);
+static bool interface_is_in_introspection(
+    astarte_device_handle_t device, const char *interface_name);
+static bool interface_is_property(astarte_device_handle_t device, const char *interface_name);
+static bool interface_is_device_owned(astarte_device_handle_t device, const char *interface_name);
 
 astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 {
@@ -523,6 +536,13 @@ static astarte_err_t publish_bson(astarte_device_handle_t device, const char *in
         ESP_LOGE(TAG, "BSON document is too long for MQTT publish.");
         ESP_LOGE(TAG, "Interface: %s, path: %s", interface_name, path);
         return ASTARTE_ERR;
+    }
+
+    if (interface_is_property(device, interface_name)) {
+        astarte_storage_handle_t astarte_storage_handle;
+        astarte_storage_open(&astarte_storage_handle);
+        astarte_storage_store_property(astarte_storage_handle, interface_name, path, data, len);
+        astarte_storage_close(astarte_storage_handle);
     }
 
     return publish_data(device, interface_name, path, data, len, qos);
@@ -1032,6 +1052,209 @@ static void send_emptycache(astarte_device_handle_t device)
     esp_mqtt_client_publish(mqtt, topic, "1", 1, 2, 0);
 }
 
+static void send_device_owned_properties(astarte_device_handle_t device)
+{
+    if (check_device(device) != ASTARTE_OK) {
+        return;
+    }
+
+    char *interface_name = NULL;
+    char *path = NULL;
+    uint8_t *value = NULL;
+
+    astarte_set_handle_t interfaces_set_handle;
+    astarte_set_init(&interfaces_set_handle);
+
+    // Open storage
+    astarte_storage_handle_t astarte_storage_handle;
+    astarte_storage_err_t astarte_storage_err = astarte_storage_open(&astarte_storage_handle);
+    if (astarte_storage_err != ASTARTE_STORAGE_ERR_OK) {
+        ESP_LOGE(TAG, "Error opening storage %d.", astarte_storage_err);
+        goto end;
+    }
+
+    // Create iterator
+    astarte_storage_iterator_t astarte_storage_iterator;
+    astarte_storage_err =
+        astarte_storage_iterator_create(astarte_storage_handle, &astarte_storage_iterator);
+    if ((astarte_storage_err != ASTARTE_STORAGE_ERR_OK) &&
+        (astarte_storage_err != ASTARTE_STORAGE_ERR_NOT_FOUND)) {
+        ESP_LOGE(TAG, "Error creating the properties iterator %d.", astarte_storage_err);
+        goto end;
+    }
+
+    while (astarte_storage_err == ASTARTE_STORAGE_ERR_OK) {
+        // Fetch property len
+        size_t interface_name_len = 0;
+        size_t path_len = 0;
+        size_t value_len = 0;
+        astarte_storage_err = astarte_storage_iterator_get_property(&astarte_storage_iterator, NULL,
+            &interface_name_len, NULL, &path_len, NULL, &value_len);
+        if (astarte_storage_err != ASTARTE_STORAGE_ERR_OK) {
+            ESP_LOGE(TAG, "Error preparing to get one of the properties %d.", astarte_storage_err);
+            astarte_storage_close(astarte_storage_handle);
+            goto end;
+        }
+        // Allocate memory for property data
+        interface_name = calloc(interface_name_len, sizeof(char));
+        path = calloc(path_len, sizeof(char));
+        value = calloc(value_len, sizeof(uint8_t));
+        if ((interface_name == NULL) || (path == NULL) || (value == NULL)) {
+            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            astarte_storage_close(astarte_storage_handle);
+            goto end;
+        }
+        // Fetch property content
+        astarte_storage_err = astarte_storage_iterator_get_property(&astarte_storage_iterator,
+            interface_name, &interface_name_len, path, &path_len, value, &value_len);
+        if (astarte_storage_err != ASTARTE_STORAGE_ERR_OK) {
+            ESP_LOGE(TAG, "Error getting one of the properties %d.", astarte_storage_err);
+            astarte_storage_close(astarte_storage_handle);
+            goto end;
+        }
+        // If property is not in introspection anymore, delete it from storage
+        if (!interface_is_in_introspection(device, interface_name)) {
+            // TODO figure out if it is safe to uncomment this
+            // Commented out since this operation could break the current iterator, or lead to
+            // skip some properties
+            // astarte_storage_delete_property(interface_name, path);
+        }
+        // If property is device owned send it to Astarte
+        else if (interface_is_device_owned(device, interface_name)) {
+            // Assuming that since the property is present in storage the size of the value
+            // has already been checked and does not exceed the max value for an integer.
+            publish_data(device, interface_name, path, value, (int) value_len, 2);
+
+            // Get the combined interface_name and path for the property
+            size_t property_full_path_len = interface_name_len + path_len - 1;
+            char *property_full_path = calloc(property_full_path_len, sizeof(char));
+            strncat(memcpy(property_full_path, interface_name, interface_name_len), path, path_len - 1);
+
+            // Store the property full path in a temporary set
+            astarte_set_element_t set_element = {
+                .value = property_full_path,
+                .value_len = property_full_path_len
+            };
+            astarte_set_add(interfaces_set_handle, set_element);
+        }
+        // Free memory of property data
+        free(interface_name);
+        interface_name = NULL;
+        free(path);
+        path = NULL;
+        free(value);
+        value = NULL;
+        // Advance iterator
+        astarte_storage_err = astarte_storage_iterator_advance(&astarte_storage_iterator);
+        if (astarte_storage_err != ASTARTE_STORAGE_ERR_OK) {
+            if (astarte_storage_err != ASTARTE_STORAGE_ERR_NOT_FOUND) {
+                ESP_LOGE(TAG, "Error advancing properties iterator %d.", astarte_storage_err);
+            }
+            break;
+        }
+    }
+
+    // Close astarte storage
+    astarte_storage_close(astarte_storage_handle);
+
+    // Send purge device properties
+    send_purge_device_properties(device, interfaces_set_handle);
+
+end:
+    // Destroy the set
+    astarte_set_destroy(interfaces_set_handle);
+
+    // Free all data
+    free(interface_name);
+    free(path);
+    free(value);
+}
+
+static void send_purge_device_properties(astarte_device_handle_t device,
+    astarte_set_handle_t properties_set_handle)
+{
+    // Pointer to string that will contain a list of interface names separated by the ';' char
+    char *properties_full_paths = NULL;
+    // Size of the string contained in properties_full_paths including the '\0' terminating char
+    size_t properties_full_paths_len = 0;
+
+    char *purge_properties_payload = NULL;
+    size_t purge_properties_payload_len = 0;
+
+    while(!astarte_set_is_empty(properties_set_handle))
+    {
+        // Get an interface name from the set
+        astarte_set_element_t property_full_path;
+        astarte_set_pop(properties_set_handle, &property_full_path);
+
+        // Append interface name to the ';' separated string
+        // Both lengths include a +1 for the '\0' char
+        // We do a simple sum since we need an extra char to store the ';'
+        size_t extended_properties_full_path_len = properties_full_paths_len + property_full_path.value_len;
+        char *extended_properties_full_path = (char *) realloc(properties_full_paths, extended_properties_full_path_len);
+        if (extended_properties_full_path == NULL) {
+            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            free(property_full_path.value);
+            goto end;
+        }
+        if (properties_full_paths_len == 0) {
+            // Set the first char to '\0' for the first interface name
+            *extended_properties_full_path = '\0';
+        } else {
+            // Append a ';' for any subsequent interface name
+            strcat(extended_properties_full_path, ";");
+        }
+        // Append the new interface name
+        properties_full_paths = strcat(extended_properties_full_path, property_full_path.value);
+        properties_full_paths_len = extended_properties_full_path_len;
+
+        free(property_full_path.value);
+    }
+
+    // Step 1 estimate compression result size and payload size
+    size_t compression_input_len = (properties_full_paths) ? (properties_full_paths_len - 1) : 0;
+    uLongf compressed_len = compressBound(compression_input_len);
+    // Step 2 allocate enough memory for the payload
+    purge_properties_payload_len = 4 + compressed_len;
+    purge_properties_payload = calloc(purge_properties_payload_len, sizeof(char));
+    if (purge_properties_payload == NULL) {
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        goto end;
+    }
+    // Fill the first 32 bits of the payload
+    purge_properties_payload[0] = (uint8_t) (compression_input_len >>  24u);
+    purge_properties_payload[1] = (uint8_t) (compression_input_len >>  16u);
+    purge_properties_payload[2] = (uint8_t) (compression_input_len >>  8u);
+    purge_properties_payload[3] = (uint8_t) (compression_input_len >>  0u);
+    // Perform the compression and store result in the payload
+    int compress_res = astarte_zlib_compress(
+        (char unsigned *) &purge_properties_payload[4], &compressed_len,
+        (char unsigned *) properties_full_paths, compression_input_len);
+    if (compress_res != Z_OK) {
+        ESP_LOGE(TAG, "Compression error %d.", compress_res);
+        goto end;
+    }
+
+    // Compose MQTT topic
+    char topic[TOPIC_LENGTH];
+    int ret = snprintf(topic, TOPIC_LENGTH, "%s/control/producer/properties", device->device_topic);
+    if ((ret < 0) || (ret >= TOPIC_LENGTH)) {
+        ESP_LOGE(TAG, "Error encoding topic");
+        goto end;
+    }
+    // Set constant for MQTT QoS
+    const int qos = 2;
+    // Publish MQTT message
+    ESP_LOGD(TAG, "Sending purge properties to: '%s', with uncompressed content: '%s'",
+        topic, (properties_full_paths) ? properties_full_paths : "");
+    esp_mqtt_client_publish(device->mqtt_client, topic, purge_properties_payload,
+        purge_properties_payload_len, qos, 0);
+
+end:
+    free(properties_full_paths);
+    free (purge_properties_payload);
+}
+
 static void on_connected(astarte_device_handle_t device, int session_present)
 {
     device->connected = true;
@@ -1053,6 +1276,7 @@ static void on_connected(astarte_device_handle_t device, int session_present)
     setup_subscriptions(device);
     send_introspection(device);
     send_emptycache(device);
+    send_device_owned_properties(device);
 }
 
 static void on_disconnected(astarte_device_handle_t device)
@@ -1095,13 +1319,12 @@ static void on_incoming(
         return;
     }
 
+    // Control message
     size_t control_prefix_len = strlen(control_prefix);
     if (strstr(topic, control_prefix)) {
-        // Control message
-        // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) Remove once control_topic is used.
         char *control_topic = topic + control_prefix_len;
         ESP_LOGD(TAG, "Received control message on control topic %s", control_topic);
-        // TODO: on_control_message(device, control_topic, data, data_len);
+        on_control_message(device, control_topic, data, data_len);
         return;
     }
 
@@ -1159,6 +1382,13 @@ static void on_incoming(
         return;
     }
 
+    if (interface_is_property(device, interface_name)) {
+        astarte_storage_handle_t astarte_storage_handle;
+        astarte_storage_open(&astarte_storage_handle);
+        astarte_storage_store_property(astarte_storage_handle, interface_name, path, data, data_len);
+        astarte_storage_close(astarte_storage_handle);
+    }
+
     // Keep old deserializer for compatibility
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -1189,6 +1419,197 @@ static void on_incoming(
     };
 
     device->data_event_callback(&event);
+}
+
+static void on_control_message(astarte_device_handle_t device, char *control_topic, char *data, int data_len)
+{
+    if (strcmp(control_topic, "/consumer/properties") == 0) {
+        on_purge_properties(device, data, data_len);
+    }
+}
+
+static void on_purge_properties(astarte_device_handle_t device, char *data, int data_len)
+{
+    // Uncompress the payload
+    char *uncompressed = NULL;
+    uLongf uncompressed_len = (size_t) data[0] << 24 |
+        (size_t) data[1] << 16 | (size_t) data[2] << 8 | (size_t) data[3];
+
+    if (uncompressed_len != 0) {
+        uncompressed = calloc(uncompressed_len + 1, sizeof(char));
+        if (uncompressed == NULL) {
+            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            goto end;
+        }
+        int uncompress_res = uncompress((char unsigned *) uncompressed, &uncompressed_len,
+            (char unsigned *) data + 4, data_len);
+        if (uncompress_res != Z_OK) {
+            ESP_LOGE(TAG, "Decompression error %d.", uncompress_res);
+            goto end;
+        }
+    }
+
+    ESP_LOGD(TAG, "Received purge properties with content: '%s'",
+        (uncompressed) ? uncompressed : "");
+
+    // Split the payload in individual properties and store them in a list
+    astarte_linked_list_handle_t list_handle;
+    if (ASTARTE_OK != astarte_linked_list_init(&list_handle)) {
+        ESP_LOGE(TAG, "Error intializing linked list.");
+        goto end;
+    }
+    if (uncompressed_len != 0) {
+        char *property = strtok(uncompressed, ";");
+        if (!property) {
+            ESP_LOGE(TAG, "Error parsing the purge property message %s.", uncompressed);
+            goto end;
+        }
+        do {
+            astarte_linked_list_item_t list_item = {
+                .value = property,
+                .value_len = strlen(property) + 1
+            };
+            if (ASTARTE_OK != astarte_linked_list_append(list_handle, list_item)) {
+                astarte_linked_list_destroy(list_handle);
+                ESP_LOGE(TAG, "Error appending entry to linked list.");
+                goto end;
+            }
+            property = strtok(NULL, ";");
+        } while (property);
+    }
+
+    // Open storage
+    astarte_storage_handle_t storage_handle;
+    if (ASTARTE_STORAGE_ERR_OK != astarte_storage_open(&storage_handle)) {
+        astarte_linked_list_destroy(list_handle);
+        ESP_LOGE(TAG, "Error opening storage.");
+        goto end;
+    }
+
+    // Create storage iterator
+    astarte_storage_iterator_t storage_iterator;
+    astarte_storage_err_t storage_err = astarte_storage_iterator_create(storage_handle,
+        &storage_iterator);
+    if (storage_err == ASTARTE_STORAGE_ERR_NOT_FOUND) {
+        astarte_storage_close(storage_handle);
+        astarte_linked_list_destroy(list_handle);
+        goto end;
+    }
+    if (storage_err != ASTARTE_STORAGE_ERR_OK) {
+        ESP_LOGE(TAG, "Error creating the properties iterator %d.", storage_err);
+        astarte_storage_close(storage_handle);
+        astarte_linked_list_destroy(list_handle);
+        goto end;
+    }
+
+    // Iterate through all the properties stored in memory
+    do
+    {
+        // Fetch one property lengths
+        size_t interface_name_len, path_len, value_len;
+        storage_err = astarte_storage_iterator_get_property(&storage_iterator, NULL,
+            &interface_name_len, NULL, &path_len, NULL, &value_len);
+        if (storage_err != ASTARTE_STORAGE_ERR_OK) {
+            ESP_LOGE(TAG, "Error fetching property lengths %d.", storage_err);
+            astarte_storage_close(storage_handle);
+            astarte_linked_list_destroy(list_handle);
+            goto end;
+        }
+
+        // Allocate memory for property data
+        char *interface_name = calloc(interface_name_len, sizeof(char));
+        char *path = calloc(path_len, sizeof(char));
+        if ((interface_name == NULL) || (path == NULL)) {
+            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            free(interface_name);
+            free(path);
+            astarte_storage_close(storage_handle);
+            astarte_linked_list_destroy(list_handle);
+            goto end;
+        }
+
+        // Fetch one property data
+        storage_err = astarte_storage_iterator_get_property(&storage_iterator, interface_name,
+                &interface_name_len, path, &path_len, NULL, &value_len);
+        if (storage_err != ASTARTE_STORAGE_ERR_OK) {
+            ESP_LOGE(TAG, "Error fetching property data %d.", storage_err);
+            free(interface_name);
+            free(path);
+            astarte_storage_close(storage_handle);
+            astarte_linked_list_destroy(list_handle);
+            goto end;
+        }
+
+        bool advance_iterator = true;
+        // Only server owned interfaces should be evaluated
+        if(!interface_is_device_owned(device, interface_name)){
+            // Compare against the properties received in the purge prop
+            bool find_res = false;
+            if (!astarte_linked_list_is_empty(list_handle)) {
+                // Create full property name
+                size_t full_prop_len = interface_name_len + path_len - 1;
+                char *full_prop = calloc(full_prop_len, sizeof(char));
+                full_prop = strncat(
+                    strncat(full_prop, interface_name, interface_name_len - 1), path, path_len - 1);
+
+                // Find if it's in the purge properties list
+                astarte_linked_list_item_t item = {.value = full_prop, .value_len = full_prop_len};
+                esp_err_t list_err = astarte_linked_list_find(list_handle, item, &find_res);
+                if (list_err != ASTARTE_OK) {
+                    ESP_LOGE(TAG, "Error in list finding %d.", list_err);
+                    free(interface_name);
+                    free(path);
+                    free(full_prop);
+                    astarte_storage_close(storage_handle);
+                    astarte_linked_list_destroy(list_handle);
+                    goto end;
+                }
+
+                // Free full property name
+                free(full_prop);
+            }
+
+            // If property is not in purge property list, remove it from storage
+            if (!find_res) {
+                ESP_LOGD(TAG, "Purging property: '%s', '%s'", interface_name, path);
+                storage_err = astarte_storage_delete_property(storage_handle, interface_name, path);
+                if (storage_err != ASTARTE_STORAGE_ERR_OK) {
+                    ESP_LOGE(TAG, "Error deleting the property: %d.", storage_err);
+                    free(interface_name);
+                    free(path);
+                    astarte_storage_close(storage_handle);
+                    astarte_linked_list_destroy(list_handle);
+                    goto end;
+                }
+                advance_iterator = false; // Iterator has been advanced by the delete function
+            }
+        }
+
+        // Free individual property data
+        free(interface_name);
+        free(path);
+
+        // Advance the iterator if required
+        if (advance_iterator) {
+            storage_err = astarte_storage_iterator_advance(&storage_iterator);
+            if ((storage_err != ASTARTE_STORAGE_ERR_OK) &&
+                (storage_err != ASTARTE_STORAGE_ERR_NOT_FOUND)) {
+                    ESP_LOGE(TAG, "Error iterating through the properties: %d.", storage_err);
+                    astarte_storage_close(storage_handle);
+                    astarte_linked_list_destroy(list_handle);
+                    goto end;
+            }
+        }
+
+    } while (storage_err != ASTARTE_STORAGE_ERR_NOT_FOUND);
+
+    // Close storage
+    astarte_storage_close(storage_handle);
+    // Destroy the linked list
+    astarte_linked_list_destroy(list_handle);
+
+end:
+    free(uncompressed);
 }
 
 static int has_connectivity()
@@ -1273,4 +1694,47 @@ static void mqtt_event_handler(
             // Handle MQTT_EVENT_ANY introduced in esp-idf 3.2
             break;
     }
+}
+
+static bool interface_is_in_introspection(
+    astarte_device_handle_t device, const char *interface_name)
+{
+    astarte_list_head_t *item = NULL;
+    LIST_FOR_EACH(item, &device->interfaces_list)
+    {
+        astarte_ptr_list_entry_t *entry = GET_LIST_ENTRY(item, astarte_ptr_list_entry_t, head);
+        const astarte_interface_t *interface = entry->value;
+        if (strcmp(interface->name, interface_name) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool interface_is_property(astarte_device_handle_t device, const char *interface_name)
+{
+    astarte_list_head_t *item = NULL;
+    LIST_FOR_EACH(item, &device->interfaces_list)
+    {
+        astarte_ptr_list_entry_t *entry = GET_LIST_ENTRY(item, astarte_ptr_list_entry_t, head);
+        const astarte_interface_t *interface = entry->value;
+        if (strcmp(interface->name, interface_name) == 0) {
+            return interface->type == TYPE_PROPERTIES;
+        }
+    }
+    return false;
+}
+
+static bool interface_is_device_owned(astarte_device_handle_t device, const char *interface_name)
+{
+    astarte_list_head_t *item = NULL;
+    LIST_FOR_EACH(item, &device->interfaces_list)
+    {
+        astarte_ptr_list_entry_t *entry = GET_LIST_ENTRY(item, astarte_ptr_list_entry_t, head);
+        const astarte_interface_t *interface = entry->value;
+        if (strcmp(interface->name, interface_name) == 0) {
+            return interface->ownership == OWNERSHIP_DEVICE;
+        }
+    }
+    return false;
 }
