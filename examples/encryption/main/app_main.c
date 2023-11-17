@@ -19,7 +19,6 @@
  *
  **/
 
-#include <esp_idf_version.h>
 #include <esp_log.h>
 #include <inttypes.h>
 #include <nvs_flash.h>
@@ -53,11 +52,7 @@ void app_main()
     nvs_flash_init();
     wifi_init();
 
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0)
     const configSTACK_DEPTH_TYPE stack_depth = 6000;
-#else
-    const uint32_t stack_depth = 6000;
-#endif
     xTaskCreate(
         astarte_example_task, "astarte_example_task", stack_depth, NULL, tskIDLE_PRIORITY, NULL);
 }

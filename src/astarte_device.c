@@ -16,7 +16,7 @@
 #include <mqtt_client.h>
 
 #include <esp_http_client.h>
-#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
 #include <esp_crt_bundle.h>
 #endif
 #include <esp_log.h>
@@ -97,11 +97,7 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         goto init_failed;
     }
 
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0)
     const configSTACK_DEPTH_TYPE stack_depth = 6000;
-#else
-    const uint32_t stack_depth = 6000;
-#endif
     xTaskCreate(astarte_device_reinit_task, "astarte_device_reinit_task", stack_depth, ret,
         tskIDLE_PRIORITY, &ret->reinit_task_handle);
     if (!ret->reinit_task_handle) {
@@ -370,7 +366,7 @@ astarte_err_t astarte_device_init_connection(
 #else
     const esp_mqtt_client_config_t mqtt_cfg
         = {.uri = broker_url,
-#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
               .crt_bundle_attach = esp_crt_bundle_attach,
 #endif
               .client_cert_pem = client_cert_pem,
@@ -1195,7 +1191,7 @@ static int has_connectivity()
 {
     esp_http_client_config_t config
         = {.url = CONFIG_ASTARTE_CONNECTIVITY_TEST_URL,
-#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0))
+#if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
               .crt_bundle_attach = esp_crt_bundle_attach,
 #endif
           };

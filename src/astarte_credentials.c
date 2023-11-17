@@ -120,11 +120,7 @@ astarte_err_t astarte_credentials_init()
     }
 
     TaskHandle_t task_handle = NULL;
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0)
     const configSTACK_DEPTH_TYPE stack_depth = 16384;
-#else
-    const uint32_t stack_depth = 16384;
-#endif
     xTaskCreate(credentials_init_task, "credentials_init_task", stack_depth, NULL, tskIDLE_PRIORITY,
         &task_handle);
     if (!task_handle) {

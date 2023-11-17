@@ -30,7 +30,7 @@ tags:
     
 dependencies:
   idf:
-    version: ">=4.2"
+    version: ">=4.4"
 
 files:
   exclude:

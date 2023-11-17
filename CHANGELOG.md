@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Return value of `uuid_generate_v5` and `astarte_hwid_encode` functions from `void` to
 `astarte_err_t`.`
 
+### Removed
+- Support for ESP-IDF with versions lower than v4.4.
+- Support for the old ESP-IDF GNU Make system. For help on how to migrate a project to the new
+`CMake` system, see the espressif
+[documentation](https://docs.espressif.com/projects/esp-idf/en/v4.4.6/esp32/api-guides/build-system.html#migrating-from-esp-idf-gnu-make-system).
+
 ## [1.2.0] - 2023-07-19
 ### Added
 - Add support for server validation through ESP x509 Certificate Bundle.

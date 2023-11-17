@@ -36,11 +36,8 @@ jobs:
     strategy:
       matrix:
         idf-version:
-        - "4.2"
+        - "4.4"
         - "5.1"
-        build-system:
-        - make
-        - idf
         example:
         - "aggregates"
         - "datastreams"
@@ -48,26 +45,11 @@ jobs:
         - "non_volatile_storage"
         - "registration"
         - "toggle_led"
-        exclude:
-          # Exclude make build with newer idf version, not supported
-          - idf-version: "5.1"
-            build-system: make
     runs-on: ubuntu-latest
     container: espressif/idf:release-v${{ matrix.idf-version }}
     steps:
     - uses: actions/checkout@v3
-    - name: Build with make
-      if: matrix.build-system == 'make'
-      shell: bash
-      working-directory: ./examples/${{ matrix.example }}
-      run: |
-        . $IDF_PATH/export.sh
-        make defconfig
-        make -j4
-        # Print component size info
-        make size-components
-    - name: Build with idf.py
-      if: matrix.build-system == 'idf'
+    - name: Build
       shell: bash
       working-directory: ./examples/${{ matrix.example }}
       run: |
