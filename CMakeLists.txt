@@ -31,6 +31,7 @@ idf_component_register(
         "./src/astarte_set.c"
         "./src/astarte_storage.c"
         "./src/astarte_nvs_key_value.c"
+        "./src/astarte_zlib.c"
         "./src/uuid.c"
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "private"
