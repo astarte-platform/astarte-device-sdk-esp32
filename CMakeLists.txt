@@ -26,6 +26,7 @@ idf_component_register(
         "./src/astarte_credentials.c"
         "./src/astarte_device.c"
         "./src/astarte_hwid.c"
+        "./src/astarte_linked_list.c"
         "./src/astarte_pairing.c"
         "./src/astarte_storage.c"
         "./src/astarte_nvs_key_value.c"

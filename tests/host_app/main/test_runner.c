@@ -25,6 +25,7 @@
 
 #include "test_astarte_bson_deserializer.h"
 #include "test_astarte_bson_serializer.h"
+#include "test_astarte_linked_list.h"
 #include "test_uuid.h"
 
 int main(int argc, char **argv)
@@ -42,6 +43,12 @@ int main(int argc, char **argv)
     RUN_TEST(test_astarte_bson_deserializer_empty_bson_document);
     RUN_TEST(test_astarte_bson_deserializer_complete_bson_document);
     RUN_TEST(test_astarte_bson_deserializer_bson_document_lookup);
+
+    RUN_TEST(test_astarte_linked_list_is_empty);
+    RUN_TEST(test_astarte_linked_list_append_remove_tail);
+    RUN_TEST(test_astarte_linked_list_find);
+    RUN_TEST(test_astarte_linked_list_destroy);
+    RUN_TEST(test_astarte_linked_list_iterator);
 
     RUN_TEST(test_uuid_from_string);
     RUN_TEST(test_uuid_to_string);
