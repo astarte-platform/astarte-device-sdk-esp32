@@ -23,9 +23,11 @@ idf_component_register(
         "test_astarte_bson_serializer.c"
         "test_astarte_bson_deserializer.c"
         "test_astarte_linked_list.c"
+        "test_astarte_set.c"
         "../../src/astarte_bson_serializer.c"
         "../../src/astarte_bson_deserializer.c"
         "../../src/astarte_linked_list.c"
+        "../../src/astarte_set.c"
     INCLUDE_DIRS
         "."
         "../../include"

@@ -26,6 +26,7 @@
 #include "test_astarte_bson_deserializer.h"
 #include "test_astarte_bson_serializer.h"
 #include "test_astarte_linked_list.h"
+#include "test_astarte_set.h"
 #include "test_uuid.h"
 
 int main(int argc, char **argv)
@@ -33,6 +34,7 @@ int main(int argc, char **argv)
     // Disable logs for the modules under test to avoid garbage prints
     esp_log_level_set("ASTARTE_BSON_SERIALIZER", ESP_LOG_NONE);
     esp_log_level_set("ASTARTE_BSON_DESERIALIZER", ESP_LOG_NONE);
+    // esp_log_level_set("ASTARTE_SET", ESP_LOG_NONE);
     esp_log_level_set("uuid", ESP_LOG_NONE);
 
     UNITY_BEGIN();
@@ -49,6 +51,9 @@ int main(int argc, char **argv)
     RUN_TEST(test_astarte_linked_list_find);
     RUN_TEST(test_astarte_linked_list_destroy);
     RUN_TEST(test_astarte_linked_list_iterator);
+
+    RUN_TEST(test_astarte_set_is_empty);
+    RUN_TEST(test_astarte_set_add_pop);
 
     RUN_TEST(test_uuid_from_string);
     RUN_TEST(test_uuid_to_string);
