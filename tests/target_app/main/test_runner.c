@@ -25,12 +25,14 @@
 
 #include "test_astarte_bson_deserializer.h"
 #include "test_astarte_bson_serializer.h"
+#include "test_astarte_nvs_key_value.h"
 
 void app_main(void)
 {
     // Disable logs for the bson deserializer to avoid printouts
     esp_log_level_set("ASTARTE_BSON_SERIALIZER", ESP_LOG_NONE);
     esp_log_level_set("ASTARTE_BSON_DESERIALIZER", ESP_LOG_NONE);
+    // esp_log_level_set("NVS_KEY_VALUE", ESP_LOG_NONE);
 
     UNITY_BEGIN();
     RUN_TEST(test_astarte_bson_serializer_empty_document);
@@ -40,5 +42,13 @@ void app_main(void)
     RUN_TEST(test_astarte_bson_deserializer_empty_bson_document);
     RUN_TEST(test_astarte_bson_deserializer_complete_bson_document);
     RUN_TEST(test_astarte_bson_deserializer_bson_document_lookup);
+
+    RUN_TEST(test_astarte_nvs_key_value_set_get_cycle);
+    RUN_TEST(test_astarte_nvs_key_value_erase_key);
+    RUN_TEST(test_astarte_nvs_key_value_iterator);
+    RUN_TEST(test_astarte_nvs_key_value_iterator_on_changing_memory_remove_first);
+    RUN_TEST(test_astarte_nvs_key_value_iterator_on_changing_memory_remove_last);
+    RUN_TEST(test_astarte_nvs_key_value_iterator_on_changing_memory_remove_middle);
+
     UNITY_END();
 }

@@ -27,6 +27,8 @@ idf_component_register(
         "./src/astarte_device.c"
         "./src/astarte_hwid.c"
         "./src/astarte_pairing.c"
+        "./src/astarte_nvs_key_value.c"
         "./src/uuid.c"
     INCLUDE_DIRS "include"
+    PRIV_INCLUDE_DIRS "private"
     PRIV_REQUIRES vfs mbedtls fatfs mqtt nvs_flash esp_http_client json wpa_supplicant)
