@@ -22,6 +22,8 @@ idf_component_register(
     SRCS
         "test_astarte_nvs_key_value.c"
         "../../src/astarte_nvs_key_value.c"
+        "test_astarte_storage.c"
+        "../../src/astarte_storage.c"
     INCLUDE_DIRS
         "."
         "../../include"

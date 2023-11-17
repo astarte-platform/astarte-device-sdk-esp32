@@ -27,6 +27,7 @@ idf_component_register(
         "./src/astarte_device.c"
         "./src/astarte_hwid.c"
         "./src/astarte_pairing.c"
+        "./src/astarte_storage.c"
         "./src/astarte_nvs_key_value.c"
         "./src/uuid.c"
     INCLUDE_DIRS "include"
