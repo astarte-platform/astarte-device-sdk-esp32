@@ -23,8 +23,8 @@ website](https://docs.astarte-platform.org/device-sdks/esp32/latest/api).
 ## `esp-idf` version compatibility
 
 The SDK is tested against these versions of `esp-idf`:
-- `v4.2` (`make` and `idf.py` supported)
-- `v5.0` (`idf.py` supported)
+- `v4.4`
+- `v5.0`
 
 Previous versions of `esp-idf` are not guaranteed to work. If you find a problem using a later
 version of `esp-idf`, please [open an
@@ -71,7 +71,7 @@ NVS.
 ### Re-flashing devices
 
 As a side effect of NVM usage, credentials will be preserved also between device flashes using
-`make` or `idf.py`.
+`idf.py`.
 
 **N.B.** The device will first check if valid credentials are stored in the NVM, and only in case
 of a negative result will use the `Astarte SDK` component configuration to obtain fresh credentials.
@@ -81,9 +81,9 @@ flashes and the old ones stored in the NVM can be reused.
 However, when changing elements of the `Astarte SDK` component configuration the old credentials
 should be discarded by erasing the NMV.
 This can be done using the following command:
-| idf.py (ESP-IDF v5.x) | idf.py (ESP-IDF v4.x) | make |
-| ------------- | ------------ | ------------ |
-| `idf.py -p <DEVICE_PORT> erase-flash` | `idf.py -p <DEVICE_PORT> erase_flash` | `make ESPPORT=<DEVICE_PORT> erase_flash` |
+| idf.py (ESP-IDF v5.x) | idf.py (ESP-IDF v4.x) |
+| ------------- | ------------ |
+| `idf.py -p <DEVICE_PORT> erase-flash` | `idf.py -p <DEVICE_PORT> erase_flash` |
 
 ## Notes on ignoring TLS certificates
 
@@ -109,20 +109,16 @@ CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY=y
 CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=n
 # end of Certificate Bundle
 ```
-The certificate bundle feature has been introduced in ESP-IDF `v4.3.5` as such the
-`CONFIG_MBEDTLS_CERTIFICATE_BUNDLE` flag should be removed when using previous versions.
 
 If you are not using an `sdkconfig.defaults` file, run `idf.py menuconfig` and set the three options
 listed above manually. The insecure and skip certificate options can be found in the ESP-TLS
 component. While the bundle option can be found in the mbedTLS component.
 
-
 ## Notes on custom certificate bundle
 
 The Astarte ESP32 Device uses the
 [ESP x509 Certificate Bundle](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/protocols/esp_crt_bundle.html)
-to verify the Astarte instance certificates. This feature is only available for ESP IDF versions
-starting from `v4.3.5`.
+to verify the Astarte instance certificates.
 
 If your Astarte instance uses a custom CA you can disable the default certificate bundle and add
 your own certificates.
