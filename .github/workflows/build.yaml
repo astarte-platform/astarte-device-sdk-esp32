@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     container: espressif/idf:release-v${{ matrix.idf-version }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Build
       shell: bash
       working-directory: ./examples/${{ matrix.example }}

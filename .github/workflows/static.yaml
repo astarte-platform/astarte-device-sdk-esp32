@@ -28,7 +28,7 @@ jobs:
   clang-format-check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install run-clang-format
       run: |
         sudo apt-get update
@@ -59,7 +59,7 @@ jobs:
         - "toggle_led"
     container: espressif/idf:release-v5.1
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup
       run: |
         . $IDF_PATH/export.sh
