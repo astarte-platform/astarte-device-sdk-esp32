@@ -56,4 +56,15 @@ enum astarte_err_t
 typedef enum astarte_err_t astarte_err_t;
 #pragma GCC diagnostic pop
 
+/**
+ * @brief Returns string for astarte_err_t error codes
+ *
+ * This function finds the error code in a pre-generated lookup-table and
+ * returns its string representation.
+ *
+ * @param code astarte_err_t error code
+ * @return string error message
+ */
+const char *astarte_err_to_name(astarte_err_t code);
+
 #endif
