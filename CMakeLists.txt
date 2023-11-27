@@ -25,6 +25,7 @@ idf_component_register(
         "./src/astarte_bson_serializer.c"
         "./src/astarte_credentials.c"
         "./src/astarte_device.c"
+        "./src/astarte_err_to_name.c"
         "./src/astarte_hwid.c"
         "./src/astarte_pairing.c"
         "./src/uuid.c"
