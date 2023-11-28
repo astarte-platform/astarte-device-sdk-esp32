@@ -24,7 +24,7 @@ website](https://docs.astarte-platform.org/device-sdks/esp32/latest/api).
 
 The SDK is tested against these versions of `esp-idf`:
 - `v4.4`
-- `v5.0`
+- `v5.x`
 
 Previous versions of `esp-idf` are not guaranteed to work. If you find a problem using a later
 version of `esp-idf`, please [open an
