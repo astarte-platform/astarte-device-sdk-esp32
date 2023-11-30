@@ -10,7 +10,7 @@
 #include <astarte_bson_serializer.h>
 #include <astarte_credentials.h>
 #include <astarte_hwid.h>
-#include <astarte_list.h>
+#include <astarte_linked_list.h>
 #include <astarte_pairing.h>
 
 #include <mqtt_client.h>
@@ -57,7 +57,7 @@ struct astarte_device
     esp_mqtt_client_handle_t mqtt_client;
     TaskHandle_t reinit_task_handle;
     SemaphoreHandle_t reinit_mutex;
-    astarte_list_head_t interfaces_list;
+    astarte_linked_list_handle_t introspection;
     char *realm;
 };
 
@@ -155,7 +155,7 @@ astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
         goto init_failed;
     }
 
-    astarte_list_init(&ret->interfaces_list);
+    ret->introspection = astarte_linked_list_init();
     ret->data_event_callback = cfg->data_event_callback;
     ret->unset_event_callback = cfg->unset_event_callback;
     ret->connection_event_callback = cfg->connection_event_callback;
@@ -422,19 +422,14 @@ void astarte_device_destroy(astarte_device_handle_t device)
     free(device->encoded_hwid);
     free(device->credentials_secret);
     free(device->realm);
-    astarte_list_head_t *item = NULL;
-    astarte_list_head_t *tmp = NULL;
-    MUTABLE_LIST_FOR_EACH(item, tmp, &device->interfaces_list)
-    {
-        astarte_ptr_list_entry_t *entry = GET_LIST_ENTRY(item, astarte_ptr_list_entry_t, head);
-        free(entry);
-    }
+    astarte_linked_list_destroy(&device->introspection);
     free(device);
 }
 
 astarte_err_t astarte_device_add_interface(
     astarte_device_handle_t device, const astarte_interface_t *interface)
 {
+    astarte_err_t result = ASTARTE_OK;
     if (xSemaphoreTake(device->reinit_mutex, (TickType_t) 10) == pdFALSE) {
         ESP_LOGE(TAG, "Trying to add an interface to a device that is being reinitialized");
         return ASTARTE_ERR;
@@ -442,22 +437,68 @@ astarte_err_t astarte_device_add_interface(
 
     if (interface->major_version == 0 && interface->minor_version == 0) {
         ESP_LOGE(TAG, "Trying to add an interface with both major and minor version equal 0");
-        return ASTARTE_ERR_INVALID_INTERFACE_VERSION;
+        result = ASTARTE_ERR_INVALID_INTERFACE_VERSION;
+        goto end;
     }
 
-    astarte_ptr_list_entry_t *entry = calloc(1, sizeof(astarte_ptr_list_entry_t));
-    if (!entry) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
-        xSemaphoreGive(device->reinit_mutex);
-        return ASTARTE_ERR_OUT_OF_MEMORY;
+    // Loop over any interface in introspection searching for an interface with the same name
+    size_t interface_name_len = strlen(interface->name);
+    astarte_linked_list_iterator_t list_iter;
+    astarte_err_t iter_err = astarte_linked_list_iterator_init(&device->introspection, &list_iter);
+    while (iter_err != ASTARTE_ERR_NOT_FOUND) {
+        astarte_interface_t *tmp_interface = NULL;
+        astarte_linked_list_iterator_get_item(&list_iter, (void **) &tmp_interface);
+
+        // Check if the interface has the same name
+        size_t tmp_interface_name_len = strlen(tmp_interface->name);
+        size_t interfaces_min_len = (interface_name_len < tmp_interface_name_len)
+            ? interface_name_len
+            : tmp_interface_name_len;
+        if (strncmp(interface->name, tmp_interface->name, interfaces_min_len) == 0) {
+            ESP_LOGW(TAG, "Trying to add an interface already present in introspection");
+            // Check if ownership and type are the same
+            if ((interface->ownership != tmp_interface->ownership)
+                || (interface->type != tmp_interface->type)) {
+                ESP_LOGE(TAG, "Interface ownership/type conflicts with the one in introspection");
+                result = ASTARTE_ERR_CONFLICTING_INTERFACE;
+                goto end;
+            }
+            // Check if major versions align correctly
+            if (interface->major_version < tmp_interface->major_version) {
+                ESP_LOGE(TAG, "Interface with smaller major version than one in introspection");
+                result = ASTARTE_ERR_CONFLICTING_INTERFACE;
+                goto end;
+            }
+            // Check if minor versions aligns correctly
+            if ((interface->major_version == tmp_interface->major_version)
+                && (interface->minor_version < tmp_interface->minor_version)) {
+                ESP_LOGE(TAG,
+                    "Interface with same major version and smaller minor version than one in "
+                    "introspection");
+                result = ASTARTE_ERR_CONFLICTING_INTERFACE;
+                goto end;
+            }
+            ESP_LOGW(TAG, "Overwriting interface %s", interface->name);
+            astarte_linked_list_iterator_replace_item(
+                &list_iter, (astarte_interface_t *) interface);
+            goto end;
+        }
+
+        iter_err = astarte_linked_list_iterator_advance(&list_iter);
     }
 
-    entry->value = interface;
+    ESP_LOGD(TAG, "Adding interface %s to device", interface->name);
+    astarte_err_t list_err
+        = astarte_linked_list_append(&device->introspection, (astarte_interface_t *) interface);
+    if (list_err != ASTARTE_OK) {
+        ESP_LOGE(TAG, "Can't add interface to introspection %s", astarte_err_to_name(list_err));
+        result = list_err;
+        goto end;
+    }
 
-    astarte_list_append(&device->interfaces_list, &entry->head);
-
+end:
     xSemaphoreGive(device->reinit_mutex);
-    return ASTARTE_OK;
+    return result;
 }
 
 astarte_err_t astarte_device_start(astarte_device_handle_t device)
@@ -916,18 +957,20 @@ static size_t get_int_string_size(int number)
 
 static size_t get_introspection_string_size(astarte_device_handle_t device)
 {
-    astarte_list_head_t *item = NULL;
     size_t introspection_size = 0;
-    LIST_FOR_EACH(item, &device->interfaces_list)
-    {
-        astarte_ptr_list_entry_t *entry = GET_LIST_ENTRY(item, astarte_ptr_list_entry_t, head);
-        const astarte_interface_t *interface = entry->value;
+    astarte_linked_list_iterator_t list_iter;
+    astarte_err_t iter_err = astarte_linked_list_iterator_init(&device->introspection, &list_iter);
+    while (iter_err != ASTARTE_ERR_NOT_FOUND) {
+        astarte_interface_t *interface = NULL;
+        astarte_linked_list_iterator_get_item(&list_iter, (void **) &interface);
 
         size_t major_digits = get_int_string_size(interface->major_version);
         size_t minor_digits = get_int_string_size(interface->minor_version);
 
         // The interface name in introspection is composed as  "name:major:minor;"
         introspection_size += strlen(interface->name) + major_digits + minor_digits + 3;
+
+        iter_err = astarte_linked_list_iterator_advance(&list_iter);
     }
     return introspection_size;
 }
@@ -940,7 +983,6 @@ static void send_introspection(astarte_device_handle_t device)
 
     esp_mqtt_client_handle_t mqtt = device->mqtt_client;
 
-    astarte_list_head_t *item = NULL;
     size_t introspection_size = get_introspection_string_size(device);
 
     // if introspection size is > 4KiB print a warning
@@ -955,12 +997,17 @@ static void send_introspection(astarte_device_handle_t device)
         return;
     }
     int len = 0;
-    LIST_FOR_EACH(item, &device->interfaces_list)
-    {
-        astarte_ptr_list_entry_t *entry = GET_LIST_ENTRY(item, astarte_ptr_list_entry_t, head);
-        const astarte_interface_t *interface = entry->value;
+
+    astarte_linked_list_iterator_t list_iter;
+    astarte_err_t iter_err = astarte_linked_list_iterator_init(&device->introspection, &list_iter);
+    while (iter_err != ASTARTE_ERR_NOT_FOUND) {
+        astarte_interface_t *interface = NULL;
+        astarte_linked_list_iterator_get_item(&list_iter, (void **) &interface);
+
         len += sprintf(introspection_string + len, "%s:%d:%d;", interface->name,
             interface->major_version, interface->minor_version);
+
+        iter_err = astarte_linked_list_iterator_advance(&list_iter);
     }
     // Remove last ; from introspection
     introspection_string[len - 1] = 0;
@@ -992,11 +1039,12 @@ static void setup_subscriptions(astarte_device_handle_t device)
     ESP_LOGD(TAG, "Subscribing to %s", topic);
     esp_mqtt_client_subscribe(mqtt, topic, 2);
 
-    astarte_list_head_t *item = NULL;
-    LIST_FOR_EACH(item, &device->interfaces_list)
-    {
-        astarte_ptr_list_entry_t *entry = GET_LIST_ENTRY(item, astarte_ptr_list_entry_t, head);
-        const astarte_interface_t *interface = entry->value;
+    astarte_linked_list_iterator_t list_iter;
+    astarte_err_t iter_err = astarte_linked_list_iterator_init(&device->introspection, &list_iter);
+    while (iter_err != ASTARTE_ERR_NOT_FOUND) {
+        astarte_interface_t *interface = NULL;
+        astarte_linked_list_iterator_get_item(&list_iter, (void **) &interface);
+
         if (interface->ownership == OWNERSHIP_SERVER) {
             // Subscribe to server interface subtopics
             ret = snprintf(topic, TOPIC_LENGTH, "%s/%s/#", device->device_topic, interface->name);
@@ -1007,6 +1055,8 @@ static void setup_subscriptions(astarte_device_handle_t device)
             ESP_LOGD(TAG, "Subscribing to %s", topic);
             esp_mqtt_client_subscribe(mqtt, topic, 2);
         }
+
+        iter_err = astarte_linked_list_iterator_advance(&list_iter);
     }
 }
 
