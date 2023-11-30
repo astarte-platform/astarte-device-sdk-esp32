@@ -40,6 +40,7 @@ static const astarte_err_msg_t astarte_err_msg_table[] = {
     ERR_TBL_IT(ASTARTE_ERR_PUBLISH),
     ERR_TBL_IT(ASTARTE_ERR_INVALID_INTROSPECTION),
     ERR_TBL_IT(ASTARTE_ERR_INVALID_INTERFACE_VERSION),
+    ERR_TBL_IT(ASTARTE_ERR_CONFLICTING_INTERFACE),
 };
 
 static const char astarte_unknown_msg[] = "ERROR";
