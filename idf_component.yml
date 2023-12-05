@@ -20,26 +20,27 @@
 
 version: "1.2.0"
 description: "A component that provides communication and pairing primitives to an Astarte cluster"
-url: "https://github.com/astarte-platform/astarte-device-sdk-esp32" 
+url: "https://github.com/astarte-platform/astarte-device-sdk-esp32"
 documentation: "https://docs.astarte-platform.org/device-sdks/esp32/1.2/api"
 
 tags:
-  - sdk 
+  - sdk
   - iot
   - astarte
-    
+
 dependencies:
   idf:
     version: ">=4.4"
+  espressif/zlib:
+    version: ">=1.2.13~1"
 
 files:
   exclude:
     - "doc/**/*"
     - "doc"
     - "examples/**/*"
-    - "examples" 
+    - "examples"
     - "python_scripts/**/*"
     - "python_scripts"
     - "tests/**/*"
     - "tests"
-   
