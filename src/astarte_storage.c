@@ -23,12 +23,17 @@
  *         Global functions definitions         *
  ***********************************************/
 
+// NOLINTNEXTLINE(misc-unused-parameters)
 astarte_err_t astarte_storage_open(astarte_storage_handle_t *handle)
 {
-    esp_err_t esp_err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle->nvs_handle);
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
+    esp_err_t esp_err
+        = nvs_open_from_partition(CONFIG_ASTARTE_PROPERTY_PERSISTENCY_NVS_PARTITION_LABEL,
+            NVS_NAMESPACE, NVS_READWRITE, &handle->nvs_handle);
     if (esp_err != ESP_OK) {
         return ASTARTE_ERR;
     }
+#endif
     return ASTARTE_OK;
 }
 

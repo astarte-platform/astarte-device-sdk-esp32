@@ -76,25 +76,31 @@ static astarte_err_t publish_data(astarte_device_handle_t device, const char *in
 static void setup_subscriptions(astarte_device_handle_t device);
 static void send_introspection(astarte_device_handle_t device);
 static void send_emptycache(astarte_device_handle_t device);
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
 static void send_device_owned_properties(astarte_device_handle_t device);
 static void send_purge_device_properties(
     astarte_device_handle_t device, astarte_linked_list_handle_t *list_handle);
+#endif
 static void on_connected(astarte_device_handle_t device, int session_present);
 static void on_disconnected(astarte_device_handle_t device);
 static void on_incoming(
     astarte_device_handle_t device, char *topic, int topic_len, char *data, int data_len);
 static void on_control_message(
     astarte_device_handle_t device, char *control_topic, char *data, int data_len);
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
 static void on_purge_properties(astarte_device_handle_t device, char *data, int data_len);
 static astarte_err_t uncompress_purge_properties(
     char *data, int data_len, char **output, uLongf *output_len);
+#endif
 static void on_certificate_error(astarte_device_handle_t device);
 static void mqtt_event_handler(
     void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
 static int has_connectivity();
 static void maybe_append_timestamp(astarte_bson_serializer_handle_t bson, uint64_t ts_epoch_millis);
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
 static astarte_interface_t *get_interface_from_introspection(
     astarte_device_handle_t device, const char *name);
+#endif
 
 astarte_device_handle_t astarte_device_init(astarte_device_config_t *cfg)
 {
@@ -574,6 +580,7 @@ static astarte_err_t publish_bson(astarte_device_handle_t device, const char *in
         ESP_LOGE(TAG, "Interface: %s, path: %s", interface_name, path);
         return ASTARTE_ERR;
     }
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
     astarte_interface_t *interface = get_interface_from_introspection(device, interface_name);
     if (interface && (interface->type == TYPE_PROPERTIES)) {
         // Open storage
@@ -609,6 +616,7 @@ static astarte_err_t publish_bson(astarte_device_handle_t device, const char *in
         // Close storage
         astarte_storage_close(storage_handle);
     }
+#endif
 
     return publish_data(device, interface_name, path, data, len, qos);
 }
@@ -917,6 +925,7 @@ astarte_err_t astarte_device_set_datetime_property(
 astarte_err_t astarte_device_unset_path(
     astarte_device_handle_t device, const char *interface_name, const char *path)
 {
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
     astarte_interface_t *interface = get_interface_from_introspection(device, interface_name);
     if (interface && (interface->type == TYPE_PROPERTIES)) {
         // Open storage
@@ -942,6 +951,7 @@ astarte_err_t astarte_device_unset_path(
         // Close storage
         astarte_storage_close(storage_handle);
     }
+#endif
     return publish_data(device, interface_name, path, "", 0, 2);
 }
 
@@ -1151,6 +1161,7 @@ static void send_emptycache(astarte_device_handle_t device)
     esp_mqtt_client_publish(mqtt, topic, "1", 1, 2, 0);
 }
 
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
 static void send_device_owned_properties(astarte_device_handle_t device)
 {
     if (check_device(device) != ASTARTE_OK) {
@@ -1382,6 +1393,7 @@ end:
     free(properties_list);
     free(payload);
 }
+#endif
 
 static void on_connected(astarte_device_handle_t device, int session_present)
 {
@@ -1404,7 +1416,9 @@ static void on_connected(astarte_device_handle_t device, int session_present)
     setup_subscriptions(device);
     send_introspection(device);
     send_emptycache(device);
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
     send_device_owned_properties(device);
+#endif
 }
 
 static void on_disconnected(astarte_device_handle_t device)
@@ -1490,6 +1504,7 @@ static void on_incoming(
     }
 
     if (!data && data_len == 0) {
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
         astarte_interface_t *interface = get_interface_from_introspection(device, interface_name);
         if (interface && (interface->type == TYPE_PROPERTIES)) {
             // Open storage
@@ -1511,6 +1526,7 @@ static void on_incoming(
                 return;
             }
         }
+#endif
         if (device->unset_event_callback) {
             astarte_device_unset_event_t event = {
                 .device = device,
@@ -1531,6 +1547,7 @@ static void on_incoming(
         return;
     }
 
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
     astarte_interface_t *interface = get_interface_from_introspection(device, interface_name);
     if (interface && (interface->type == TYPE_PROPERTIES)) {
         // Open storage
@@ -1569,6 +1586,7 @@ static void on_incoming(
         // Close storage
         astarte_storage_close(storage_handle);
     }
+#endif
 
     // Keep old deserializer for compatibility
 #pragma GCC diagnostic push
@@ -1602,16 +1620,21 @@ static void on_incoming(
     device->data_event_callback(&event);
 }
 
+// NOLINTBEGIN(misc-unused-parameters)
 static void on_control_message(
     astarte_device_handle_t device, char *control_topic, char *data, int data_len)
+// NOLINTEND(misc-unused-parameters)
 {
     if (strcmp(control_topic, "/consumer/properties") == 0) {
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
         on_purge_properties(device, data, data_len);
+#endif
     } else {
         ESP_LOGE(TAG, "Received unrecognized control message: %s.", control_topic);
     }
 }
 
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
 static void on_purge_properties(astarte_device_handle_t device, char *data, int data_len)
 {
     char *uncompressed = NULL;
@@ -1813,6 +1836,7 @@ static astarte_err_t uncompress_purge_properties(
     *output_len = uncompressed_len;
     return ASTARTE_OK;
 }
+#endif
 
 static int has_connectivity()
 {
@@ -1898,6 +1922,7 @@ static void mqtt_event_handler(
     }
 }
 
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
 static astarte_interface_t *get_interface_from_introspection(
     astarte_device_handle_t device, const char *name)
 {
@@ -1913,3 +1938,4 @@ static astarte_interface_t *get_interface_from_introspection(
     }
     return NULL;
 }
+#endif
