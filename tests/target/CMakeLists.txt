@@ -1,7 +1,7 @@
 #
 # This file is part of Astarte.
 #
-# Copyright 2018-2023 SECO Mind Srl
+# Copyright 2023 SECO Mind Srl
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,12 +18,13 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
 #
 
-cmake_minimum_required(VERSION 3.5)
-
-# Include the components directory of the main application:
-set(EXTRA_COMPONENT_DIRS "${CMAKE_SOURCE_DIR}/../..")
-list(APPEND EXTRA_COMPONENT_DIRS "${CMAKE_SOURCE_DIR}/../common")
-list(APPEND EXTRA_COMPONENT_DIRS "${CMAKE_SOURCE_DIR}/../target")
-
-include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(target_app)
+idf_component_register(
+    SRCS
+        "test_astarte_nvs_key_value.c"
+        "../../src/astarte_nvs_key_value.c"
+    INCLUDE_DIRS
+        "."
+        "../../include"
+        "../../private"
+    PRIV_REQUIRES nvs_flash unity
+)
