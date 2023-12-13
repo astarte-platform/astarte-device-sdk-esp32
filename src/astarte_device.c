@@ -381,6 +381,9 @@ astarte_err_t astarte_device_init_connection(
 #endif
               .credentials.authentication.certificate = client_cert_pem,
               .credentials.authentication.key = key_pem,
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
+              .session.disable_clean_session = true,
+#endif
           };
 #else
     const esp_mqtt_client_config_t mqtt_cfg
@@ -391,11 +394,9 @@ astarte_err_t astarte_device_init_connection(
               .client_cert_pem = client_cert_pem,
               .client_key_pem = key_pem,
               .user_context = device,
-              // TODO: At this time, the device starts with a clean session every connection,
-              //  to change this behavior, it is necessary to enable disable_clean_session.
-              //  Before enable it pay attention if the #issue-29 has been solved
-              //  (see: https://github.com/astarte-platform/astarte-device-sdk-esp32/issues/29).
-              //  .disable_clean_session = true,
+#ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
+              .disable_clean_session = true,
+#endif
           };
 #endif
 
