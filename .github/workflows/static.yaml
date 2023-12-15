@@ -37,7 +37,7 @@ jobs:
         chmod +x run-clang-format
     - name: Check formatting library
       run: |
-        ./run-clang-format --style=file src/*.c include/*.h
+        ./run-clang-format --style=file src/*.c include/*.h private/*.h
     - name: Check formatting examples
       run: |
         ./run-clang-format --style=file examples/**/main/*.c examples/**/main/src/*.c examples/**/main/include/*.h
@@ -45,6 +45,7 @@ jobs:
       run: |
         ./run-clang-format --style=file tests/host/*.c tests/host/*.h
         ./run-clang-format --style=file tests/common/*.h tests/common/*.c
+        ./run-clang-format --style=file tests/target/*.c tests/target/*.h
         ./run-clang-format --style=file tests/host_app/main/*.c tests/target_app/main/*.c
   clang-tidy-check:
     runs-on: ubuntu-latest
@@ -55,6 +56,7 @@ jobs:
         - "datastreams"
         - "encryption"
         - "non_volatile_storage"
+        - "properties"
         - "registration"
         - "toggle_led"
     container: espressif/idf:release-v5.1

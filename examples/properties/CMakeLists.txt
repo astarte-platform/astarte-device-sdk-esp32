@@ -1,7 +1,7 @@
 #
 # This file is part of Astarte.
 #
-# Copyright 2018-2023 SECO Mind Srl
+# Copyright 2023 SECO Mind Srl
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,10 +20,8 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-# Include the components directory of the main application:
-set(EXTRA_COMPONENT_DIRS "${CMAKE_SOURCE_DIR}/../..")
-list(APPEND EXTRA_COMPONENT_DIRS "${CMAKE_SOURCE_DIR}/../common")
-list(APPEND EXTRA_COMPONENT_DIRS "${CMAKE_SOURCE_DIR}/../target")
-
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(target_app)
+
+set(EXTRA_COMPONENT_DIRS ${CMAKE_SOURCE_DIR}/../..)
+
+project(properties)

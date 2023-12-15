@@ -47,7 +47,8 @@ enum astarte_err_t
     ASTARTE_ERR_PUBLISH = 18, /**< An error occurred while publishing data on MQTT */
     ASTARTE_ERR_INVALID_INTROSPECTION = 19, /**< The introspection is not valid or empty */
     ASTARTE_ERR_INVALID_INTERFACE_VERSION = 20, /**< The interface is not valid */
-    ASTARTE_ERR_CONFLICTING_INTERFACE = 21 /**< The interface conflicts with an interface present in introspection */
+    ASTARTE_ERR_CONFLICTING_INTERFACE = 21, /**< The interface conflicts with an interface present in introspection */
+    ASTARTE_ERR_INVALID_SIZE = 22 /**< An input parameter has been passed with invalid size */
 } __attribute__((deprecated("Please use the typedef astarte_err_t")));
 
 // clang-format on

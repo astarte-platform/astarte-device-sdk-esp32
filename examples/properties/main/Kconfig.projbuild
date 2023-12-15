@@ -18,29 +18,29 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
 #
 
-version: "1.2.0"
-description: "A component that provides communication and pairing primitives to an Astarte cluster"
-url: "https://github.com/astarte-platform/astarte-device-sdk-esp32"
-documentation: "https://docs.astarte-platform.org/device-sdks/esp32/1.2/api"
+menu "Astarte datastreams example"
 
-tags:
-  - sdk
-  - iot
-  - astarte
+config WIFI_SSID
+    string "WiFi SSID"
+    default "myssid"
+    help
+        SSID (network name) for the example to connect to.
 
-dependencies:
-  idf:
-    version: ">=4.4"
-  espressif/zlib:
-    version: ">=1.2.13~1"
+config WIFI_PASSWORD
+    string "WiFi Password"
+    default "mypassword"
+    help
+        WiFi password (WPA or WPA2) for the example to use.
 
-files:
-  exclude:
-    - "doc/**/*"
-    - "doc"
-    - "examples/**/*"
-    - "examples"
-    - "python_scripts/**/*"
-    - "python_scripts"
-    - "tests/**/*"
-    - "tests"
+config CREDENTIALS_SECRET
+    string "Credentials secret"
+    default ""
+    help
+        Astarte device credential secret, generated when the device is added on an Astarte instance.
+
+config DEVICE_ID
+    string "Device hardware ID"
+    default ""
+    help
+        Astarte device hardware id, generated when the device is added on an Astarte instance.
+endmenu

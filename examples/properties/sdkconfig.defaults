@@ -1,7 +1,7 @@
 #
 # This file is part of Astarte.
 #
-# Copyright 2018-2023 SECO Mind Srl
+# Copyright 2023 SECO Mind Srl
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,12 +18,23 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
 #
 
-cmake_minimum_required(VERSION 3.5)
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions_example.csv"
+CONFIG_PARTITION_TABLE_CUSTOM_APP_BIN_OFFSET=0x10000
+CONFIG_PARTITION_TABLE_FILENAME="partitions_example.csv"
+CONFIG_APP_OFFSET=0x10000
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
 
-# Include the components directory of the main application:
-set(EXTRA_COMPONENT_DIRS "${CMAKE_SOURCE_DIR}/../..")
-list(APPEND EXTRA_COMPONENT_DIRS "${CMAKE_SOURCE_DIR}/../common")
-list(APPEND EXTRA_COMPONENT_DIRS "${CMAKE_SOURCE_DIR}/../target")
+#
+# Astarte SDK
+#
+CONFIG_ASTARTE_HWID_ENABLE_UUID=n
+CONFIG_ASTARTE_HWID_UUID_NAMESPACE=""
+CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY=y
+# end of Astarte SDK
 
-include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(target_app)
+#
+# Log output
+#
+CONFIG_LOG_MAXIMUM_LEVEL_DEBUG=y
+# end of Log output

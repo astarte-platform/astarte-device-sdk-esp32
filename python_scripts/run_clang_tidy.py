@@ -68,6 +68,7 @@ def run_clang_tidy(prj_dir: str, verbose: bool, clang_tidy_cfg_dir: str):
                 "--run-clang-tidy-options",
                 f'"{run_clang_tidy_py_args}"',
                 "--include-paths $PWD/../..",
+                "--exclude-paths $PWD/managed_components",
             ]
         ),
     ]

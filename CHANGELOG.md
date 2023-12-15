@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   structs. This field can be used to pass user data to callback functions.
 - Utility function `astarte_err_to_name`. Can be used to obtain a string representation of any error
   returned from the device.
+- Properties retention in NVS. The values of server and device properties can now be stored
+  permanently using the NVS drivers of ESP. Two new configuration entries have been added to the
+  Astarte SDK menu. One enables properties persistency while the other can be used to specify a
+  custom NVS partition where to store such properties.
 
 ### Changed
 - Return value of `uuid_generate_v5` and `astarte_hwid_encode` functions from `void` to
