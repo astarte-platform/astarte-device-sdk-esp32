@@ -292,7 +292,7 @@ void astarte_bson_serializer_append_document(
         astarte_err_t result = ASTARTE_OK;                                                         \
         astarte_bson_serializer_handle_t array_ser = astarte_bson_serializer_new();                \
         for (int i = 0; i < count; i++) {                                                          \
-            char key[BSON_ARRAY_SIZE_STR_LEN];                                                     \
+            char key[BSON_ARRAY_SIZE_STR_LEN] = { 0 };                                             \
             int ret = snprintf(key, BSON_ARRAY_SIZE_STR_LEN, "%i", i);                             \
             if ((ret < 0) || (ret >= BSON_ARRAY_SIZE_STR_LEN)) {                                   \
                 result = ASTARTE_ERR;                                                              \
@@ -327,7 +327,7 @@ astarte_err_t astarte_bson_serializer_append_binary_array(astarte_bson_serialize
     astarte_err_t result = ASTARTE_OK;
     astarte_bson_serializer_handle_t array_ser = astarte_bson_serializer_new();
     for (int i = 0; i < count; i++) {
-        char key[BSON_ARRAY_SIZE_STR_LEN];
+        char key[BSON_ARRAY_SIZE_STR_LEN] = { 0 };
         int ret = snprintf(key, BSON_ARRAY_SIZE_STR_LEN, "%i", i);
         if ((ret < 0) || (ret >= BSON_ARRAY_SIZE_STR_LEN)) {
             result = ASTARTE_ERR;

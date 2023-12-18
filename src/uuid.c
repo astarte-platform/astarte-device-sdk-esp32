@@ -204,7 +204,7 @@ int uuid_from_string(const char *input, uuid_t out)
     }
 
     // Will be used to contain the string representation of a uint16_t (plus the NULL terminator)
-    char tmp[sizeof(uint16_t) + sizeof(uint8_t)];
+    char tmp[sizeof(uint16_t) + sizeof(uint8_t)] = { 0 };
     struct uuid uuid_struct;
     const int strtoul_base = 16;
 
