@@ -108,7 +108,7 @@ extern "C" {
  *  const char *unique_data = "my_unique_data"
  *  uuid_generate_v5(uuid_ns, unique_data, strlen(unique_data), device_uuid);
  *
- *  char hwid[32];
+ *  char hwid[32] = { 0 };
  *  astarte_hwid_encode(hwid, sizeof(hwid), device_uuid);
  *
  *  astarte_device_config_t cfg = {

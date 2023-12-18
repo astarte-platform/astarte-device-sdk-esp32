@@ -20,6 +20,7 @@
 #include <mbedtls/md.h>
 
 #define HWID_LEN 16
+#define INFO_STRING_MAX_LEN 160
 
 #define TAG "ASTARTE_HWID"
 
@@ -35,8 +36,7 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
     esp_chip_info_t chip_info;
     esp_chip_info(&chip_info);
 
-    const size_t info_string_max_len = 160;
-    char info_string[info_string_max_len];
+    char info_string[INFO_STRING_MAX_LEN] = { 0 };
 
     // CHIP_FEATURE_EMB_FLASH, CHIP_FEATURE_BT and CHIP_FEATURE_BLE are part of the esp-idf lib.
     // NOLINTBEGIN(hicpp-signed-bitwise)
@@ -54,14 +54,14 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
 #endif
 
     // NOLINTBEGIN(readability-magic-numbers)
-    int res = snprintf(info_string, info_string_max_len,
+    int res = snprintf(info_string, INFO_STRING_MAX_LEN,
         "ESP_MAC_WIFI_STA: %02x:%02x:%02x:%02x:%02x:%02x, model: %i, cores: %i, revision: %i "
         "embedded flash: %i, bluetooth: %i, BLE: %i.",
         (unsigned int) mac_addr[0], (unsigned int) mac_addr[1], (unsigned int) mac_addr[2],
         (unsigned int) mac_addr[3], (unsigned int) mac_addr[4], (unsigned int) mac_addr[5],
         chip_info.model, chip_info.cores, revision, embedded_flash, bluetooth, ble);
     // NOLINTEND(readability-magic-numbers)
-    if ((res < 0) || (res >= info_string_max_len)) {
+    if ((res < 0) || (res >= INFO_STRING_MAX_LEN)) {
         ESP_LOGE(TAG, "Error generating the encoding device specific info string.");
         return ASTARTE_ERR;
     }
