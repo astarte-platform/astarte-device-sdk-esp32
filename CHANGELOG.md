@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2023-01-18
+### Fixed
+- Version number in `idf_component.yml`.
+
 ## [1.3.0] - 2023-12-18
 ### Added
 - `user_data` field is added to the `astarte_device_config_t` and `astarte_device_*_event_t`
