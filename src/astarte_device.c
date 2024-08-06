@@ -1444,11 +1444,6 @@ static void on_incoming(
         return;
     }
 
-    if (!device->data_event_callback) {
-        ESP_LOGE(TAG, "data_event_callback not set");
-        return;
-    }
-
     if (strstr(topic, device->device_topic) != topic) {
         ESP_LOGE(TAG, "Incoming message topic doesn't begin with device_topic: %s", topic);
         return;
@@ -1605,17 +1600,21 @@ static void on_incoming(
         return;
     }
 
-    astarte_device_data_event_t event = {
-        .device = device,
-        .interface_name = interface_name,
-        .path = path,
-        .bson_value = bson_value,
-        .bson_value_type = bson_value_type,
-        .bson_element = v_elem,
-        .user_data = device->callbacks_user_data,
-    };
+    if (!device->data_event_callback) {
+        astarte_device_data_event_t event = {
+            .device = device,
+            .interface_name = interface_name,
+            .path = path,
+            .bson_value = bson_value,
+            .bson_value_type = bson_value_type,
+            .bson_element = v_elem,
+            .user_data = device->callbacks_user_data,
+        };
 
-    device->data_event_callback(&event);
+        device->data_event_callback(&event);
+    } else {
+        ESP_LOGE(TAG, "Data received, but data_event_callback is not defined");
+    }
 }
 
 // NOLINTBEGIN(misc-unused-parameters)
