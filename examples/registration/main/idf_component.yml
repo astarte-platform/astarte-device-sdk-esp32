@@ -1,7 +1,7 @@
 #
 # This file is part of Astarte.
 #
-# Copyright 2018-2023 SECO Mind Srl
+# Copyright 2024 SECO Mind Srl
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
 #
 
-cmake_minimum_required(VERSION 3.5)
-
-include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-
-project(aggregates)
+description: Example for on board registration using a JWT
+dependencies:
+  idf: ">=4.4"
+  astarte-platform/astarte-device-sdk-esp32:
+    version: '1.3.1'
+    override_path: '../../../' # three levels up, pointing the directory with the component itself
