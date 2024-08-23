@@ -20,8 +20,13 @@
 
 version: "1.3.1"
 description: "A component that provides communication and pairing primitives to an Astarte cluster"
-url: "https://github.com/astarte-platform/astarte-device-sdk-esp32"
-documentation: "https://docs.astarte-platform.org/device-sdks/esp32/1.3/api"
+repository: "https://github.com/astarte-platform/astarte-device-sdk-esp32.git"
+url: "https://docs.astarte-platform.org/"
+documentation: "https://docs.astarte-platform.org/device-sdks/index.html"
+license: "Apache-2.0"
+maintainers:
+  - Simone Orru <simone.orru@secomind.com>
+  - Antonio Gisondi <antonio.gisondi@secomind.com>
 
 tags:
   - sdk
@@ -38,8 +43,6 @@ files:
   exclude:
     - "doc/**/*"
     - "doc"
-    - "examples/**/*"
-    - "examples"
     - "python_scripts/**/*"
     - "python_scripts"
     - "tests/**/*"
