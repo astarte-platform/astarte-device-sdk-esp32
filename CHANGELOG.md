@@ -10,7 +10,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.3.1] - 2023-01-18
+## [1.3.2] - 2024-09-04
+### Added
+- Automated publishing on the
+[ESP registry](https://components.espressif.com/components/astarte-platform/astarte-device-sdk-esp32).
+
+### Fixed
+- Early exit on reception when data callback is not set.
+
+## [1.3.1] - 2024-01-18
 ### Fixed
 - Version number in `idf_component.yml`.
 
