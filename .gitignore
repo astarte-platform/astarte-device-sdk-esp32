@@ -9,6 +9,7 @@ dependencies.lock
 managed_components
 doc/out
 .vscode
+dist
 
 # Files related to clang-tidy
 warnings.txt
