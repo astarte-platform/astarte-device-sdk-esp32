@@ -22,5 +22,5 @@ description: Example for the use of the Astarte device SDK with encrypted flash 
 dependencies:
   idf: ">=4.4"
   astarte-platform/astarte-device-sdk-esp32:
-    version: '1.3.1'
+    version: '1.3.2'
     override_path: '../../../' # three levels up, pointing the directory with the component itself
