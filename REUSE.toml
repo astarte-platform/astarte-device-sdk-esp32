@@ -1,0 +1,8 @@
+# (C) Copyright 2024, SECO Mind Srl
+#
+# SPDX-License-Identifier: Apache-2.0
+
+version = 1
+SPDX-PackageName = "Astarte Device SDK ESP32"
+SPDX-PackageDownloadLocation = "https://github.com/astarte-platform/astarte-device-sdk-esp32"
+annotations = []

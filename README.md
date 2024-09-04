@@ -12,8 +12,11 @@ Astarte ESP32 SDK lets you connect your ESP32 device to
 The SDK simplifies all the low-level operations like credentials generation, pairing and so on, and
 exposes a high-level API to publish data from your device.
 
-Have a look at the [examples](examples/README.md) for a usage example showing how to send and
-receive data.
+Check out the examples on the right pane of the
+[astarte-device-sdk-esp32](https://components.espressif.com/components/astarte-platform/astarte-device-sdk-esp32)
+component page or on the
+[GitHub repository](https://github.com/astarte-platform/astarte-device-sdk-esp32/tree/master/examples/README.md)
+.
 
 ## Documentation
 

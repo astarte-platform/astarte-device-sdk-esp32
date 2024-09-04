@@ -1,7 +1,7 @@
 #
 # This file is part of Astarte.
 #
-# Copyright 2018-2023 SECO Mind Srl
+# Copyright 2024 SECO Mind Srl
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,8 +18,23 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
 #
 
-cmake_minimum_required(VERSION 3.5)
+name: ESP registry publish
 
-include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+on:
+  push:
+    tags:
+      - 'v*'
 
-project(aggregates)
+jobs:
+  publish:
+    name: Publish release to the ESP registry
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Upload component to the component registry
+      uses: espressif/upload-components-ci-action@v1
+      with:
+        name: "astarte-device-sdk-esp32"
+        version: ${{ github.ref_name }}
+        namespace: "astarte-platform"
+        api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
