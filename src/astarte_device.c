@@ -1600,7 +1600,7 @@ static void on_incoming(
         return;
     }
 
-    if (!device->data_event_callback) {
+    if (device->data_event_callback) {
         astarte_device_data_event_t event = {
             .device = device,
             .interface_name = interface_name,
