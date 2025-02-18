@@ -7,10 +7,7 @@
 #include <astarte.h>
 #include <stdlib.h>
 
-#define ERR_TBL_IT(err)                                                                            \
-    {                                                                                              \
-        err, #err                                                                                  \
-    }
+#define ERR_TBL_IT(err) { err, #err }
 
 typedef struct
 {
