@@ -37,6 +37,9 @@ on:
 jobs:
   docs:
     runs-on: ubuntu-latest
+    concurrency:
+      group: docs-${{ github.ref }}
+      cancel-in-progress: true
     steps:
     # Checkout the source
     - uses: actions/checkout@v4

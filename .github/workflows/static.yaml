@@ -27,6 +27,9 @@ on:
 jobs:
   clang-format-check:
     runs-on: ubuntu-latest
+    concurrency:
+      group: clang-format-check-${{ github.ref }}
+      cancel-in-progress: true
     steps:
     - uses: actions/checkout@v4
     - name: Install run-clang-format
@@ -49,6 +52,9 @@ jobs:
         - "properties"
         - "registration"
         - "toggle_led"
+    concurrency:
+      group: clang-tidy-check-${{ github.ref }}-${{ matrix.example }}
+      cancel-in-progress: true
     container: espressif/idf:release-v5.1
     steps:
     - uses: actions/checkout@v4
