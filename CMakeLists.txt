@@ -36,6 +36,7 @@ idf_component_register(
         "./src/bson_deserializer.c"
         "./src/bson_serializer.c"
         "./src/data_validation.c"
+        "./src/device_id.c"
         "./src/individual.c"
         "./src/interface.c"
         "./src/mapping.c"
