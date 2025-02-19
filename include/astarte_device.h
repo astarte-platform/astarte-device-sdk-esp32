@@ -99,14 +99,14 @@ extern "C" {
  *
  * Example:
  *
- *  uuid_t uuid_ns;
- *  if (uuid_from_string("de40ff58-5696-4b35-a6d6-0cc7280bcd56", uuid_ns) != 0) {
+ *  astarte_uuid_t uuid_ns;
+ *  if (astarte_uuid_from_string("de40ff58-5696-4b35-a6d6-0cc7280bcd56", uuid_ns) != 0) {
  *      ESP_LOGE(TAG, "Error while parsing namespace UUID");
  *  }
  *
- *  uuid_t device_uuid;
+ *  astarte_uuid_t device_uuid;
  *  const char *unique_data = "my_unique_data"
- *  uuid_generate_v5(uuid_ns, unique_data, strlen(unique_data), device_uuid);
+ *  astarte_uuid_generate_v5(uuid_ns, unique_data, strlen(unique_data), device_uuid);
  *
  *  char hwid[32] = { 0 };
  *  astarte_hwid_encode(hwid, sizeof(hwid), device_uuid);

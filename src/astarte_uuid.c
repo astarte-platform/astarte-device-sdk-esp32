@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
  */
 
-#include "uuid.h"
+#include "astarte_uuid.h"
 
 #include <esp_log.h>
 #include <esp_system.h>
@@ -77,7 +77,7 @@ struct uuid
     uint8_t node[UUID_LEN_NODE];
 };
 
-static void uuid_from_struct(const struct uuid *input, uuid_t out)
+static void uuid_from_struct(const struct uuid *input, astarte_uuid_t out)
 {
     uint32_t tmp32 = 0U;
     uint16_t tmp16 = 0U;
@@ -98,7 +98,7 @@ static void uuid_from_struct(const struct uuid *input, uuid_t out)
     memcpy(out_p + UUID_OFFSET_NODE, input->node, UUID_LEN_NODE);
 }
 
-static void uuid_to_struct(const uuid_t input, struct uuid *out)
+static void uuid_to_struct(const astarte_uuid_t input, struct uuid *out)
 {
     uint32_t tmp32 = 0U;
     uint16_t tmp16 = 0U;
@@ -119,7 +119,7 @@ static void uuid_to_struct(const uuid_t input, struct uuid *out)
     memcpy(out->node, in_p + UUID_OFFSET_NODE, UUID_LEN_NODE);
 }
 
-astarte_err_t uuid_generate_v5(const uuid_t namespace, const void *data, size_t length, uuid_t out)
+astarte_err_t astarte_uuid_generate_v5(const astarte_uuid_t namespace, const void *data, size_t length, astarte_uuid_t out)
 {
     const size_t sha_256_bytes = 32;
     uint8_t sha_result[sha_256_bytes];
@@ -131,7 +131,7 @@ astarte_err_t uuid_generate_v5(const uuid_t namespace, const void *data, size_t 
     int mbedtls_err = mbedtls_md_setup(&ctx, md_info, 0);
     // NOLINTBEGIN(hicpp-signed-bitwise) Only using the mbedtls_err to check if zero
     mbedtls_err |= mbedtls_md_starts(&ctx);
-    mbedtls_err |= mbedtls_md_update(&ctx, namespace, UUID_LEN);
+    mbedtls_err |= mbedtls_md_update(&ctx, namespace, ASTARTE_UUID_LEN);
     mbedtls_err |= mbedtls_md_update(&ctx, data, length);
     mbedtls_err |= mbedtls_md_finish(&ctx, sha_result);
     // NOLINTEND(hicpp-signed-bitwise)
@@ -156,7 +156,7 @@ astarte_err_t uuid_generate_v5(const uuid_t namespace, const void *data, size_t 
     return ASTARTE_OK;
 }
 
-astarte_err_t uuid_to_string(const uuid_t uuid, char *out)
+astarte_err_t astarte_uuid_to_string(const astarte_uuid_t uuid, char *out)
 {
     struct uuid uuid_struct;
 
@@ -175,7 +175,7 @@ astarte_err_t uuid_to_string(const uuid_t uuid, char *out)
     return ASTARTE_OK;
 }
 
-int uuid_from_string(const char *input, uuid_t out)
+int astarte_uuid_from_string(const char *input, astarte_uuid_t out)
 {
     // Length check
     if (strlen(input) != UUID_STR_LEN) {
@@ -231,10 +231,10 @@ int uuid_from_string(const char *input, uuid_t out)
     return 0;
 }
 
-void uuid_generate_v4(uuid_t out)
+void astarte_uuid_generate_v4(astarte_uuid_t out)
 {
-    uint8_t random_result[UUID_LEN];
-    esp_fill_random(random_result, UUID_LEN);
+    uint8_t random_result[ASTARTE_UUID_LEN];
+    esp_fill_random(random_result, ASTARTE_UUID_LEN);
 
     struct uuid random_uuid_struct;
     uuid_to_struct(random_result, &random_uuid_struct);
