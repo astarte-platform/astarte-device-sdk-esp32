@@ -30,6 +30,8 @@
 #include "astarte_device.h"
 #include "astarte_interface.h"
 
+#include "astarte_device_sdk/mapping.h"
+
 /************************************************
  * Constants and defines
  ***********************************************/
