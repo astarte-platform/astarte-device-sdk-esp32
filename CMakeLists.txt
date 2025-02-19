@@ -41,6 +41,7 @@ idf_component_register(
         "./src/mapping.c"
         "./src/object.c"
         "./src/result.c"
+        "./src/uuid.c"
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "private"
     PRIV_REQUIRES vfs mbedtls fatfs mqtt nvs_flash esp_http_client json wpa_supplicant)
