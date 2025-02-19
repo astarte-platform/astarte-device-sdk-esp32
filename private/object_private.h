@@ -32,7 +32,7 @@ extern "C" {
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 astarte_result_t astarte_object_entries_serialize(
-    astarte_bson_serializer_t *bson, astarte_object_entry_t *entries, size_t entries_length);
+    new_ast_bson_serializer_t *bson, astarte_object_entry_t *entries, size_t entries_length);
 
 /**
  * @brief Deserialize a BSON element to an array of #astarte_object_entry_t.

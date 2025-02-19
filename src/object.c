@@ -45,7 +45,7 @@ astarte_result_t astarte_object_entry_to_path_and_individual(
  ***********************************************/
 
 astarte_result_t astarte_object_entries_serialize(
-    astarte_bson_serializer_t *bson, astarte_object_entry_t *entries, size_t entries_length)
+    new_ast_bson_serializer_t *bson, astarte_object_entry_t *entries, size_t entries_length)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     for (size_t i = 0; i < entries_length; i++) {

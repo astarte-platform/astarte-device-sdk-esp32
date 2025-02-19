@@ -32,7 +32,7 @@ extern "C" {
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 astarte_result_t astarte_individual_serialize(
-    astarte_bson_serializer_t *bson, const char *key, astarte_individual_t individual);
+    new_ast_bson_serializer_t *bson, const char *key, astarte_individual_t individual);
 
 /**
  * @brief Deserialize a BSON element to an #astarte_individual_t.
