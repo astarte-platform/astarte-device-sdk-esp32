@@ -5,4 +5,15 @@
 version = 1
 SPDX-PackageName = "Astarte Device SDK ESP32"
 SPDX-PackageDownloadLocation = "https://github.com/astarte-platform/astarte-device-sdk-esp32"
-annotations = []
+
+[[annotations]]
+path = "examples/datastreams/interfaces/generated_interfaces.c"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "SECO Mind Srl"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "examples/datastreams/interfaces/generated_interfaces.h"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "SECO Mind Srl"
+SPDX-License-Identifier = "Apache-2.0"
