@@ -27,6 +27,9 @@ on:
 jobs:
   unit-tests-on_host:
     runs-on: ubuntu-latest
+    concurrency:
+      group: unit-tests-on_host-${{ github.ref }}
+      cancel-in-progress: true
     container: espressif/idf:release-v5.1
     steps:
     - uses: actions/checkout@v4

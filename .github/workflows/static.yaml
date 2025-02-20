@@ -27,6 +27,9 @@ on:
 jobs:
   clang-format-check:
     runs-on: ubuntu-latest
+    concurrency:
+      group: clang-format-check-${{ github.ref }}
+      cancel-in-progress: true
     steps:
     - uses: actions/checkout@v4
     - name: Install run-clang-format
@@ -35,18 +38,8 @@ jobs:
         sudo apt-get install -y clang-format
         curl -sSfL https://raw.githubusercontent.com/Sarcasm/run-clang-format/master/run-clang-format.py -o run-clang-format
         chmod +x run-clang-format
-    - name: Check formatting library
-      run: |
-        ./run-clang-format --style=file src/*.c include/*.h private/*.h
-    - name: Check formatting examples
-      run: |
-        ./run-clang-format --style=file examples/**/main/*.c examples/**/main/src/*.c examples/**/main/include/*.h
-    - name: Check formatting unit tests
-      run: |
-        ./run-clang-format --style=file tests/host/*.c tests/host/*.h
-        ./run-clang-format --style=file tests/common/*.h tests/common/*.c
-        ./run-clang-format --style=file tests/target/*.c tests/target/*.h
-        ./run-clang-format --style=file tests/host_app/main/*.c tests/target_app/main/*.c
+    - name: Check formatting
+      run: ./format.sh --check-only
   clang-tidy-check:
     runs-on: ubuntu-latest
     strategy:
@@ -59,6 +52,9 @@ jobs:
         - "properties"
         - "registration"
         - "toggle_led"
+    concurrency:
+      group: clang-tidy-check-${{ github.ref }}-${{ matrix.example }}
+      cancel-in-progress: true
     container: espressif/idf:release-v5.1
     steps:
     - uses: actions/checkout@v4

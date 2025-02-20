@@ -375,30 +375,30 @@ astarte_err_t astarte_device_init_connection(
     }
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-    const esp_mqtt_client_config_t mqtt_cfg
-        = {.broker.address.uri = broker_url,
+    const esp_mqtt_client_config_t mqtt_cfg = {
+        .broker.address.uri = broker_url,
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
-              .broker.verification.crt_bundle_attach = esp_crt_bundle_attach,
+        .broker.verification.crt_bundle_attach = esp_crt_bundle_attach,
 #endif
-              .credentials.authentication.certificate = client_cert_pem,
-              .credentials.authentication.key = key_pem,
+        .credentials.authentication.certificate = client_cert_pem,
+        .credentials.authentication.key = key_pem,
 #ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
-              .session.disable_clean_session = true,
+        .session.disable_clean_session = true,
 #endif
-          };
+    };
 #else
-    const esp_mqtt_client_config_t mqtt_cfg
-        = {.uri = broker_url,
+    const esp_mqtt_client_config_t mqtt_cfg = {
+        .uri = broker_url,
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
-              .crt_bundle_attach = esp_crt_bundle_attach,
+        .crt_bundle_attach = esp_crt_bundle_attach,
 #endif
-              .client_cert_pem = client_cert_pem,
-              .client_key_pem = key_pem,
-              .user_context = device,
+        .client_cert_pem = client_cert_pem,
+        .client_key_pem = key_pem,
+        .user_context = device,
 #ifdef CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY
-              .disable_clean_session = true,
+        .disable_clean_session = true,
 #endif
-          };
+    };
 #endif
 
     esp_mqtt_client_handle_t mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
@@ -1837,12 +1837,12 @@ static astarte_err_t uncompress_purge_properties(
 
 static int has_connectivity()
 {
-    esp_http_client_config_t config
-        = {.url = CONFIG_ASTARTE_CONNECTIVITY_TEST_URL,
+    esp_http_client_config_t config = {
+        .url = CONFIG_ASTARTE_CONNECTIVITY_TEST_URL,
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
-              .crt_bundle_attach = esp_crt_bundle_attach,
+        .crt_bundle_attach = esp_crt_bundle_attach,
 #endif
-          };
+    };
     esp_http_client_handle_t client = esp_http_client_init(&config);
     esp_err_t err = esp_http_client_perform(client);
 

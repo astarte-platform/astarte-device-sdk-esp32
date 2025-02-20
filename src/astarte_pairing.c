@@ -168,17 +168,17 @@ astarte_err_t astarte_pairing_get_mqtt_v1_credentials(
         goto exit;
     }
 
-    esp_http_client_config_t http_config
-        = {.url = url,
-              .event_handler = http_event_handler,
+    esp_http_client_config_t http_config = {
+        .url = url,
+        .event_handler = http_event_handler,
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
-              .crt_bundle_attach = esp_crt_bundle_attach,
+        .crt_bundle_attach = esp_crt_bundle_attach,
 #endif
-              .method = HTTP_METHOD_POST,
-              .buffer_size = HTTP_BUFFER_SIZE,
-              .buffer_size_tx = HTTP_BUFFER_SIZE_TX,
-              .user_data = &resp,
-          };
+        .method = HTTP_METHOD_POST,
+        .buffer_size = HTTP_BUFFER_SIZE,
+        .buffer_size_tx = HTTP_BUFFER_SIZE_TX,
+        .user_data = &resp,
+    };
 
     client = esp_http_client_init(&http_config);
     if (!client) {
@@ -311,17 +311,17 @@ astarte_err_t astarte_pairing_get_mqtt_v1_broker_url(
         goto exit;
     }
 
-    esp_http_client_config_t http_config
-        = {.url = url,
-              .event_handler = http_event_handler,
+    esp_http_client_config_t http_config = {
+        .url = url,
+        .event_handler = http_event_handler,
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
-              .crt_bundle_attach = esp_crt_bundle_attach,
+        .crt_bundle_attach = esp_crt_bundle_attach,
 #endif
-              .method = HTTP_METHOD_GET,
-              .buffer_size = HTTP_BUFFER_SIZE,
-              .buffer_size_tx = HTTP_BUFFER_SIZE_TX,
-              .user_data = &resp,
-          };
+        .method = HTTP_METHOD_GET,
+        .buffer_size = HTTP_BUFFER_SIZE,
+        .buffer_size_tx = HTTP_BUFFER_SIZE_TX,
+        .user_data = &resp,
+    };
 
     client = esp_http_client_init(&http_config);
     if (!client) {
@@ -434,17 +434,17 @@ astarte_err_t astarte_pairing_register_device(const astarte_pairing_config_t *co
         goto exit;
     }
 
-    esp_http_client_config_t http_config
-        = {.url = url,
-              .event_handler = http_event_handler,
+    esp_http_client_config_t http_config = {
+        .url = url,
+        .event_handler = http_event_handler,
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
-              .crt_bundle_attach = esp_crt_bundle_attach,
+        .crt_bundle_attach = esp_crt_bundle_attach,
 #endif
-              .method = HTTP_METHOD_POST,
-              .buffer_size = HTTP_BUFFER_SIZE,
-              .buffer_size_tx = HTTP_BUFFER_SIZE_TX,
-              .user_data = &resp,
-          };
+        .method = HTTP_METHOD_POST,
+        .buffer_size = HTTP_BUFFER_SIZE,
+        .buffer_size_tx = HTTP_BUFFER_SIZE_TX,
+        .user_data = &resp,
+    };
 
     client = esp_http_client_init(&http_config);
     if (!client) {

@@ -36,9 +36,8 @@ jobs:
     strategy:
       matrix:
         idf-version:
-        - "4.4"
         - "5.0"
-        - "5.1"
+        - "5.4"
         example:
         - "aggregates"
         - "datastreams"
@@ -48,6 +47,9 @@ jobs:
         - "registration"
         - "toggle_led"
     runs-on: ubuntu-latest
+    concurrency:
+      group: build-examples-${{ github.ref }}-${{ matrix.idf-version }}-${{ matrix.example }}
+      cancel-in-progress: true
     container: espressif/idf:release-v${{ matrix.idf-version }}
     steps:
     - uses: actions/checkout@v4

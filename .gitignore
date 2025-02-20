@@ -17,3 +17,9 @@ run-clang-tidy.py
 
 # Generic python cache
 __pycache__
+
+# Private files
+*.priv
+
+# Virtual environment
+.venv/
