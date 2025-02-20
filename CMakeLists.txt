@@ -35,6 +35,7 @@ idf_component_register(
         "./src/astarte_zlib.c"
         "./src/bson_deserializer.c"
         "./src/bson_serializer.c"
+        "./src/crypto.c"
         "./src/data_validation.c"
         "./src/device_id.c"
         "./src/http.c"
