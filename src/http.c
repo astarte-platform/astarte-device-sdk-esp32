@@ -124,7 +124,6 @@ astarte_result_t astarte_http_post(const char *host, const char *path, const cha
     };
     client = esp_http_client_init(&config);
 
-    ESP_ERROR_CHECK(esp_http_client_set_url(client, "/post"));
     ESP_ERROR_CHECK(esp_http_client_set_method(client, HTTP_METHOD_POST));
     ESP_ERROR_CHECK(esp_http_client_set_post_field(client, payload, strlen(payload)));
 
@@ -148,17 +147,17 @@ astarte_result_t astarte_http_post(const char *host, const char *path, const cha
     esp_err_t esp_err = esp_http_client_perform(client);
     if (esp_err == ESP_OK) {
         int status_code = esp_http_client_get_status_code(client);
-        ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %" PRIi64, status_code,
+        ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %" PRIi64, status_code,
             esp_http_client_get_content_length(client));
-        if (status_code != HttpStatus_Ok) {
-            ESP_LOGE(TAG, "HTTP GET Status = %d, content_length = %" PRIi64, status_code,
+            if ((status_code < 200) || (status_code >= 300)) {
+            ESP_LOGE(TAG, "HTTP POST Status = %d, content_length = %" PRIi64, status_code,
                 esp_http_client_get_content_length(client));
             ares = ASTARTE_RESULT_HTTP_REQUEST_ERROR;
             goto exit;
         }
     } else {
         ares = ASTARTE_RESULT_HTTP_REQUEST_ERROR;
-        ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(esp_err));
+        ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(esp_err));
     }
 
 exit:
@@ -193,7 +192,6 @@ astarte_result_t astarte_http_get(const char *host, const char *path, const char
     };
     client = esp_http_client_init(&config);
 
-    ESP_ERROR_CHECK(esp_http_client_set_url(client, "/get"));
     ESP_ERROR_CHECK(esp_http_client_set_method(client, HTTP_METHOD_GET));
 
     const size_t auth_header_len = strlen("Bearer ") + strlen(auth_bearer);
@@ -218,7 +216,7 @@ astarte_result_t astarte_http_get(const char *host, const char *path, const char
         int status_code = esp_http_client_get_status_code(client);
         ESP_LOGD(TAG, "HTTP GET Status = %d, content_length = %" PRIi64, status_code,
             esp_http_client_get_content_length(client));
-        if (status_code != HttpStatus_Ok) {
+        if ((status_code < 200) || (status_code >= 300)) {
             ESP_LOGE(TAG, "HTTP GET Status = %d, content_length = %" PRIi64, status_code,
                 esp_http_client_get_content_length(client));
             ares = ASTARTE_RESULT_HTTP_REQUEST_ERROR;
