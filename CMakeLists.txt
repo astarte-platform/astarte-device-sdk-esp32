@@ -42,6 +42,7 @@ idf_component_register(
         "./src/interface.c"
         "./src/mapping.c"
         "./src/object.c"
+        "./src/pairing.c"
         "./src/result.c"
         "./src/uuid.c"
     INCLUDE_DIRS "include"

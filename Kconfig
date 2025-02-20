@@ -20,6 +20,22 @@
 
 menu "Astarte SDK"
 
+config ASTARTE_DEVICE_SDK_REALM_NAME
+	string "Realm name"
+	help
+	  Astarte realm name where to connect the device.
+
+config ASTARTE_DEVICE_SDK_HOSTNAME
+	string "Hostname for the Astarte APIs"
+	help
+	  This hostname will be solved using a DNS to the IP address of the Astarte instance.
+
+config ASTARTE_DEVICE_SDK_PAIRING_JWT
+	string "JWT to be used when registering a new device"
+	help
+	  This option should be set to a valid value when using the pairing API to register a new
+	  device.
+
 config ASTARTE_REALM
     string "Astarte realm"
     default "test"
