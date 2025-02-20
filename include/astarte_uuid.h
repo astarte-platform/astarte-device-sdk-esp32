@@ -4,17 +4,17 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
  */
 
-#ifndef _UUID_H_
-#define _UUID_H_
+#ifndef _ASTARTE_UUID_H_
+#define _ASTARTE_UUID_H_
 
 #include <stddef.h>
 #include <stdint.h>
 
 #include "astarte.h"
 
-#define UUID_LEN 16
+#define ASTARTE_UUID_LEN 16
 
-typedef uint8_t uuid_t[UUID_LEN];
+typedef uint8_t astarte_uuid_t[ASTARTE_UUID_LEN];
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,7 +31,7 @@ extern "C" {
  * @param out The UUID where the result will be written.
  * @return ASTARTE_OK when successfull, ASTARTE_ERR otherwise.
  */
-astarte_err_t uuid_generate_v5(const uuid_t namespace, const void *data, size_t len, uuid_t out);
+astarte_err_t astarte_uuid_generate_v5(const astarte_uuid_t namespace, const void *data, size_t len, astarte_uuid_t out);
 
 /**
  * @brief convert a UUID to its string representation.
@@ -42,7 +42,7 @@ astarte_err_t uuid_generate_v5(const uuid_t namespace, const void *data, size_t 
  * Should be at least 37 bytes large.
  * @return ASTARTE_ERR upon failure, ASTARTE_OK otherwise.
  */
-astarte_err_t uuid_to_string(const uuid_t uuid, char *out);
+astarte_err_t astarte_uuid_to_string(const astarte_uuid_t uuid, char *out);
 
 /**
  * @brief parse a UUID from its string representation.
@@ -52,7 +52,7 @@ astarte_err_t uuid_to_string(const uuid_t uuid, char *out);
  * @param out The UUID where the result will be written.
  * @return 0 if the parsing was succesfull, -1 otherwise.
  */
-int uuid_from_string(const char *input, uuid_t out);
+int astarte_uuid_from_string(const char *input, astarte_uuid_t out);
 
 /**
  * @brief generate a UUIDv4.
@@ -60,10 +60,10 @@ int uuid_from_string(const char *input, uuid_t out);
  * @details This function computes a random UUID using hardware RNG.
  * @param out The UUID where the result will be written.
  */
-void uuid_generate_v4(uuid_t out);
+void astarte_uuid_generate_v4(astarte_uuid_t out);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // _UUID_H_
+#endif // _ASTARTE_UUID_H_

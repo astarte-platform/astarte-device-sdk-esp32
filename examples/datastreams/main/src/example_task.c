@@ -21,6 +21,9 @@
 
 #include "example_task.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #include <esp_idf_version.h>
 #include <esp_log.h>
 
@@ -30,54 +33,56 @@
 #include "astarte_device.h"
 #include "astarte_interface.h"
 
+#include "astarte_device_sdk/pairing.h"
+
 /************************************************
  * Constants and defines
  ***********************************************/
 
 #define TAG "ASTARTE_EXAMPLE_DATASTREAMS"
 
-static const char cred_sec[] = CONFIG_CREDENTIALS_SECRET;
-static const char hwid[] = CONFIG_DEVICE_ID;
-static const char realm[] = CONFIG_ASTARTE_REALM;
+// static const char cred_sec[] = CONFIG_CREDENTIALS_SECRET;
+// static const char hwid[] = CONFIG_DEVICE_ID;
+// static const char realm[] = CONFIG_ASTARTE_REALM;
 
-const static astarte_interface_t device_datastream_interface = {
-    .name = "org.astarteplatform.esp32.examples.DeviceDatastream",
-    .major_version = 0,
-    .minor_version = 1,
-    .ownership = OWNERSHIP_DEVICE,
-    .type = TYPE_DATASTREAM,
-};
+// const static astarte_interface_t device_datastream_interface = {
+//     .name = "org.astarteplatform.esp32.examples.DeviceDatastream",
+//     .major_version = 0,
+//     .minor_version = 1,
+//     .ownership = OWNERSHIP_DEVICE,
+//     .type = TYPE_DATASTREAM,
+// };
 
-const static astarte_interface_t server_datastream_interface = {
-    .name = "org.astarteplatform.esp32.examples.ServerDatastream",
-    .major_version = 0,
-    .minor_version = 1,
-    .ownership = OWNERSHIP_SERVER,
-    .type = TYPE_DATASTREAM,
-};
+// const static astarte_interface_t server_datastream_interface = {
+//     .name = "org.astarteplatform.esp32.examples.ServerDatastream",
+//     .major_version = 0,
+//     .minor_version = 1,
+//     .ownership = OWNERSHIP_SERVER,
+//     .type = TYPE_DATASTREAM,
+// };
 
 /************************************************
  * Static functions declaration
  ***********************************************/
 
-/**
- * @brief Handler for astarte connection events.
- *
- * @param event Astarte device connection event pointer.
- */
-static void astarte_connection_events_handler(astarte_device_connection_event_t *event);
-/**
- * @brief Handler for astarte data event.
- *
- * @param event Astarte device data event pointer.
- */
-static void astarte_data_events_handler(astarte_device_data_event_t *event);
-/**
- * @brief Handler for astarte disconnection events.
- *
- * @param event Astarte device disconnection event pointer.
- */
-static void astarte_disconnection_events_handler(astarte_device_disconnection_event_t *event);
+// /**
+//  * @brief Handler for astarte connection events.
+//  *
+//  * @param event Astarte device connection event pointer.
+//  */
+// static void astarte_connection_events_handler(astarte_device_connection_event_t *event);
+// /**
+//  * @brief Handler for astarte data event.
+//  *
+//  * @param event Astarte device data event pointer.
+//  */
+// static void astarte_data_events_handler(astarte_device_data_event_t *event);
+// /**
+//  * @brief Handler for astarte disconnection events.
+//  *
+//  * @param event Astarte device disconnection event pointer.
+//  */
+// static void astarte_disconnection_events_handler(astarte_device_disconnection_event_t *event);
 
 /************************************************
  * Global functions definition
@@ -87,36 +92,44 @@ void astarte_example_task(void *ctx)
 {
     (void) ctx;
 
-    if (astarte_credentials_init() != ASTARTE_OK) {
-        ESP_LOGE(TAG, "Failed to initialize credentials");
-        return;
-    }
+    const TickType_t five_s_ticks = 5000 / portTICK_PERIOD_MS;
+    vTaskDelay(five_s_ticks);
 
-    bool invert_reply = true;
-    astarte_device_config_t cfg = {
-        .data_event_callback = astarte_data_events_handler,
-        .connection_event_callback = astarte_connection_events_handler,
-        .disconnection_event_callback = astarte_disconnection_events_handler,
-        .callbacks_user_data = (void *) &invert_reply,
-        .credentials_secret = cred_sec,
-        .hwid = hwid,
-        .realm = realm,
-    };
+    char device_id[] = "v57INB72Q7WU4NbFykbMMw";
+    char cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1] = {0};
+    new_ast_pairing_register_device(device_id, cred_secr);
+    ESP_LOGW(TAG, "Received credential secret: %s", cred_secr);
 
-    astarte_device_handle_t device = astarte_device_init(&cfg);
-    if (!device) {
-        ESP_LOGE(TAG, "Failed to init astarte device");
-        return;
-    }
+    // if (astarte_credentials_init() != ASTARTE_OK) {
+    //     ESP_LOGE(TAG, "Failed to initialize credentials");
+    //     return;
+    // }
 
-    astarte_device_add_interface(device, &device_datastream_interface);
-    astarte_device_add_interface(device, &server_datastream_interface);
-    if (astarte_device_start(device) != ASTARTE_OK) {
-        ESP_LOGE(TAG, "Failed to start astarte device");
-        return;
-    }
+    // bool invert_reply = true;
+    // astarte_device_config_t cfg = {
+    //     .data_event_callback = astarte_data_events_handler,
+    //     .connection_event_callback = astarte_connection_events_handler,
+    //     .disconnection_event_callback = astarte_disconnection_events_handler,
+    //     .callbacks_user_data = (void *) &invert_reply,
+    //     .credentials_secret = cred_sec,
+    //     .hwid = hwid,
+    //     .realm = realm,
+    // };
 
-    ESP_LOGI(TAG, "[APP] Encoded device ID: %s", astarte_device_get_encoded_id(device));
+    // astarte_device_handle_t device = astarte_device_init(&cfg);
+    // if (!device) {
+    //     ESP_LOGE(TAG, "Failed to init astarte device");
+    //     return;
+    // }
+
+    // astarte_device_add_interface(device, &device_datastream_interface);
+    // astarte_device_add_interface(device, &server_datastream_interface);
+    // if (astarte_device_start(device) != ASTARTE_OK) {
+    //     ESP_LOGE(TAG, "Failed to start astarte device");
+    //     return;
+    // }
+
+    // ESP_LOGI(TAG, "[APP] Encoded device ID: %s", astarte_device_get_encoded_id(device));
     while (1) {
     }
 }
@@ -125,29 +138,29 @@ void astarte_example_task(void *ctx)
  * Static functions definitions
  ***********************************************/
 
-static void astarte_connection_events_handler(astarte_device_connection_event_t *event)
-{
-    ESP_LOGI(TAG, "Astarte device connected, session_present: %d", event->session_present);
-}
+// static void astarte_connection_events_handler(astarte_device_connection_event_t *event)
+// {
+//     ESP_LOGI(TAG, "Astarte device connected, session_present: %d", event->session_present);
+// }
 
-static void astarte_data_events_handler(astarte_device_data_event_t *event)
-{
-    ESP_LOGI(TAG, "Got Astarte data event, interface_name: %s, path: %s, bson_type: %d",
-        event->interface_name, event->path, event->bson_element.type);
+// static void astarte_data_events_handler(astarte_device_data_event_t *event)
+// {
+//     ESP_LOGI(TAG, "Got Astarte data event, interface_name: %s, path: %s, bson_type: %d",
+//         event->interface_name, event->path, event->bson_element.type);
 
-    if (strcmp(event->interface_name, "org.astarteplatform.esp32.examples.ServerDatastream") == 0
-        && strcmp(event->path, "/question") == 0 && event->bson_element.type == BSON_TYPE_BOOLEAN) {
-        bool invert_reply = *((bool *) event->user_data);
-        bool answer = invert_reply ^ astarte_bson_deserializer_element_to_bool(event->bson_element);
-        ESP_LOGI(TAG, "Sending answer %d.", answer);
-        astarte_device_stream_boolean(event->device,
-            "org.astarteplatform.esp32.examples.DeviceDatastream", "/answer", answer, 0);
-    }
-}
+//     if (strcmp(event->interface_name, "org.astarteplatform.esp32.examples.ServerDatastream") == 0
+//         && strcmp(event->path, "/question") == 0 && event->bson_element.type == BSON_TYPE_BOOLEAN) {
+//         bool invert_reply = *((bool *) event->user_data);
+//         bool answer = invert_reply ^ astarte_bson_deserializer_element_to_bool(event->bson_element);
+//         ESP_LOGI(TAG, "Sending answer %d.", answer);
+//         astarte_device_stream_boolean(event->device,
+//             "org.astarteplatform.esp32.examples.DeviceDatastream", "/answer", answer, 0);
+//     }
+// }
 
-static void astarte_disconnection_events_handler(astarte_device_disconnection_event_t *event)
-{
-    (void) event;
+// static void astarte_disconnection_events_handler(astarte_device_disconnection_event_t *event)
+// {
+//     (void) event;
 
-    ESP_LOGI(TAG, "Astarte device disconnected");
-}
+//     ESP_LOGI(TAG, "Astarte device disconnected");
+// }
