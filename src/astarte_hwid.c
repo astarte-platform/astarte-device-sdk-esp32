@@ -7,7 +7,7 @@
 #include <astarte_hwid.h>
 
 #include <string.h>
-#include <uuid.h>
+#include <astarte_uuid.h>
 
 #include <esp_log.h>
 #include <esp_system.h>
@@ -69,12 +69,12 @@ astarte_err_t astarte_hwid_get_id(uint8_t *hardware_id)
     ESP_LOGD(TAG, "Astarte Device SDK running on: %s", info_string);
 
 #ifdef CONFIG_ASTARTE_HWID_ENABLE_UUID
-    uuid_t namespace_uuid;
-    uuid_from_string(CONFIG_ASTARTE_HWID_UUID_NAMESPACE, namespace_uuid);
+    astarte_uuid_t namespace_uuid;
+    astarte_uuid_from_string(CONFIG_ASTARTE_HWID_UUID_NAMESPACE, namespace_uuid);
 
-    uuid_t device_uuid;
+    astarte_uuid_t device_uuid;
     astarte_err_t uuid_err
-        = uuid_generate_v5(namespace_uuid, info_string, strlen(info_string), device_uuid);
+        = astarte_uuid_generate_v5(namespace_uuid, info_string, strlen(info_string), device_uuid);
     if (uuid_err != ASTARTE_OK) {
         ESP_LOGE(TAG, "HWID generation failed.");
         return uuid_err;

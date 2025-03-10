@@ -1,17 +1,19 @@
 /*
- * (C) Copyright 2024, SECO Mind Srl
+ * (C) Copyright 2024-2025, SECO Mind Srl
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "bson_deserializer.h"
 
-#include <zephyr/sys/byteorder.h>
+#include <endian.h>
+#include <string.h>
 
 #include "bson_types.h"
-#include "log.h"
 
-ASTARTE_LOG_MODULE_REGISTER(bson_deserializer, CONFIG_ASTARTE_DEVICE_SDK_BSON_LOG_LEVEL);
+#include <esp_log.h>
+
+#define TAG "ASTARTE_BSON_DESERIALIZER"
 
 /************************************************
  *        Defines, constants and typedef        *
@@ -51,7 +53,7 @@ bool astarte_bson_deserializer_check_validity(const void *buffer, size_t buffer_
 
     // Validate buffer size is at least 5, the size of an empty document.
     if (buffer_size < sizeof(document.size) + NULL_TERM_SIZE) {
-        ASTARTE_LOG_WRN("Buffer too small: no BSON document found");
+        ESP_LOGW(TAG, "Buffer too small: no BSON document found");
         return false;
     }
 
@@ -59,7 +61,7 @@ bool astarte_bson_deserializer_check_validity(const void *buffer, size_t buffer_
 
     // Ensure the buffer is larger or equal compared to the decoded document size
     if (buffer_size < document.size) {
-        ASTARTE_LOG_WRN("Allocated buffer size (%i) is smaller than BSON document size (%" PRIu32
+        ESP_LOGW(TAG, "Allocated buffer size (%i) is smaller than BSON document size (%" PRIu32
                         ")",
             buffer_size, document.size);
         return false;
@@ -68,7 +70,7 @@ bool astarte_bson_deserializer_check_validity(const void *buffer, size_t buffer_
     // Check document is terminated with 0x00
     if (*(const char *) ((uint8_t *) document.list + (document.size - sizeof(document.size)) - 1)
         != 0) {
-        ASTARTE_LOG_WRN("BSON document is not terminated by null byte.");
+        ESP_LOGW(TAG, "BSON document is not terminated by null byte.");
         return false;
     }
 
@@ -85,7 +87,7 @@ bool astarte_bson_deserializer_check_validity(const void *buffer, size_t buffer_
     // - 1 byte for the trailing 0x00
     // NB this check could fail on the NULL value element described in the BSON specifications
     if (document.size < sizeof(document.size) + 3 + NULL_TERM_SIZE) {
-        ASTARTE_LOG_WRN("BSON data too small");
+        ESP_LOGW(TAG, "BSON data too small");
         return false;
     }
 
@@ -102,7 +104,7 @@ bool astarte_bson_deserializer_check_validity(const void *buffer, size_t buffer_
         case ASTARTE_BSON_TYPE_INT64:
             break;
         default:
-            ASTARTE_LOG_WRN("Unrecognized BSON document first type\n");
+            ESP_LOGW(TAG, "Unrecognized BSON document first type\n");
             return false;
     }
 
@@ -198,7 +200,7 @@ astarte_result_t astarte_bson_deserializer_next_element(astarte_bson_document_t 
             break;
         }
         default: {
-            ASTARTE_LOG_WRN("unrecognized BSON type: %i", (int) curr_element.type);
+            ESP_LOGW(TAG, "unrecognized BSON type: %i", (int) curr_element.type);
             return ASTARTE_RESULT_INTERNAL_ERROR;
         }
     }
@@ -315,14 +317,14 @@ int64_t astarte_bson_deserializer_element_to_int64(astarte_bson_element_t elemen
 static uint32_t read_uint32(const void *buff)
 {
     const unsigned char *bytes = (const unsigned char *) buff;
-    return sys_le32_to_cpu(((uint32_t) bytes[0]) | (((uint32_t) bytes[1]) << 8U)
+    return le32toh(((uint32_t) bytes[0]) | (((uint32_t) bytes[1]) << 8U)
         | (((uint32_t) bytes[2]) << 16U) | (((uint32_t) bytes[3]) << 24U));
 }
 
 static uint64_t read_uint64(const void *buff)
 {
     const unsigned char *bytes = (const unsigned char *) buff;
-    return sys_le64_to_cpu((uint64_t) bytes[0] | ((uint64_t) bytes[1] << 8U)
+    return le64toh((uint64_t) bytes[0] | ((uint64_t) bytes[1] << 8U)
         | ((uint64_t) bytes[2] << 16U) | ((uint64_t) bytes[3] << 24U) | ((uint64_t) bytes[4] << 32U)
         | ((uint64_t) bytes[5] << 40U) | ((uint64_t) bytes[6] << 48U)
         | ((uint64_t) bytes[7] << 56U));

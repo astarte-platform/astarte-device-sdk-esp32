@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024, SECO Mind Srl
+ * (C) Copyright 2024-2025, SECO Mind Srl
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -62,4 +62,4 @@ astarte_result_t astarte_crypto_get_certificate_info(
 }
 #endif
 
-#endif /* CRYPTO_H */
+#endif // CRYPTO_H

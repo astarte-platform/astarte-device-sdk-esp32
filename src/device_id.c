@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024, SECO Mind Srl
+ * (C) Copyright 2024-2025, SECO Mind Srl
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -7,8 +7,9 @@
 
 #include "uuid.h"
 
-#include "log.h"
-ASTARTE_LOG_MODULE_REGISTER(device_id, CONFIG_ASTARTE_DEVICE_SDK_DEVICE_ID_LOG_LEVEL);
+#include <esp_log.h>
+
+#define TAG "ASTARTE_DEVICE_ID"
 
 /************************************************
  *         Global functions definitions         *
@@ -30,7 +31,7 @@ astarte_result_t astarte_device_id_generate_deterministic(
 
     ares = uuid_generate_v5(namespace, name, name_size, uuid);
     if (ares != ASTARTE_RESULT_OK) {
-        ASTARTE_LOG_ERR("UUID V5 generation failed: %s", astarte_result_to_name(ares));
+        ESP_LOGE(TAG, "UUID V5 generation failed: %s", astarte_result_to_name(ares));
         return ares;
     }
 

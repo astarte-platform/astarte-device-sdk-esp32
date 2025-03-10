@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024, SECO Mind Srl
+ * (C) Copyright 2024-2025, SECO Mind Srl
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -8,14 +8,13 @@
 #include "object_private.h"
 
 #include <stdlib.h>
+#include <esp_log.h>
 
 #include "bson_types.h"
 #include "individual_private.h"
 #include "interface_private.h"
 
-#include "log.h"
-
-ASTARTE_LOG_MODULE_REGISTER(astarte_object, CONFIG_ASTARTE_DEVICE_SDK_OBJECT_LOG_LEVEL);
+#define TAG "ASTARTE_OBJECT"
 
 /************************************************
  *     Global public functions definitions      *
@@ -33,7 +32,7 @@ astarte_result_t astarte_object_entry_to_path_and_individual(
     astarte_object_entry_t object_entry, const char **path, astarte_individual_t *individual)
 {
     if (!path || !individual) {
-        ASTARTE_LOG_ERR("Conversion from Astarte object entry to path and individual error.");
+        ESP_LOGE(TAG, "Conversion from Astarte object entry to path and individual error.");
         return ASTARTE_RESULT_INVALID_PARAM;
     }
     *path = object_entry.path;
@@ -46,7 +45,7 @@ astarte_result_t astarte_object_entry_to_path_and_individual(
  ***********************************************/
 
 astarte_result_t astarte_object_entries_serialize(
-    astarte_bson_serializer_t *bson, astarte_object_entry_t *entries, size_t entries_length)
+    new_ast_bson_serializer_t *bson, astarte_object_entry_t *entries, size_t entries_length)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     for (size_t i = 0; i < entries_length; i++) {
@@ -69,7 +68,7 @@ astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_
 
     // Step 1: extract the document from the BSON and calculate its length
     if (bson_elem.type != ASTARTE_BSON_TYPE_DOCUMENT) {
-        ASTARTE_LOG_ERR("Received BSON element that is not a document.");
+        ESP_LOGE(TAG, "Received BSON element that is not a document.");
         ares = ASTARTE_RESULT_BSON_DESERIALIZER_ERROR;
         goto failure;
     }
@@ -81,7 +80,7 @@ astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_
         goto failure;
     }
     if (bson_doc_length == 0) {
-        ASTARTE_LOG_ERR("BSON document can't be empty.");
+        ESP_LOGE(TAG, "BSON document can't be empty.");
         ares = ASTARTE_RESULT_BSON_EMPTY_DOCUMENT_ERROR;
         goto failure;
     }
@@ -89,7 +88,7 @@ astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_
     // Step 2: Allocate sufficient memory for all the astarte object entries
     tmp_entries = calloc(bson_doc_length, sizeof(astarte_object_entry_t));
     if (!tmp_entries) {
-        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
+        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
         ares = ASTARTE_RESULT_OUT_OF_MEMORY;
         goto failure;
     }

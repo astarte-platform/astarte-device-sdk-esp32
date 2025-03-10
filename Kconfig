@@ -20,6 +20,22 @@
 
 menu "Astarte SDK"
 
+config ASTARTE_DEVICE_SDK_REALM_NAME
+	string "Realm name"
+	help
+	  Astarte realm name where to connect the device.
+
+config ASTARTE_DEVICE_SDK_HOSTNAME
+	string "Hostname for the Astarte APIs"
+	help
+	  This hostname will be solved using a DNS to the IP address of the Astarte instance.
+
+config ASTARTE_DEVICE_SDK_PAIRING_JWT
+	string "JWT to be used when registering a new device"
+	help
+	  This option should be set to a valid value when using the pairing API to register a new
+	  device.
+
 config ASTARTE_REALM
     string "Astarte realm"
     default "test"
@@ -80,5 +96,16 @@ config ASTARTE_PROPERTY_PERSISTENCY_NVS_PARTITION_LABEL
     depends on ASTARTE_USE_PROPERTY_PERSISTENCY
     help
         Use this option to specify a custom NVS partition for caching the received properties.
+
+menu "Advanced options"
+
+config ASTARTE_DEVICE_SDK_ADVANCED_CLIENT_CRT_BUFFER_SIZE
+	int "Buffer size for client TLS certificate"
+	default 2048
+	help
+	  Use this option to increase/decrease the buffer size where the TLS client certificate is
+	  stored.
+
+endmenu
 
 endmenu

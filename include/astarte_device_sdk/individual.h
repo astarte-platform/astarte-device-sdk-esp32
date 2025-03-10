@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024, SECO Mind Srl
+ * (C) Copyright 2024-2025, SECO Mind Srl
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -397,4 +397,4 @@ astarte_result_t astarte_individual_to_string_array(
  * @}
  */
 
-#endif /* ASTARTE_DEVICE_SDK_INDIVIDUAL_H */
+#endif // ASTARTE_DEVICE_SDK_INDIVIDUAL_H

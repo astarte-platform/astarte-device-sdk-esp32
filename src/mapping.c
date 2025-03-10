@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024, SECO Mind Srl
+ * (C) Copyright 2024-2025, SECO Mind Srl
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,9 +10,9 @@
 #include <math.h>
 #include <string.h>
 
-#include "log.h"
+#include <esp_log.h>
 
-ASTARTE_LOG_MODULE_REGISTER(astarte_mapping, CONFIG_ASTARTE_DEVICE_SDK_MAPPING_LOG_LEVEL);
+#define TAG "ASTARTE_MAPPING"
 
 /************************************************
  *         Static functions declaration         *
@@ -63,7 +63,7 @@ astarte_result_t astarte_mapping_array_to_scalar_type(
             *scalar_type = ASTARTE_MAPPING_TYPE_STRING;
             break;
         default:
-            ASTARTE_LOG_ERR("Attempting to conversion array->scalar on non array type.");
+            ESP_LOGE(TAG, "Attempting to conversion array->scalar on non array type.");
             ares = ASTARTE_RESULT_INTERNAL_ERROR;
             break;
     }
@@ -136,19 +136,19 @@ astarte_result_t astarte_mapping_check_individual(
     const astarte_mapping_t *mapping, astarte_individual_t individual)
 {
     if (mapping->type != individual.tag) {
-        ASTARTE_LOG_ERR("Astarte individual type and mapping type do not match.");
+        ESP_LOGE(TAG, "Astarte individual type and mapping type do not match.");
         return ASTARTE_RESULT_MAPPING_INDIVIDUAL_INCOMPATIBLE;
     }
 
     if ((mapping->type == ASTARTE_MAPPING_TYPE_DOUBLE) && (isfinite(individual.data.dbl) == 0)) {
-        ASTARTE_LOG_ERR("Astarte individual double is not a number.");
+        ESP_LOGE(TAG, "Astarte individual double is not a number.");
         return ASTARTE_RESULT_MAPPING_INDIVIDUAL_INCOMPATIBLE;
     }
 
     if (mapping->type == ASTARTE_MAPPING_TYPE_DOUBLEARRAY) {
         for (size_t i = 0; i < individual.data.double_array.len; i++) {
             if (isfinite(individual.data.double_array.buf[i]) == 0) {
-                ASTARTE_LOG_ERR("Astarte individual double is not a number.");
+                ESP_LOGE(TAG, "Astarte individual double is not a number.");
                 return ASTARTE_RESULT_MAPPING_INDIVIDUAL_INCOMPATIBLE;
             }
         }

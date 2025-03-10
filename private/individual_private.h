@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024, SECO Mind Srl
+ * (C) Copyright 2024-2025, SECO Mind Srl
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -32,7 +32,7 @@ extern "C" {
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 astarte_result_t astarte_individual_serialize(
-    astarte_bson_serializer_t *bson, const char *key, astarte_individual_t individual);
+    new_ast_bson_serializer_t *bson, const char *key, astarte_individual_t individual);
 
 /**
  * @brief Deserialize a BSON element to an #astarte_individual_t.
@@ -69,4 +69,4 @@ void astarte_individual_destroy_deserialized(astarte_individual_t individual);
 }
 #endif
 
-#endif /* INDIVIDUAL_PRIVATE_H */
+#endif // INDIVIDUAL_PRIVATE_H
