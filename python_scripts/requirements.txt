@@ -5,3 +5,4 @@
 pyclang
 termcolor
 colored
+astarte-device-sdk

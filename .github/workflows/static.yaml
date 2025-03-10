@@ -40,6 +40,21 @@ jobs:
         chmod +x run-clang-format
     - name: Check formatting
       run: ./format.sh --check-only
+  interfaces-generation:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: interfaces-generation-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+      - name: Install Python dependencies
+        run: pip install -r ./python_scripts/requirements.txt
+      - name: Check if generated interfaces are up to date
+        run: python ./python_scripts/generate_interfaces.py -c ./examples/datastreams/interfaces/
   clang-tidy-check:
     runs-on: ubuntu-latest
     strategy:
