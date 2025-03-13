@@ -149,7 +149,7 @@ astarte_result_t astarte_http_post(const char *host, const char *path, const cha
         int status_code = esp_http_client_get_status_code(client);
         ESP_LOGD(TAG, "HTTP POST Status = %d, content_length = %" PRIi64, status_code,
             esp_http_client_get_content_length(client));
-            if ((status_code < 200) || (status_code >= 300)) {
+        if ((status_code < 200) || (status_code >= 300)) {
             ESP_LOGE(TAG, "HTTP POST Status = %d, content_length = %" PRIi64, status_code,
                 esp_http_client_get_content_length(client));
             ares = ASTARTE_RESULT_HTTP_REQUEST_ERROR;

@@ -61,8 +61,7 @@ bool astarte_bson_deserializer_check_validity(const void *buffer, size_t buffer_
 
     // Ensure the buffer is larger or equal compared to the decoded document size
     if (buffer_size < document.size) {
-        ESP_LOGW(TAG, "Allocated buffer size (%i) is smaller than BSON document size (%" PRIu32
-                        ")",
+        ESP_LOGW(TAG, "Allocated buffer size (%i) is smaller than BSON document size (%" PRIu32 ")",
             buffer_size, document.size);
         return false;
     }
@@ -324,8 +323,7 @@ static uint32_t read_uint32(const void *buff)
 static uint64_t read_uint64(const void *buff)
 {
     const unsigned char *bytes = (const unsigned char *) buff;
-    return le64toh((uint64_t) bytes[0] | ((uint64_t) bytes[1] << 8U)
-        | ((uint64_t) bytes[2] << 16U) | ((uint64_t) bytes[3] << 24U) | ((uint64_t) bytes[4] << 32U)
-        | ((uint64_t) bytes[5] << 40U) | ((uint64_t) bytes[6] << 48U)
-        | ((uint64_t) bytes[7] << 56U));
+    return le64toh((uint64_t) bytes[0] | ((uint64_t) bytes[1] << 8U) | ((uint64_t) bytes[2] << 16U)
+        | ((uint64_t) bytes[3] << 24U) | ((uint64_t) bytes[4] << 32U) | ((uint64_t) bytes[5] << 40U)
+        | ((uint64_t) bytes[6] << 48U) | ((uint64_t) bytes[7] << 56U));
 }

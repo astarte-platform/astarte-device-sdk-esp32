@@ -7,8 +7,8 @@
 #include "astarte_device_sdk/object.h"
 #include "object_private.h"
 
-#include <stdlib.h>
 #include <esp_log.h>
+#include <stdlib.h>
 
 #include "bson_types.h"
 #include "individual_private.h"

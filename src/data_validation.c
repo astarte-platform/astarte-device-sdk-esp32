@@ -30,21 +30,21 @@ astarte_result_t data_validation_individual_datastream(const astarte_interface_t
 
     ares = astarte_mapping_check_individual(mapping, individual);
     if (ares != ASTARTE_RESULT_OK) {
-        ESP_LOGE(TAG,
-            "Individual validation failed, interface/path (%s/%s).", interface->name, path);
+        ESP_LOGE(
+            TAG, "Individual validation failed, interface/path (%s/%s).", interface->name, path);
         return ares;
     }
 
     if (mapping->explicit_timestamp && !timestamp) {
-        ESP_LOGE(TAG,
-            "Explicit timestamp required for interface %s, path %s.", interface->name, path);
+        ESP_LOGE(
+            TAG, "Explicit timestamp required for interface %s, path %s.", interface->name, path);
         ares = ASTARTE_RESULT_MAPPING_EXPLICIT_TIMESTAMP_REQUIRED;
         return ares;
     }
 
     if (!mapping->explicit_timestamp && timestamp) {
-        ESP_LOGE(TAG,
-            "Explicit timestamp not supported for interface %s, path %s.", interface->name, path);
+        ESP_LOGE(TAG, "Explicit timestamp not supported for interface %s, path %s.",
+            interface->name, path);
         ares = ASTARTE_RESULT_MAPPING_EXPLICIT_TIMESTAMP_NOT_SUPPORTED;
         return ares;
     }
@@ -75,8 +75,8 @@ astarte_result_t data_validation_aggregated_datastream(const astarte_interface_t
         }
 
         if (mapping->explicit_timestamp && !timestamp) {
-            ESP_LOGE(TAG,
-                "Explicit timestamp required for interface %s, path %s.", interface->name, path);
+            ESP_LOGE(TAG, "Explicit timestamp required for interface %s, path %s.", interface->name,
+                path);
             ares = ASTARTE_RESULT_MAPPING_EXPLICIT_TIMESTAMP_REQUIRED;
             return ares;
         }

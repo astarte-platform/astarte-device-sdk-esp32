@@ -119,7 +119,8 @@ static void uuid_to_struct(const astarte_uuid_t input, struct uuid *out)
     memcpy(out->node, in_p + UUID_OFFSET_NODE, UUID_LEN_NODE);
 }
 
-astarte_err_t astarte_uuid_generate_v5(const astarte_uuid_t namespace, const void *data, size_t length, astarte_uuid_t out)
+astarte_err_t astarte_uuid_generate_v5(
+    const astarte_uuid_t namespace, const void *data, size_t length, astarte_uuid_t out)
 {
     const size_t sha_256_bytes = 32;
     uint8_t sha_result[sha_256_bytes];

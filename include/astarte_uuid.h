@@ -31,7 +31,8 @@ extern "C" {
  * @param out The UUID where the result will be written.
  * @return ASTARTE_OK when successfull, ASTARTE_ERR otherwise.
  */
-astarte_err_t astarte_uuid_generate_v5(const astarte_uuid_t namespace, const void *data, size_t len, astarte_uuid_t out);
+astarte_err_t astarte_uuid_generate_v5(
+    const astarte_uuid_t namespace, const void *data, size_t len, astarte_uuid_t out);
 
 /**
  * @brief convert a UUID to its string representation.

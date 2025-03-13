@@ -7,15 +7,15 @@
 #include "astarte_device_sdk/pairing.h"
 #include "pairing_private.h"
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <cJSON.h>
 
 #include <esp_log.h>
 
-#include "http.h"
 #include "astarte_device_sdk/device_id.h"
+#include "http.h"
 
 #define TAG "ASTARTE_PAIRING"
 
@@ -103,8 +103,7 @@ static astarte_result_t parse_verify_client_certificate_response(
  ***********************************************/
 
 astarte_result_t new_ast_pairing_register_device(
-    const char *device_id,
-    char out_cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1])
+    const char *device_id, char out_cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1])
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     char *payload = NULL;
@@ -133,7 +132,7 @@ astarte_result_t new_ast_pairing_register_device(
     payload = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
-    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = {0};
+    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
 
     ares = astarte_http_post(host, path, auth_bearer, payload, reply);
     if (ares != ASTARTE_RESULT_OK) {
@@ -149,20 +148,18 @@ exit:
     return ares;
 }
 
-astarte_result_t new_ast_pairing_get_mqtt_broker_url(
-    const char *device_id, const char *cred_secr,
+astarte_result_t new_ast_pairing_get_mqtt_broker_url(const char *device_id, const char *cred_secr,
     char out_url[NEW_AST_PAIRING_MAX_BROKER_URL_LEN + 1])
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     // Step 1: check the input parameters
     if (strlen(device_id) != ASTARTE_DEVICE_ID_LEN) {
-        ESP_LOGE(TAG,
-            "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
+        ESP_LOGE(TAG, "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
     if (strlen(cred_secr) != NEW_AST_PAIRING_CRED_SECR_LEN) {
-        ESP_LOGE(TAG,
-            "Credential secret has incorrect length, should be %d chars.", NEW_AST_PAIRING_CRED_SECR_LEN);
+        ESP_LOGE(TAG, "Credential secret has incorrect length, should be %d chars.",
+            NEW_AST_PAIRING_CRED_SECR_LEN);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
 
@@ -176,7 +173,7 @@ astarte_result_t new_ast_pairing_get_mqtt_broker_url(
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
 
-    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = {0};
+    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
     ares = astarte_http_get(host, path, cred_secr, reply);
     if (ares != ASTARTE_RESULT_OK) {
         return ares;
@@ -186,22 +183,21 @@ astarte_result_t new_ast_pairing_get_mqtt_broker_url(
     return parse_get_borker_url_response((const char *) reply, out_url);
 }
 
-astarte_result_t new_ast_pairing_get_client_certificate(const char *device_id,
-    const char *cred_secr, astarte_tls_credentials_client_crt_t *client_crt)
+astarte_result_t new_ast_pairing_get_client_certificate(
+    const char *device_id, const char *cred_secr, astarte_tls_credentials_client_crt_t *client_crt)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     char *payload = NULL;
 
     // Step 1: check the configuration and input parameters
     if (strlen(device_id) != ASTARTE_DEVICE_ID_LEN) {
-        ESP_LOGE(TAG,
-            "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
+        ESP_LOGE(TAG, "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
         ares = ASTARTE_RESULT_INVALID_PARAM;
         goto exit;
     }
     if (strlen(cred_secr) != NEW_AST_PAIRING_CRED_SECR_LEN) {
-        ESP_LOGE(TAG,
-            "Credential secret has incorrect length, should be %d chars.", NEW_AST_PAIRING_CRED_SECR_LEN);
+        ESP_LOGE(TAG, "Credential secret has incorrect length, should be %d chars.",
+            NEW_AST_PAIRING_CRED_SECR_LEN);
         ares = ASTARTE_RESULT_INVALID_PARAM;
         goto exit;
     }
@@ -237,7 +233,7 @@ astarte_result_t new_ast_pairing_get_client_certificate(const char *device_id,
     payload = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
-    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = {0};
+    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
 
     ares = astarte_http_post(host, path, cred_secr, payload, reply);
     if (ares != ASTARTE_RESULT_OK) {
@@ -256,21 +252,20 @@ exit:
     return ares;
 }
 
-astarte_result_t new_ast_pairing_verify_client_certificate(const char *device_id,
-    const char *cred_secr, const char *crt_pem)
+astarte_result_t new_ast_pairing_verify_client_certificate(
+    const char *device_id, const char *cred_secr, const char *crt_pem)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     char *payload = NULL;
 
     // Step 1: check the configuration and input parameters
     if (strlen(device_id) != ASTARTE_DEVICE_ID_LEN) {
-        ESP_LOGE(TAG,
-            "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
+        ESP_LOGE(TAG, "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
     if (strlen(cred_secr) != NEW_AST_PAIRING_CRED_SECR_LEN) {
-        ESP_LOGE(TAG,
-            "Credential secret has incorrect length, should be %d chars.", NEW_AST_PAIRING_CRED_SECR_LEN);
+        ESP_LOGE(TAG, "Credential secret has incorrect length, should be %d chars.",
+            NEW_AST_PAIRING_CRED_SECR_LEN);
         ares = ASTARTE_RESULT_INVALID_PARAM;
         goto exit;
     }
@@ -298,7 +293,7 @@ astarte_result_t new_ast_pairing_verify_client_certificate(const char *device_id
     payload = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
-    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = {0};
+    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
 
     ares = astarte_http_post(host, path, cred_secr, payload, reply);
     if (ares != ASTARTE_RESULT_OK) {
@@ -351,7 +346,8 @@ static astarte_result_t parse_register_device_response(
 
 static astarte_result_t parse_get_client_certificate_response(
     const char response[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1],
-    char out_crt_pem[CONFIG_ASTARTE_DEVICE_SDK_ADVANCED_CLIENT_CRT_BUFFER_SIZE]) {
+    char out_crt_pem[CONFIG_ASTARTE_DEVICE_SDK_ADVANCED_CLIENT_CRT_BUFFER_SIZE])
+{
 
     const cJSON *response_json = cJSON_Parse(response);
     const cJSON *data = cJSON_GetObjectItemCaseSensitive(response_json, "data");
@@ -360,7 +356,8 @@ static astarte_result_t parse_get_client_certificate_response(
         ESP_LOGE(TAG, "Parsing the client certificate failed.");
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
-    strncpy(out_crt_pem, client_crt->valuestring, CONFIG_ASTARTE_DEVICE_SDK_ADVANCED_CLIENT_CRT_BUFFER_SIZE - 1);
+    strncpy(out_crt_pem, client_crt->valuestring,
+        CONFIG_ASTARTE_DEVICE_SDK_ADVANCED_CLIENT_CRT_BUFFER_SIZE - 1);
     // Replace "\n" with newlines chars
     char *tmp = NULL;
     while ((tmp = strstr(out_crt_pem, "\\n")) != NULL) {
@@ -371,7 +368,8 @@ static astarte_result_t parse_get_client_certificate_response(
 }
 
 static astarte_result_t parse_verify_client_certificate_response(
-    const char response[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1]) {
+    const char response[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1])
+{
     const cJSON *response_json = cJSON_Parse(response);
     const cJSON *data = cJSON_GetObjectItemCaseSensitive(response_json, "data");
     const cJSON *valid = cJSON_GetObjectItemCaseSensitive(data, "valid");

@@ -973,8 +973,8 @@ static bool check_if_bson_type_is_mapping_type(
     }
 
     if (bson_type != expected_bson_type) {
-        ESP_LOGE(TAG,
-            "Mapping type (%d) and BSON type (0x%x) do not match.", mapping_type, bson_type);
+        ESP_LOGE(
+            TAG, "Mapping type (%d) and BSON type (0x%x) do not match.", mapping_type, bson_type);
         return false;
     }
 

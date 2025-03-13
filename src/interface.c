@@ -66,8 +66,8 @@ astarte_result_t astarte_interface_get_mapping_from_paths(const astarte_interfac
     }
     ares = astarte_interface_get_mapping_from_path(interface, fullpath, mapping);
     if (ares != ASTARTE_RESULT_OK) {
-        ESP_LOGE(TAG,
-            "For path '%s' could not find mapping in interface '%s'.", fullpath, interface->name);
+        ESP_LOGE(TAG, "For path '%s' could not find mapping in interface '%s'.", fullpath,
+            interface->name);
         ares = ASTARTE_RESULT_MAPPING_NOT_IN_INTERFACE;
         goto exit;
     }
@@ -90,8 +90,8 @@ astarte_result_t astarte_interface_get_qos(
     if (interface->aggregation == ASTARTE_INTERFACE_AGGREGATION_INDIVIDUAL) {
         ares = astarte_interface_get_mapping_from_path(interface, path, &mapping);
         if (ares != ASTARTE_RESULT_OK) {
-            ESP_LOGE(TAG,
-                "Couldn't find mapping in interface %s for path %s.", interface->name, path);
+            ESP_LOGE(
+                TAG, "Couldn't find mapping in interface %s for path %s.", interface->name, path);
             return ares;
         }
     } else {
