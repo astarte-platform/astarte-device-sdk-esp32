@@ -11,6 +11,7 @@ display_help() {
     echo "Options:"
     echo "  --fresh            Build the samples from scratch."
     echo "  --flash            Also flash the samples."
+    echo "  --monitor          Also open a serial monitor with the board."
     echo "  --esp_path         Path to the folder containing the esp-idf installation."
     echo "  --sample           Build a specific sample."
     echo "  -h, --help         Display this help message."
@@ -19,6 +20,7 @@ display_help() {
 # Set the fresh mode to off by default
 fresh_mode=false
 flash=false
+monitor=false
 sample=datastreams
 esp_path=$HOME/esp
 
@@ -27,6 +29,7 @@ while [[ "$#" -gt 0 ]]; do
     case $1 in
         --fresh) fresh_mode=true ;;
         --flash) flash=true ;;
+        --monitor) monitor=true ;;
         --esp_path) shift; esp_path="$1" ;;
         --sample) shift; sample="$1" ;;
         -h|--help) display_help; exit 0 ;;
@@ -55,4 +58,8 @@ idf.py build
 
 if $flash; then
     idf.py flash
+fi
+
+if $monitor; then
+    idf.py monitor
 fi
