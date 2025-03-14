@@ -32,12 +32,6 @@ jobs:
       cancel-in-progress: true
     steps:
     - uses: actions/checkout@v4
-    - name: Install run-clang-format
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y clang-format
-        curl -sSfL https://raw.githubusercontent.com/Sarcasm/run-clang-format/master/run-clang-format.py -o run-clang-format
-        chmod +x run-clang-format
     - name: Check formatting
       run: ./format.sh --check-only
   interfaces-generation:

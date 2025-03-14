@@ -22,11 +22,9 @@ do
     case $arg in
         --check-only)
             check_only=true
-            shift # Remove --check-only from processing
             ;;
         --help)
             display_help
-            shift # Remove --help from processing
             ;;
         *)
             echo "Unknown option: $arg"
@@ -42,11 +40,10 @@ if [ ! -d ".venv" ]; then
 fi
 source .venv/bin/activate
 package_name="clang-format"
-package_version="19.1.6"
-installed_version=$((pip show $package_name | grep Version | awk '{print $2}') || true)
+package_version="20.1.0"
+installed_version=$( (pip show $package_name | grep Version | awk '{print $2}') || true)
 if [ "$installed_version" != "$package_version" ]; then
-    pip install $package_name==$package_version
-    if [ $? -ne 0 ]; then
+    if ! pip install $package_name==$package_version; then
         echo "Failed to install $package_name version $package_version."
         exit 1
     fi
@@ -63,8 +60,7 @@ else
     command="-i"
 fi
 for file_pattern in "${format_files[@]}"; do
-    clang-format --style=file $command $file_pattern
-    if [ $? -ne 0 ]; then
+    if ! clang-format --style=file $command $file_pattern; then
         exit 1
     fi
 done
