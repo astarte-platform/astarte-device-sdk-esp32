@@ -9,12 +9,9 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <esp_random.h>
-
-// #include <zephyr/posix/arpa/inet.h>
-// #include <zephyr/random/random.h>
-// #include <zephyr/sys/base64.h>
 
 #include <mbedtls/base64.h>
 #include <mbedtls/md.h>
