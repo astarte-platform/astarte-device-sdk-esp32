@@ -22,10 +22,10 @@ idf_component_register(
     SRCS
         "test_astarte_bson_serializer.c"
         "test_astarte_bson_deserializer.c"
-        "test_astarte_linked_list.c"
+        "test_dlist.c"
         "../../src/astarte_bson_serializer.c"
         "../../src/astarte_bson_deserializer.c"
-        "../../src/astarte_linked_list.c"
+        "../../src/dlist.c"
     INCLUDE_DIRS
         "."
         "../../include"

@@ -19,21 +19,21 @@
  *
  **/
 
-#ifndef _TEST_ASTARTE_LINKED_LIST_H_
-#define _TEST_ASTARTE_LINKED_LIST_H_
+#ifndef TEST_DLIST_H
+#define TEST_DLIST_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void test_astarte_linked_list_is_empty(void);
-void test_astarte_linked_list_append_remove_tail(void);
-void test_astarte_linked_list_destroy(void);
-void test_astarte_linked_list_iterator(void);
-void test_astarte_linked_list_iterator_replace(void);
+void test_dlist_is_empty(void);
+void test_dlist_append_remove_tail(void);
+void test_dlist_destroy(void);
+void test_dlist_iterator(void);
+void test_dlist_iterator_replace(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // _TEST_ASTARTE_LINKED_LIST_H_
+#endif // TEST_DLIST_H
