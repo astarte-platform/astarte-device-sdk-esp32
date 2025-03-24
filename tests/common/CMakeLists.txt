@@ -20,12 +20,16 @@
 
 idf_component_register(
     SRCS
+        "interfaces.c"
         "test_astarte_bson_serializer.c"
         "test_astarte_bson_deserializer.c"
         "test_dlist.c"
+        "test_introspection.c"
         "../../src/astarte_bson_serializer.c"
         "../../src/astarte_bson_deserializer.c"
         "../../src/dlist.c"
+        "../../src/interface.c"
+        "../../src/introspection.c"
     INCLUDE_DIRS
         "."
         "../../include"

@@ -26,6 +26,7 @@
 #include "test_astarte_bson_deserializer.h"
 #include "test_astarte_bson_serializer.h"
 #include "test_dlist.h"
+#include "test_introspection.h"
 #include "test_uuid.h"
 
 int main(int argc, char **argv)
@@ -49,6 +50,11 @@ int main(int argc, char **argv)
     RUN_TEST(test_dlist_destroy);
     RUN_TEST(test_dlist_iterator);
     RUN_TEST(test_dlist_iterator_replace);
+
+    RUN_TEST(test_introspection_creation);
+    RUN_TEST(test_introspection_add_get_update);
+    RUN_TEST(test_introspection_get_string);
+    RUN_TEST(test_introspection_iterator);
 
     RUN_TEST(test_uuid_from_string);
     RUN_TEST(test_uuid_to_string);

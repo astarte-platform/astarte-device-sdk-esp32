@@ -25,9 +25,10 @@
 
 #include "test_astarte_bson_deserializer.h"
 #include "test_astarte_bson_serializer.h"
-#include "test_dlist.h"
 #include "test_astarte_nvs_key_value.h"
 #include "test_astarte_storage.h"
+#include "test_dlist.h"
+#include "test_introspection.h"
 
 void app_main(void)
 {
@@ -51,6 +52,11 @@ void app_main(void)
     RUN_TEST(test_dlist_destroy);
     RUN_TEST(test_dlist_iterator);
     RUN_TEST(test_dlist_iterator_replace);
+
+    RUN_TEST(test_introspection_creation);
+    RUN_TEST(test_introspection_add_get_update);
+    RUN_TEST(test_introspection_get_string);
+    RUN_TEST(test_introspection_iterator);
 
     RUN_TEST(test_astarte_nvs_key_value_set_get_cycle);
     RUN_TEST(test_astarte_nvs_key_value_erase_key);
