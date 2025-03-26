@@ -21,7 +21,7 @@
 idf_component_register(
     SRCS
         "test_uuid.c"
-        "../../src/uuid.c"
+        "../../src/astarte_uuid.c"
     INCLUDE_DIRS
         "."
         "../../include"
