@@ -74,18 +74,16 @@ static astarte_result_t append_property_to_string(device_caching_t handle,
 
 astarte_result_t device_caching_open_namespace(device_caching_t *handle, const char *namespace)
 {
-#ifdef CONFIG_ASTARTE_DEVICE_SDK_NVS
     esp_err_t esp_err = nvs_open_from_partition(CONFIG_ASTARTE_DEVICE_SDK_NVS_PARTITION_LABEL,
         namespace, NVS_READWRITE, &handle->nvs_handle);
     if (esp_err != ESP_OK) {
         ESP_LOGE(TAG, "Error opening NVS partition: %s.", esp_err_to_name(esp_err));
         return ASTARTE_RESULT_NVS_ERROR;
     }
-#endif
     return ASTARTE_RESULT_OK;
 }
 
-void astarte_storage_close(device_caching_t handle)
+void device_caching_close_namespace(device_caching_t handle)
 {
     nvs_close(handle.nvs_handle);
 }
@@ -102,7 +100,7 @@ astarte_result_t device_caching_synchronization_set(device_caching_t handle, boo
     return ASTARTE_RESULT_OK;
 }
 
-astarte_result_t astarte_device_caching_synchronization_get(device_caching_t handle, bool *sync)
+astarte_result_t device_caching_synchronization_get(device_caching_t handle, bool *sync)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
 
@@ -155,7 +153,7 @@ astarte_result_t device_caching_introspection_check(
     ESP_LOGD(TAG, "Searching for pair in storage. Key: '%s'", INTROSPECTION_KEY);
     esp_err_t esp_err = kv_storage_get(handle.nvs_handle, INTROSPECTION_KEY, NULL, &read_intr_size);
     if (esp_err == ESP_ERR_NVS_NOT_FOUND) {
-        ESP_LOGI(TAG, "No previous synchronization with Astarte present.");
+        ESP_LOGI(TAG, "No previous device introspection present.");
         ares = ASTARTE_RESULT_DEVICE_CACHING_OUTDATED_INTROSPECTION;
         goto exit;
     }

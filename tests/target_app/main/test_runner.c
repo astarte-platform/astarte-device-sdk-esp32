@@ -25,7 +25,7 @@
 
 #include "test_astarte_bson_deserializer.h"
 #include "test_astarte_bson_serializer.h"
-#include "test_astarte_storage.h"
+#include "test_device_caching.h"
 #include "test_dlist.h"
 #include "test_introspection.h"
 #include "test_kv_storage.h"
@@ -58,11 +58,12 @@ void app_main(void)
     RUN_TEST(test_introspection_get_string);
     RUN_TEST(test_introspection_iterator);
 
-    RUN_TEST(test_astarte_storage_store_delete_cycle);
-    RUN_TEST(test_astarte_storage_contains);
-    RUN_TEST(test_astarte_storage_clear);
-    RUN_TEST(test_astarte_storage_iteration);
-    RUN_TEST(test_astarte_storage_iteration_empty_memory);
+    RUN_TEST(test_device_caching_synchronization_set_get);
+    RUN_TEST(test_device_caching_introspection_set_get);
+    RUN_TEST(test_device_caching_property_store_load_delete_cycle);
+    RUN_TEST(test_device_caching_property_get_device_properties_string);
+    RUN_TEST(test_device_caching_property_iteration);
+    RUN_TEST(test_device_caching_property_iteration_empty_memory);
 
     RUN_TEST(test_kv_storage_set_get_cycle);
     RUN_TEST(test_kv_storage_erase_entry);

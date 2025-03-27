@@ -20,11 +20,14 @@
 
 idf_component_register(
     SRCS
-        "test_astarte_storage.c"
+        "test_device_caching.c"
         "test_kv_storage.c"
-        "../../src/astarte_nvs_key_value.c"
-        "../../src/astarte_storage.c"
+        "../../src/bson_serializer.c"
+        "../../src/device_caching.c"
+        "../../src/individual.c"
         "../../src/kv_storage.c"
+        "../../src/mapping.c"
+        "../../src/result.c"
     INCLUDE_DIRS
         "."
         "../../include"
