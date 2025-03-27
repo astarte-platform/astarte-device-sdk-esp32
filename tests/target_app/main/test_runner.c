@@ -25,6 +25,7 @@
 
 #include "test_astarte_bson_deserializer.h"
 #include "test_astarte_bson_serializer.h"
+#include "test_data.h"
 #include "test_device_caching.h"
 #include "test_dlist.h"
 #include "test_introspection.h"
@@ -40,6 +41,34 @@ void app_main(void)
     RUN_TEST(test_astarte_bson_deserializer_empty_bson_document);
     RUN_TEST(test_astarte_bson_deserializer_complete_bson_document);
     RUN_TEST(test_astarte_bson_deserializer_bson_document_lookup);
+
+    RUN_TEST(test_data_serialize_integer);
+    RUN_TEST(test_data_serialize_longinteger);
+    RUN_TEST(test_data_serialize_double);
+    RUN_TEST(test_data_serialize_boolean);
+    RUN_TEST(test_data_serialize_string);
+    RUN_TEST(test_data_serialize_integer_array);
+    RUN_TEST(test_data_serialize_string_array);
+    RUN_TEST(test_data_serialize_binaryblob_array);
+
+    RUN_TEST(test_data_deserialize_astarte_data_from_incorrect_type);
+    RUN_TEST(test_data_deserialize_astarte_data_from_binblob);
+    RUN_TEST(test_data_deserialize_astarte_data_from_boolean);
+    RUN_TEST(test_data_deserialize_astarte_data_from_datetime);
+    RUN_TEST(test_data_deserialize_astarte_data_from_double);
+    RUN_TEST(test_data_deserialize_astarte_data_from_integer);
+    RUN_TEST(test_data_deserialize_astarte_data_from_longinteger);
+    RUN_TEST(test_data_deserialize_astarte_data_from_string);
+    RUN_TEST(test_data_deserialize_astarte_data_from_binblob_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_boolean_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_double_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_datetime_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_integer_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_longinteger_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_string_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_empty_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_mismatched_array_initial);
+    RUN_TEST(test_data_deserialize_astarte_data_from_mismatched_array_final);
 
     RUN_TEST(test_dlist_is_empty);
     RUN_TEST(test_dlist_append_remove_tail);
