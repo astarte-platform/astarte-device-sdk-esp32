@@ -23,8 +23,8 @@
 
 #include <esp_log.h>
 
-#include "test_astarte_bson_deserializer.h"
-#include "test_astarte_bson_serializer.h"
+#include "test_bson_deserializer.h"
+#include "test_bson_serializer.h"
 #include "test_data.h"
 #include "test_dlist.h"
 #include "test_introspection.h"
@@ -33,13 +33,13 @@
 int main(int argc, char **argv)
 {
     UNITY_BEGIN();
-    RUN_TEST(test_astarte_bson_serializer_empty_document);
-    RUN_TEST(test_astarte_bson_serializer_complete_document);
+    RUN_TEST(test_bson_serializer_empty_document);
+    RUN_TEST(test_bson_serializer_complete_document);
 
-    RUN_TEST(test_astarte_bson_deserializer_check_validity);
-    RUN_TEST(test_astarte_bson_deserializer_empty_bson_document);
-    RUN_TEST(test_astarte_bson_deserializer_complete_bson_document);
-    RUN_TEST(test_astarte_bson_deserializer_bson_document_lookup);
+    RUN_TEST(test_bson_deserializer_check_validity);
+    RUN_TEST(test_bson_deserializer_empty_bson_document);
+    RUN_TEST(test_bson_deserializer_complete_bson_document);
+    RUN_TEST(test_bson_deserializer_bson_document_lookup);
 
     RUN_TEST(test_data_serialize_integer);
     RUN_TEST(test_data_serialize_longinteger);

@@ -21,13 +21,11 @@
 idf_component_register(
     SRCS
         "interfaces.c"
-        "test_astarte_bson_serializer.c"
-        "test_astarte_bson_deserializer.c"
+        "test_bson_deserializer.c"
+        "test_bson_serializer.c"
         "test_data.c"
         "test_dlist.c"
         "test_introspection.c"
-        "../../src/astarte_bson_serializer.c"
-        "../../src/astarte_bson_deserializer.c"
         "../../src/bson_serializer.c"
         "../../src/bson_deserializer.c"
         "../../src/data.c"
