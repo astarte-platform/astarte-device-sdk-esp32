@@ -80,10 +80,11 @@ int main(int argc, char **argv)
     RUN_TEST(test_introspection_get_string);
     RUN_TEST(test_introspection_iterator);
 
-    RUN_TEST(test_uuid_from_string);
-    RUN_TEST(test_uuid_to_string);
     RUN_TEST(test_uuid_generate_v4);
     RUN_TEST(test_uuid_generate_v5);
+    RUN_TEST(test_uuid_from_string);
+    RUN_TEST(test_uuid_to_string);
+    RUN_TEST(test_uuid_from_string_errors);
     int failures = UNITY_END();
     return failures;
 }
