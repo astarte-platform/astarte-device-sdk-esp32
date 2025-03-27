@@ -36,7 +36,7 @@
  *        Defines, constants and typedef        *
  ***********************************************/
 
-#define TAG "NVS_KEY_VALUE"
+#define TAG "ASTARTE_KV_STORAGE"
 
 /************************************************
  *         Static functions declaration         *

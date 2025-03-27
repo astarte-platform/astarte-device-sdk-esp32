@@ -37,6 +37,7 @@ idf_component_register(
         "./src/bson_serializer.c"
         "./src/crypto.c"
         "./src/data_validation.c"
+        "./src/device_caching.c"
         "./src/device_id.c"
         "./src/dlist.c"
         "./src/http.c"

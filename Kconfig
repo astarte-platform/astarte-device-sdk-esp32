@@ -83,6 +83,20 @@ config ASTARTE_HWID_UUID_NAMESPACE
     help
         This option controls the UUID namespace that will be fed to the UUIDv5 algorithm when generating the hardware ID (if the "Use UUIDv5 to derive the hardware ID" is enabled).
 
+config ASTARTE_DEVICE_SDK_NVS
+	bool "Permanent storage for Astarte device"
+	default y
+	help
+	  This option enables the permanent storage in for the Astarte device.
+	  It requires at least an NVS partition to be present on the device.
+
+config ASTARTE_DEVICE_SDK_NVS_PARTITION_LABEL
+    string "NVS partition label to use for caching properties"
+    default "nvs"
+    depends on ASTARTE_DEVICE_SDK_NVS
+    help
+        Use this option to specify a custom NVS partition for caching the received properties.
+
 config ASTARTE_USE_PROPERTY_PERSISTENCY
     bool "Enable NVS caching of properties"
     default n
