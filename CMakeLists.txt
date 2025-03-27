@@ -43,6 +43,7 @@ idf_component_register(
         "./src/individual.c"
         "./src/interface.c"
         "./src/introspection.c"
+        "./src/kv_storage.c"
         "./src/mapping.c"
         "./src/object.c"
         "./src/pairing.c"
