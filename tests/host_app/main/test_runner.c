@@ -28,6 +28,7 @@
 #include "test_data.h"
 #include "test_dlist.h"
 #include "test_introspection.h"
+#include "test_mapping.h"
 #include "test_uuid.h"
 
 int main(int argc, char **argv)
@@ -85,6 +86,14 @@ int main(int argc, char **argv)
     RUN_TEST(test_uuid_from_string);
     RUN_TEST(test_uuid_to_string);
     RUN_TEST(test_uuid_from_string_errors);
+
+    RUN_TEST(test_mapping_check_path_one_segment_no_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_multiple_segments_no_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_one_segment_single_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_multiple_segments_single_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_multiple_segments_three_patterns);
+    RUN_TEST(test_astarte_mapping_check_data_double);
+    RUN_TEST(test_astarte_mapping_check_data_doublearray);
     int failures = UNITY_END();
     return failures;
 }

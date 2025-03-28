@@ -30,6 +30,7 @@
 #include "test_dlist.h"
 #include "test_introspection.h"
 #include "test_kv_storage.h"
+#include "test_mapping.h"
 
 void app_main(void)
 {
@@ -87,6 +88,14 @@ void app_main(void)
     RUN_TEST(test_device_caching_property_get_device_properties_string);
     RUN_TEST(test_device_caching_property_iteration);
     RUN_TEST(test_device_caching_property_iteration_empty_memory);
+
+    RUN_TEST(test_mapping_check_path_one_segment_no_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_multiple_segments_no_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_one_segment_single_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_multiple_segments_single_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_multiple_segments_three_patterns);
+    RUN_TEST(test_astarte_mapping_check_data_double);
+    RUN_TEST(test_astarte_mapping_check_data_doublearray);
 
     RUN_TEST(test_kv_storage_set_get_cycle);
     RUN_TEST(test_kv_storage_erase_entry);

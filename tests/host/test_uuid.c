@@ -129,7 +129,7 @@ void test_uuid_to_string(void)
 
 void test_uuid_from_string_errors(void)
 {
-    uuid_t uuid = {0};
+    uuid_t uuid = { 0 };
 
     const char *uuid_string_too_short = "44b35f73-cfbd-43b4-8fef-ca7baea1375";
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_INVALID_PARAM, uuid_from_string(uuid_string_too_short, uuid));
