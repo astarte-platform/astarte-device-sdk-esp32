@@ -25,6 +25,7 @@ idf_component_register(
         "test_bson_serializer.c"
         "test_data.c"
         "test_dlist.c"
+        "test_interface.c"
         "test_introspection.c"
         "test_mapping.c"
         "test_object.c"

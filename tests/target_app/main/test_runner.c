@@ -28,6 +28,7 @@
 #include "test_data.h"
 #include "test_device_caching.h"
 #include "test_dlist.h"
+#include "test_interface.h"
 #include "test_introspection.h"
 #include "test_kv_storage.h"
 #include "test_mapping.h"
@@ -77,6 +78,8 @@ void app_main(void)
     RUN_TEST(test_dlist_destroy);
     RUN_TEST(test_dlist_iterator);
     RUN_TEST(test_dlist_iterator_replace);
+
+    RUN_TEST(test_interface_get_mapping);
 
     RUN_TEST(test_introspection_creation);
     RUN_TEST(test_introspection_add_get_update);
