@@ -26,6 +26,7 @@
 #include "test_bson_deserializer.h"
 #include "test_bson_serializer.h"
 #include "test_data.h"
+#include "test_data_validation.h"
 #include "test_dlist.h"
 #include "test_interface.h"
 #include "test_introspection.h"
@@ -43,6 +44,20 @@ int main(int argc, char **argv)
     RUN_TEST(test_bson_deserializer_empty_bson_document);
     RUN_TEST(test_bson_deserializer_complete_bson_document);
     RUN_TEST(test_bson_deserializer_bson_document_lookup);
+
+    RUN_TEST(test_data_validation_individual_datastream_ok);
+    RUN_TEST(test_data_validation_individual_datastream_incorrect_path);
+    RUN_TEST(test_data_validation_individual_datastream_incorrect_data);
+    RUN_TEST(test_data_validation_individual_datastream_incorrect_timestamp_required);
+    RUN_TEST(test_data_validation_individual_datastream_incorrect_timestamp_not_allowed);
+    RUN_TEST(test_data_validation_aggregated_datastream_ok);
+    RUN_TEST(test_data_validation_aggregated_datastream_incorrect_path);
+    RUN_TEST(test_data_validation_aggregated_datastream_incorrect_data);
+    RUN_TEST(test_data_validation_aggregated_datastream_incorrect_timestamp_required);
+    RUN_TEST(test_data_validation_aggregated_datastream_timestamp_not_allowed);
+    RUN_TEST(test_data_validation_unset_properties_ok);
+    RUN_TEST(test_data_validation_unset_properties_incorrect_path);
+    RUN_TEST(test_data_validation_unset_properties_not_allowed);
 
     RUN_TEST(test_data_serialize_integer);
     RUN_TEST(test_data_serialize_longinteger);
