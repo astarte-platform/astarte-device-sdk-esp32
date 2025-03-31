@@ -29,6 +29,7 @@
 #include "test_dlist.h"
 #include "test_introspection.h"
 #include "test_mapping.h"
+#include "test_object.h"
 #include "test_uuid.h"
 
 int main(int argc, char **argv)
@@ -81,12 +82,6 @@ int main(int argc, char **argv)
     RUN_TEST(test_introspection_get_string);
     RUN_TEST(test_introspection_iterator);
 
-    RUN_TEST(test_uuid_generate_v4);
-    RUN_TEST(test_uuid_generate_v5);
-    RUN_TEST(test_uuid_from_string);
-    RUN_TEST(test_uuid_to_string);
-    RUN_TEST(test_uuid_from_string_errors);
-
     RUN_TEST(test_mapping_check_path_one_segment_no_pattern);
     RUN_TEST(test_astarte_mapping_check_path_multiple_segments_no_pattern);
     RUN_TEST(test_astarte_mapping_check_path_one_segment_single_pattern);
@@ -94,6 +89,15 @@ int main(int argc, char **argv)
     RUN_TEST(test_astarte_mapping_check_path_multiple_segments_three_patterns);
     RUN_TEST(test_astarte_mapping_check_data_double);
     RUN_TEST(test_astarte_mapping_check_data_doublearray);
+
+    RUN_TEST(test_object_deserialize_astarte_object_from_aggregate);
+    RUN_TEST(test_object_deserialize_astarte_object_from_empty_aggregate);
+
+    RUN_TEST(test_uuid_generate_v4);
+    RUN_TEST(test_uuid_generate_v5);
+    RUN_TEST(test_uuid_from_string);
+    RUN_TEST(test_uuid_to_string);
+    RUN_TEST(test_uuid_from_string_errors);
     int failures = UNITY_END();
     return failures;
 }

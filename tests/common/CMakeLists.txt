@@ -27,6 +27,7 @@ idf_component_register(
         "test_dlist.c"
         "test_introspection.c"
         "test_mapping.c"
+        "test_object.c"
         "../../src/bson_serializer.c"
         "../../src/bson_deserializer.c"
         "../../src/data.c"
@@ -34,6 +35,7 @@ idf_component_register(
         "../../src/interface.c"
         "../../src/introspection.c"
         "../../src/mapping.c"
+        "../../src/object.c"
     INCLUDE_DIRS
         "."
         "../../include"

@@ -31,6 +31,7 @@
 #include "test_introspection.h"
 #include "test_kv_storage.h"
 #include "test_mapping.h"
+#include "test_object.h"
 
 void app_main(void)
 {
@@ -96,6 +97,9 @@ void app_main(void)
     RUN_TEST(test_astarte_mapping_check_path_multiple_segments_three_patterns);
     RUN_TEST(test_astarte_mapping_check_data_double);
     RUN_TEST(test_astarte_mapping_check_data_doublearray);
+
+    RUN_TEST(test_object_deserialize_astarte_object_from_aggregate);
+    RUN_TEST(test_object_deserialize_astarte_object_from_empty_aggregate);
 
     RUN_TEST(test_kv_storage_set_get_cycle);
     RUN_TEST(test_kv_storage_erase_entry);
