@@ -27,6 +27,7 @@
 #include "test_bson_serializer.h"
 #include "test_data.h"
 #include "test_device_caching.h"
+#include "test_device_id.h"
 #include "test_dlist.h"
 #include "test_interface.h"
 #include "test_introspection.h"
@@ -92,6 +93,8 @@ void app_main(void)
     RUN_TEST(test_device_caching_property_get_device_properties_string);
     RUN_TEST(test_device_caching_property_iteration);
     RUN_TEST(test_device_caching_property_iteration_empty_memory);
+
+    RUN_TEST(test_device_id_generate_deterministic);
 
     RUN_TEST(test_mapping_check_path_one_segment_no_pattern);
     RUN_TEST(test_astarte_mapping_check_path_multiple_segments_no_pattern);
