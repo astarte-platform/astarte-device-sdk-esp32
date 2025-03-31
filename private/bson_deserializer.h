@@ -27,7 +27,7 @@ typedef struct
     const void *list;
     /** @brief Size of the list in bytes */
     uint32_t list_size;
-} new_ast_bson_document_t;
+} bson_document_t;
 
 /** @brief Bson element object */
 typedef struct
@@ -40,7 +40,7 @@ typedef struct
     size_t name_len;
     /** @brief Pointer to the element content */
     const void *value;
-} new_ast_bson_element_t;
+} bson_element_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,7 +56,7 @@ extern "C" {
  * @param[in] buffer_size Size of the allocated buffer containing the document.
  * @return True when BSON file is valid, false otherwise.
  */
-bool new_ast_bson_deserializer_check_validity(const void *buffer, size_t buffer_size);
+bool bson_deserializer_check_validity(const void *buffer, size_t buffer_size);
 
 /**
  * @brief Initialize a document type from a BSON data buffer.
@@ -64,7 +64,7 @@ bool new_ast_bson_deserializer_check_validity(const void *buffer, size_t buffer_
  * @param[in] buffer Buffer containing the BSON data.
  * @return Initialized document struct.
  */
-new_ast_bson_document_t new_ast_bson_deserializer_init_doc(const void *buffer);
+bson_document_t bson_deserializer_init_doc(const void *buffer);
 
 /**
  * @brief Count the number of elements in a BSON document.
@@ -73,8 +73,7 @@ new_ast_bson_document_t new_ast_bson_deserializer_init_doc(const void *buffer);
  * @param[out] count The number of counted elements.
  * @return ASTARTE_RESULT_OK if successful, ASTARTE_RESULT_NOT_FOUND if the document is empty.
  */
-astarte_result_t new_ast_bson_deserializer_doc_count_elements(
-    new_ast_bson_document_t document, size_t *count);
+astarte_result_t bson_deserializer_doc_count_elements(bson_document_t document, size_t *count);
 
 /**
  * @brief Get the first element in a document's list.
@@ -83,8 +82,7 @@ astarte_result_t new_ast_bson_deserializer_doc_count_elements(
  * @param[out] element Used to store the extracted element.
  * @return ASTARTE_RESULT_OK if successful, ASTARTE_RESULT_NOT_FOUND if the document is empty.
  */
-astarte_result_t new_ast_bson_deserializer_first_element(
-    new_ast_bson_document_t document, new_ast_bson_element_t *element);
+astarte_result_t bson_deserializer_first_element(bson_document_t document, bson_element_t *element);
 
 /**
  * @brief Get the next element in a list.
@@ -94,8 +92,8 @@ astarte_result_t new_ast_bson_deserializer_first_element(
  * @param[out] next_element Used to store the extracted element.
  * @return ASTARTE_RESULT_OK if successful, ASTARTE_RESULT_NOT_FOUND if no next element exists.
  */
-astarte_result_t new_ast_bson_deserializer_next_element(new_ast_bson_document_t document,
-    new_ast_bson_element_t curr_element, new_ast_bson_element_t *next_element);
+astarte_result_t bson_deserializer_next_element(
+    bson_document_t document, bson_element_t curr_element, bson_element_t *next_element);
 
 /**
  * @brief Extract the value from the passed element.
@@ -103,7 +101,7 @@ astarte_result_t new_ast_bson_deserializer_next_element(new_ast_bson_document_t 
  * @param[in] element Element to extract the value from.
  * @return Extracted value.
  */
-double new_ast_bson_deserializer_element_to_double(new_ast_bson_element_t element);
+double bson_deserializer_element_to_double(bson_element_t element);
 
 /**
  * @brief Extract the value from the passed element.
@@ -112,8 +110,7 @@ double new_ast_bson_deserializer_element_to_double(new_ast_bson_element_t elemen
  * @param[out] len Returned string length. Optional, pass NULL if not used.
  * @return Extracted value.
  */
-const char *new_ast_bson_deserializer_element_to_string(
-    new_ast_bson_element_t element, uint32_t *len);
+const char *bson_deserializer_element_to_string(bson_element_t element, uint32_t *len);
 
 /**
  * @brief Extract the value from the passed element.
@@ -121,8 +118,7 @@ const char *new_ast_bson_deserializer_element_to_string(
  * @param[in] element Element to extract the value from.
  * @return Extracted value.
  */
-new_ast_bson_document_t new_ast_bson_deserializer_element_to_document(
-    new_ast_bson_element_t element);
+bson_document_t bson_deserializer_element_to_document(bson_element_t element);
 
 /**
  * @brief Extract the value from the passed element.
@@ -132,7 +128,7 @@ new_ast_bson_document_t new_ast_bson_deserializer_element_to_document(
  * @param[in] element Element to extract the value from.
  * @return Extracted value.
  */
-new_ast_bson_document_t new_ast_bson_deserializer_element_to_array(new_ast_bson_element_t element);
+bson_document_t bson_deserializer_element_to_array(bson_element_t element);
 
 /**
  * @brief Extract the value from the passed element.
@@ -141,8 +137,7 @@ new_ast_bson_document_t new_ast_bson_deserializer_element_to_array(new_ast_bson_
  * @param[out] len Returned bytes array length. Optional, pass NULL if not used.
  * @return Extracted value.
  */
-const uint8_t *new_ast_bson_deserializer_element_to_binary(
-    new_ast_bson_element_t element, uint32_t *len);
+const uint8_t *bson_deserializer_element_to_binary(bson_element_t element, uint32_t *len);
 
 /**
  * @brief Extract the value from the passed element.
@@ -152,7 +147,7 @@ const uint8_t *new_ast_bson_deserializer_element_to_binary(
  * @param[in] element Element to extract the value from.
  * @return Extracted value.
  */
-bool new_ast_bson_deserializer_element_to_bool(new_ast_bson_element_t element);
+bool bson_deserializer_element_to_bool(bson_element_t element);
 
 /**
  * @brief Extract the value from the passed element.
@@ -162,7 +157,7 @@ bool new_ast_bson_deserializer_element_to_bool(new_ast_bson_element_t element);
  * @param[in] element Element to extract the value from.
  * @return Extracted value.
  */
-int64_t new_ast_bson_deserializer_element_to_datetime(new_ast_bson_element_t element);
+int64_t bson_deserializer_element_to_datetime(bson_element_t element);
 
 /**
  * @brief Extract the value from the passed element.
@@ -170,7 +165,7 @@ int64_t new_ast_bson_deserializer_element_to_datetime(new_ast_bson_element_t ele
  * @param[in] element Element to extract the value from.
  * @return Extracted value.
  */
-int32_t new_ast_bson_deserializer_element_to_int32(new_ast_bson_element_t element);
+int32_t bson_deserializer_element_to_int32(bson_element_t element);
 
 /**
  * @brief Extract the value from the passed element.
@@ -178,7 +173,7 @@ int32_t new_ast_bson_deserializer_element_to_int32(new_ast_bson_element_t elemen
  * @param[in] element Element to extract the value from.
  * @return Extracted value.
  */
-int64_t new_ast_bson_deserializer_element_to_int64(new_ast_bson_element_t element);
+int64_t bson_deserializer_element_to_int64(bson_element_t element);
 
 /**
  * @brief Fetch the element with name corresponding to the specified key from the document.
@@ -189,8 +184,8 @@ int64_t new_ast_bson_deserializer_element_to_int64(new_ast_bson_element_t elemen
  * element.
  * @return ASTARTE_RESULT_OK if successful, ASTARTE_RESULT_NOT_FOUND if the element does not exist.
  */
-astarte_result_t new_ast_bson_deserializer_element_lookup(
-    new_ast_bson_document_t document, const char *key, new_ast_bson_element_t *element);
+astarte_result_t bson_deserializer_element_lookup(
+    bson_document_t document, const char *key, bson_element_t *element);
 
 #ifdef __cplusplus
 }

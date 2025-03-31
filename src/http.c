@@ -52,7 +52,7 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
             // Clean the buffer in case of a new request
             if (output_len == 0 && evt->user_data) {
                 // we are just starting to copy the output data into the user data
-                memset(evt->user_data, 0, ASTARTE_HTTP_OUTPUT_BUFFER_LEN);
+                memset(evt->user_data, 0, HTTP_OUTPUT_BUFFER_LEN);
             }
             if (!esp_http_client_is_chunked_response(evt->client)) {
                 ESP_LOGD(TAG, "Got response: %.*s", evt->data_len, (char *) evt->data);
@@ -61,7 +61,7 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
                 if (evt->user_data) {
                     // The last byte in evt->user_data is kept for the NULL character in case of
                     // out-of-bound access.
-                    copy_len = MIN(evt->data_len, (ASTARTE_HTTP_OUTPUT_BUFFER_LEN - output_len));
+                    copy_len = MIN(evt->data_len, (HTTP_OUTPUT_BUFFER_LEN - output_len));
                     if (copy_len) {
                         memcpy(evt->user_data + output_len, evt->data, copy_len);
                     }
@@ -101,8 +101,8 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
  *         Global functions definitions         *
  ***********************************************/
 
-astarte_result_t astarte_http_post(const char *host, const char *path, const char *auth_bearer,
-    const char *payload, uint8_t out[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1])
+astarte_result_t http_post(const char *host, const char *path, const char *auth_bearer,
+    const char *payload, uint8_t out[HTTP_OUTPUT_BUFFER_LEN + 1])
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     char *auth_header = NULL;
@@ -169,8 +169,8 @@ exit:
     return ares;
 }
 
-astarte_result_t astarte_http_get(const char *host, const char *path, const char *auth_bearer,
-    uint8_t out[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1])
+astarte_result_t http_get(const char *host, const char *path, const char *auth_bearer,
+    uint8_t out[HTTP_OUTPUT_BUFFER_LEN + 1])
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     char *auth_header = NULL;

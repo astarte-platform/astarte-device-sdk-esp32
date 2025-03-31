@@ -75,7 +75,7 @@ void introspection_free(introspection_t introspection)
 astarte_result_t introspection_add(
     introspection_t *introspection, const astarte_interface_t *interface)
 {
-    astarte_result_t ares = astarte_interface_validate(interface);
+    astarte_result_t ares = interface_validate(interface);
     if (ares != ASTARTE_RESULT_OK) {
         return ares;
     }
@@ -97,7 +97,7 @@ astarte_result_t introspection_update(
     introspection_t *introspection, const astarte_interface_t *interface)
 {
 
-    astarte_result_t ares = astarte_interface_validate(interface);
+    astarte_result_t ares = interface_validate(interface);
     if (ares != ASTARTE_RESULT_OK) {
         return ares;
     }

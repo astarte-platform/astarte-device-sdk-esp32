@@ -47,9 +47,9 @@ static uint64_t read_uint64(const void *buff);
  *         Global functions definitions         *
  ***********************************************/
 
-bool new_ast_bson_deserializer_check_validity(const void *buffer, size_t buffer_size)
+bool bson_deserializer_check_validity(const void *buffer, size_t buffer_size)
 {
-    new_ast_bson_document_t document;
+    bson_document_t document;
 
     // Validate buffer size is at least 5, the size of an empty document.
     if (buffer_size < sizeof(document.size) + NULL_TERM_SIZE) {
@@ -57,7 +57,7 @@ bool new_ast_bson_deserializer_check_validity(const void *buffer, size_t buffer_
         return false;
     }
 
-    document = new_ast_bson_deserializer_init_doc(buffer);
+    document = bson_deserializer_init_doc(buffer);
 
     // Ensure the buffer is larger or equal compared to the decoded document size
     if (buffer_size < document.size) {
@@ -93,15 +93,15 @@ bool new_ast_bson_deserializer_check_validity(const void *buffer, size_t buffer_
 
     // Check that the first element of the document has a supported index
     switch (*(const char *) document.list) {
-        case ASTARTE_BSON_TYPE_DOUBLE:
-        case ASTARTE_BSON_TYPE_STRING:
-        case ASTARTE_BSON_TYPE_DOCUMENT:
-        case ASTARTE_BSON_TYPE_ARRAY:
-        case ASTARTE_BSON_TYPE_BINARY:
-        case ASTARTE_BSON_TYPE_BOOLEAN:
-        case ASTARTE_BSON_TYPE_DATETIME:
-        case ASTARTE_BSON_TYPE_INT32:
-        case ASTARTE_BSON_TYPE_INT64:
+        case BSON_TYPE_DOUBLE:
+        case BSON_TYPE_STRING:
+        case BSON_TYPE_DOCUMENT:
+        case BSON_TYPE_ARRAY:
+        case BSON_TYPE_BINARY:
+        case BSON_TYPE_BOOLEAN:
+        case BSON_TYPE_DATETIME:
+        case BSON_TYPE_INT32:
+        case BSON_TYPE_INT64:
             break;
         default:
             ESP_LOGW(TAG, "Unrecognized BSON document first type\n");
@@ -111,21 +111,20 @@ bool new_ast_bson_deserializer_check_validity(const void *buffer, size_t buffer_
     return true;
 }
 
-new_ast_bson_document_t new_ast_bson_deserializer_init_doc(const void *buffer)
+bson_document_t bson_deserializer_init_doc(const void *buffer)
 {
-    new_ast_bson_document_t document = { 0 };
+    bson_document_t document = { 0 };
     document.size = read_uint32(buffer);
     document.list = (uint8_t *) buffer + sizeof(document.size);
     document.list_size = document.size - sizeof(document.size) - NULL_TERM_SIZE;
     return document;
 }
 
-astarte_result_t new_ast_bson_deserializer_doc_count_elements(
-    new_ast_bson_document_t document, size_t *count)
+astarte_result_t bson_deserializer_doc_count_elements(bson_document_t document, size_t *count)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
-    new_ast_bson_element_t element = { 0 };
-    ares = new_ast_bson_deserializer_first_element(document, &element);
+    bson_element_t element = { 0 };
+    ares = bson_deserializer_first_element(document, &element);
     if (ares == ASTARTE_RESULT_NOT_FOUND) {
         *count = 0;
         return ASTARTE_RESULT_OK;
@@ -137,7 +136,7 @@ astarte_result_t new_ast_bson_deserializer_doc_count_elements(
 
     do {
         document_length++;
-        ares = new_ast_bson_deserializer_next_element(document, element, &element);
+        ares = bson_deserializer_next_element(document, element, &element);
     } while (ares == ASTARTE_RESULT_OK);
 
     if (ares != ASTARTE_RESULT_NOT_FOUND) {
@@ -148,8 +147,7 @@ astarte_result_t new_ast_bson_deserializer_doc_count_elements(
     return ASTARTE_RESULT_OK;
 }
 
-astarte_result_t new_ast_bson_deserializer_first_element(
-    new_ast_bson_document_t document, new_ast_bson_element_t *element)
+astarte_result_t bson_deserializer_first_element(bson_document_t document, bson_element_t *element)
 {
     // Document should not be empty
     if (document.size <= sizeof(document.size) + NULL_TERM_SIZE) {
@@ -166,36 +164,36 @@ astarte_result_t new_ast_bson_deserializer_first_element(
     return ASTARTE_RESULT_OK;
 }
 
-astarte_result_t new_ast_bson_deserializer_next_element(new_ast_bson_document_t document,
-    new_ast_bson_element_t curr_element, new_ast_bson_element_t *next_element)
+astarte_result_t bson_deserializer_next_element(
+    bson_document_t document, bson_element_t curr_element, bson_element_t *next_element)
 {
     // Get the size of the current element
     size_t element_value_size = 0U;
     switch (curr_element.type) {
-        case ASTARTE_BSON_TYPE_STRING: {
+        case BSON_TYPE_STRING: {
             element_value_size = sizeof(int32_t) + read_uint32(curr_element.value);
             break;
         }
-        case ASTARTE_BSON_TYPE_ARRAY:
-        case ASTARTE_BSON_TYPE_DOCUMENT: {
+        case BSON_TYPE_ARRAY:
+        case BSON_TYPE_DOCUMENT: {
             element_value_size = read_uint32(curr_element.value);
             break;
         }
-        case ASTARTE_BSON_TYPE_BINARY: {
+        case BSON_TYPE_BINARY: {
             element_value_size = sizeof(int32_t) + sizeof(int8_t) + read_uint32(curr_element.value);
             break;
         }
-        case ASTARTE_BSON_TYPE_INT32: {
+        case BSON_TYPE_INT32: {
             element_value_size = sizeof(int32_t);
             break;
         }
-        case ASTARTE_BSON_TYPE_DOUBLE:
-        case ASTARTE_BSON_TYPE_DATETIME:
-        case ASTARTE_BSON_TYPE_INT64: {
+        case BSON_TYPE_DOUBLE:
+        case BSON_TYPE_DATETIME:
+        case BSON_TYPE_INT64: {
             element_value_size = sizeof(int64_t);
             break;
         }
-        case ASTARTE_BSON_TYPE_BOOLEAN: {
+        case BSON_TYPE_BOOLEAN: {
             element_value_size = sizeof(int8_t);
             break;
         }
@@ -226,18 +224,17 @@ astarte_result_t new_ast_bson_deserializer_next_element(new_ast_bson_document_t 
     return ASTARTE_RESULT_OK;
 }
 
-astarte_result_t new_ast_bson_deserializer_element_lookup(
-    new_ast_bson_document_t document, const char *key, new_ast_bson_element_t *element)
+astarte_result_t bson_deserializer_element_lookup(
+    bson_document_t document, const char *key, bson_element_t *element)
 {
-    new_ast_bson_element_t candidate_element = { 0 };
-    astarte_result_t ares = new_ast_bson_deserializer_first_element(document, &candidate_element);
+    bson_element_t candidate_element = { 0 };
+    astarte_result_t ares = bson_deserializer_first_element(document, &candidate_element);
     if (ares != ASTARTE_RESULT_OK) {
         return ares;
     }
 
     while (strncmp(key, candidate_element.name, candidate_element.name_len + NULL_TERM_SIZE) != 0) {
-        ares = new_ast_bson_deserializer_next_element(
-            document, candidate_element, &candidate_element);
+        ares = bson_deserializer_next_element(document, candidate_element, &candidate_element);
         if (ares != ASTARTE_RESULT_OK) {
             return ares;
         }
@@ -252,14 +249,13 @@ astarte_result_t new_ast_bson_deserializer_element_lookup(
     return ares;
 }
 
-double new_ast_bson_deserializer_element_to_double(new_ast_bson_element_t element)
+double bson_deserializer_element_to_double(bson_element_t element)
 {
     uint64_t value = read_uint64(element.value);
     return ((double *) &value)[0];
 }
 
-const char *new_ast_bson_deserializer_element_to_string(
-    new_ast_bson_element_t element, uint32_t *len)
+const char *bson_deserializer_element_to_string(bson_element_t element, uint32_t *len)
 {
     if (len) {
         *len = read_uint32(element.value) - NULL_TERM_SIZE;
@@ -267,19 +263,17 @@ const char *new_ast_bson_deserializer_element_to_string(
     return (const char *) ((uint8_t *) element.value + sizeof(uint32_t));
 }
 
-new_ast_bson_document_t new_ast_bson_deserializer_element_to_document(
-    new_ast_bson_element_t element)
+bson_document_t bson_deserializer_element_to_document(bson_element_t element)
 {
-    return new_ast_bson_deserializer_init_doc(element.value);
+    return bson_deserializer_init_doc(element.value);
 }
 
-new_ast_bson_document_t new_ast_bson_deserializer_element_to_array(new_ast_bson_element_t element)
+bson_document_t bson_deserializer_element_to_array(bson_element_t element)
 {
-    return new_ast_bson_deserializer_init_doc(element.value);
+    return bson_deserializer_init_doc(element.value);
 }
 
-const uint8_t *new_ast_bson_deserializer_element_to_binary(
-    new_ast_bson_element_t element, uint32_t *len)
+const uint8_t *bson_deserializer_element_to_binary(bson_element_t element, uint32_t *len)
 {
     if (len) {
         *len = read_uint32(element.value);
@@ -287,24 +281,24 @@ const uint8_t *new_ast_bson_deserializer_element_to_binary(
     return (const uint8_t *) ((uint8_t *) element.value + sizeof(uint32_t) + sizeof(uint8_t));
 }
 
-bool new_ast_bson_deserializer_element_to_bool(new_ast_bson_element_t element)
+bool bson_deserializer_element_to_bool(bson_element_t element)
 {
     return *((bool *) element.value);
 }
 
-int64_t new_ast_bson_deserializer_element_to_datetime(new_ast_bson_element_t element)
+int64_t bson_deserializer_element_to_datetime(bson_element_t element)
 {
     uint64_t value = read_uint64(element.value);
     return ((int64_t *) &value)[0];
 }
 
-int32_t new_ast_bson_deserializer_element_to_int32(new_ast_bson_element_t element)
+int32_t bson_deserializer_element_to_int32(bson_element_t element)
 {
     uint32_t value = read_uint32(element.value);
     return ((int32_t *) &value)[0];
 }
 
-int64_t new_ast_bson_deserializer_element_to_int64(new_ast_bson_element_t element)
+int64_t bson_deserializer_element_to_int64(bson_element_t element)
 {
     uint64_t value = read_uint64(element.value);
     return ((int64_t *) &value)[0];

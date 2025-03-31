@@ -22,13 +22,13 @@ astarte_result_t data_validation_individual_datastream(const astarte_interface_t
     astarte_result_t ares = ASTARTE_RESULT_OK;
 
     const astarte_mapping_t *mapping = NULL;
-    ares = astarte_interface_get_mapping_from_path(interface, path, &mapping);
+    ares = interface_get_mapping_from_path(interface, path, &mapping);
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(TAG, "Can't find mapping in interface %s for path %s.", interface->name, path);
         return ares;
     }
 
-    ares = astarte_mapping_check_data(mapping, data);
+    ares = mapping_check_data(mapping, data);
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(
             TAG, "Individual validation failed, interface/path (%s/%s).", interface->name, path);
@@ -60,14 +60,14 @@ astarte_result_t data_validation_aggregated_datastream(const astarte_interface_t
     for (size_t i = 0; i < entries_len; i++) {
         const astarte_mapping_t *mapping = NULL;
         astarte_object_entry_t entry = entries[i];
-        ares = astarte_interface_get_mapping_from_paths(interface, path, entry.path, &mapping);
+        ares = interface_get_mapping_from_paths(interface, path, entry.path, &mapping);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Can't find mapping in interface %s for path %s/%s.", interface->name,
                 path, entry.path);
             return ares;
         }
 
-        ares = astarte_mapping_check_data(mapping, entry.data);
+        ares = mapping_check_data(mapping, entry.data);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Individual validation failed, interface/path (%s/%s/%s).",
                 interface->name, path, entry.path);
@@ -104,7 +104,7 @@ astarte_result_t data_validation_unset_property(
     astarte_result_t ares = ASTARTE_RESULT_OK;
 
     const astarte_mapping_t *mapping = NULL;
-    ares = astarte_interface_get_mapping_from_path(interface, path, &mapping);
+    ares = interface_get_mapping_from_path(interface, path, &mapping);
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(TAG, "Can't find mapping in interface %s for path %s.", interface->name, path);
         return ares;
