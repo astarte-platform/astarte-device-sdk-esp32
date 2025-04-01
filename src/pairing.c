@@ -67,7 +67,7 @@
  */
 static astarte_result_t parse_register_device_response(
     const char response[HTTP_OUTPUT_BUFFER_LEN + 1],
-    char out_cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1]);
+    char out_cred_secr[ASTARTE_PAIRING_CRED_SECR_LEN + 1]);
 /**
  * @brief Parse the response from the get broker url HTTP request.
  *
@@ -101,8 +101,8 @@ static astarte_result_t parse_verify_client_certificate_response(
  *         Global functions definitions         *
  ***********************************************/
 
-astarte_result_t new_ast_pairing_register_device(
-    const char *device_id, char out_cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1])
+astarte_result_t astarte_pairing_register_device(
+    const char *device_id, char out_cred_secr[ASTARTE_PAIRING_CRED_SECR_LEN + 1])
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     char *payload = NULL;
@@ -156,9 +156,9 @@ astarte_result_t pairing_get_mqtt_broker_url(
         ESP_LOGE(TAG, "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
-    if (strlen(cred_secr) != NEW_AST_PAIRING_CRED_SECR_LEN) {
+    if (strlen(cred_secr) != ASTARTE_PAIRING_CRED_SECR_LEN) {
         ESP_LOGE(TAG, "Credential secret has incorrect length, should be %d chars.",
-            NEW_AST_PAIRING_CRED_SECR_LEN);
+            ASTARTE_PAIRING_CRED_SECR_LEN);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
 
@@ -194,9 +194,9 @@ astarte_result_t pairing_get_client_certificate(
         ares = ASTARTE_RESULT_INVALID_PARAM;
         goto exit;
     }
-    if (strlen(cred_secr) != NEW_AST_PAIRING_CRED_SECR_LEN) {
+    if (strlen(cred_secr) != ASTARTE_PAIRING_CRED_SECR_LEN) {
         ESP_LOGE(TAG, "Credential secret has incorrect length, should be %d chars.",
-            NEW_AST_PAIRING_CRED_SECR_LEN);
+            ASTARTE_PAIRING_CRED_SECR_LEN);
         ares = ASTARTE_RESULT_INVALID_PARAM;
         goto exit;
     }
@@ -262,9 +262,9 @@ astarte_result_t pairing_verify_client_certificate(
         ESP_LOGE(TAG, "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
-    if (strlen(cred_secr) != NEW_AST_PAIRING_CRED_SECR_LEN) {
+    if (strlen(cred_secr) != ASTARTE_PAIRING_CRED_SECR_LEN) {
         ESP_LOGE(TAG, "Credential secret has incorrect length, should be %d chars.",
-            NEW_AST_PAIRING_CRED_SECR_LEN);
+            ASTARTE_PAIRING_CRED_SECR_LEN);
         ares = ASTARTE_RESULT_INVALID_PARAM;
         goto exit;
     }
@@ -329,7 +329,7 @@ static astarte_result_t parse_get_borker_url_response(
 
 static astarte_result_t parse_register_device_response(
     const char response[HTTP_OUTPUT_BUFFER_LEN + 1],
-    char out_cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1])
+    char out_cred_secr[ASTARTE_PAIRING_CRED_SECR_LEN + 1])
 {
     const cJSON *response_json = cJSON_Parse(response);
     const cJSON *data = cJSON_GetObjectItemCaseSensitive(response_json, "data");
@@ -338,7 +338,7 @@ static astarte_result_t parse_register_device_response(
         ESP_LOGE(TAG, "Parsing the credentials secret failed.");
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
-    strncpy(out_cred_secr, credentials_secret->valuestring, NEW_AST_PAIRING_CRED_SECR_LEN);
+    strncpy(out_cred_secr, credentials_secret->valuestring, ASTARTE_PAIRING_CRED_SECR_LEN);
     return ASTARTE_RESULT_OK;
 }
 
