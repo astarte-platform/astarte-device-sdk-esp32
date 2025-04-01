@@ -50,8 +50,8 @@ if [ "$installed_version" != "$package_version" ]; then
 fi
 
 # Run clang-format
-format_files=("src/*.c" "include/*.h" "private/*.h" "examples/**/main/*.c" "examples/**/main/src/*.c"
-              "examples/**/main/include/*.h" "tests/host/*.c" "tests/host/*.h" "tests/common/*.h"
+format_files=("src/*.c" "include/*.h" "private/*.h" "samples/**/main/*.c" "samples/**/main/src/*.c"
+              "samples/**/main/include/*.h" "tests/host/*.c" "tests/host/*.h" "tests/common/*.h"
               "tests/common/*.c" "tests/target/*.c" "tests/target/*.h" "tests/host_app/main/*.c"
               "tests/target_app/main/*.c")
 if [ "$check_only" = true ]; then

@@ -1,0 +1,9 @@
+# (C) Copyright 2025, SECO Mind Srl
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# ESP-IDF Partition Table
+# Name,   Type, SubType, Offset,  Size, Flags
+nvs,      data, nvs,     ,        0x6000,
+factory,  app,  factory, ,        1500K,
+astarte,  data, nvs,     ,        0x3000,
