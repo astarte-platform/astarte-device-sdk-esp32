@@ -44,7 +44,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: '3.13'
       - name: Install Python dependencies
         run: pip install -r ./python_scripts/requirements.txt
       - name: Check if generated interfaces are up to date
@@ -61,12 +61,13 @@ jobs:
     container: espressif/idf:release-v5.1
     steps:
     - uses: actions/checkout@v4
-    - name: Setup
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    - name: Check colored versions in pip
       run: |
-        . $IDF_PATH/export.sh
-        python3 -m pip install -r python_scripts/requirements.txt
-        python3 python_scripts/setup_clang_tidy.py -p ./samples/${{ matrix.example }} -v
+        python -m pip install --upgrade pip
+        pip index versions colored
     - name: Run and parse the results
       run: |
-        . $IDF_PATH/export.sh
-        python3 python_scripts/run_clang_tidy.py -p ./samples/${{ matrix.example }} -r
+        ./tidy.sh --esp_path $IDF_PATH
