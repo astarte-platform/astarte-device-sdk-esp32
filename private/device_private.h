@@ -16,6 +16,7 @@
 #include "astarte_device_sdk/device.h"
 #include "astarte_device_sdk/result.h"
 
+#include "backoff.h"
 #include "introspection.h"
 #include "tls_credentials.h"
 
@@ -111,6 +112,8 @@ struct astarte_device
     bool synchronization_completed;
     /** @brief Flag signaling a subscription request has failed. */
     bool subscription_failure;
+    /** @brief Backoff context to be used in case of an handshake error with Astarte. */
+    struct backoff_context backoff_ctx;
     /** @brief Base MQTT topic for the device. */
     char base_topic[MQTT_BASE_TOPIC_LEN + 1];
     /** @brief Base MQTT control topic for the device. */
