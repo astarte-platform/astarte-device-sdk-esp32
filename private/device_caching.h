@@ -92,7 +92,7 @@ astarte_result_t device_caching_introspection_check(
     device_caching_t handle, const char *intr, size_t intr_size);
 
 /**
- * @brief Stores a property
+ * @brief Store a property
  *
  * @param[in] handle Device caching instance handle.
  * @param[in] interface_name Interface name
@@ -105,7 +105,7 @@ astarte_result_t device_caching_property_store(device_caching_t handle, const ch
     const char *path, uint32_t major, astarte_individual_t individual);
 
 /**
- * @brief Loads a stored property
+ * @brief Load a stored property
  *
  * @warning The @p individual parameter should be destroyed using
  * #device_caching_property_destroy_loaded after its usage has ended.
@@ -149,7 +149,7 @@ astarte_result_t device_caching_property_get_device_properties_string(
     device_caching_t handle, introspection_t *introspection, char *output, size_t *output_size);
 
 /**
- * @brief Deletes a stored property
+ * @brief Delete a stored property
  *
  * @param[in] handle Device caching instance handle.
  * @param[in] interface_name Interface name

@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Appends the content of an array of #astarte_object_entry_t to a BSON document.
+ * @brief Append the content of an array of #astarte_object_entry_t to a BSON document.
  *
  * @param[in,out] bson a valid handle for the serializer instance.
  * @param[in] entries Array of object entries.
@@ -37,8 +37,8 @@ astarte_result_t astarte_object_entries_serialize(
 /**
  * @brief Deserialize a BSON element to an array of #astarte_object_entry_t.
  *
- * @warning This function might perform dynamic allocation, as such any individual deserialized
- * with this function should be destroyed calling #astarte_object_entries_destroy_deserialized.
+ * @warning Might perform dynamic allocation, as such any individual deserialized with this
+ * function should be destroyed calling #astarte_object_entries_destroy_deserialized.
  *
  * @note The BSON element should respect a predefined structure. It should contain a document
  * with all its element deserializable with #astarte_individual_deserialize.

@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Appends the content of an #astarte_individual_t to a BSON document.
+ * @brief Append the content of an #astarte_individual_t to a BSON document.
  *
  * @param[in,out] bson a valid handle for the serializer instance.
  * @param[in] key BSON key name, which is a C string.

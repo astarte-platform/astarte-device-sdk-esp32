@@ -28,9 +28,9 @@ typedef struct
 } kv_storage_iterator_t;
 
 /**
- * @brief Sets variable length binary value for given key.
+ * @brief Set variable length binary value for given key.
  *
- * @details Behaves as similar as possible to the nvs_set_blob function found in nvs_flash.
+ * @details As similar as possible to the nvs_set_blob function found in nvs_flash.
  *
  * @param[in] handle Handle obtained from nvs_open function. Read-only handles cannot be used.
  * @param[in] key Key name. Maximum length is 4000 bytes, including the terminating char.
@@ -41,9 +41,9 @@ typedef struct
 esp_err_t kv_storage_set(nvs_handle_t handle, const char *key, const void *value, size_t length);
 
 /**
- * @brief Gets blob value for given key.
+ * @brief Get blob value for given key.
  *
- * @details Behaves as similar as possible to the nvs_get_blob function found in nvs_flash.
+ * @details As similar as possible to the nvs_get_blob function found in nvs_flash.
  *
  * @param[in] handle Handle obtained from nvs_open function.
  * @param[in] key Key name. Maximum length is 4000 bytes, including the terminating char.
@@ -57,9 +57,9 @@ esp_err_t kv_storage_set(nvs_handle_t handle, const char *key, const void *value
 esp_err_t kv_storage_get(nvs_handle_t handle, const char *key, void *out_value, size_t *length);
 
 /**
- * @brief Erases key-value pair with given key name.
+ * @brief Erase key-value pair with given key name.
  *
- * @details Behaves as similar as possible to the nvs_erase_key function found in nvs_flash.
+ * @details As similar as possible to the nvs_erase_key function found in nvs_flash.
  * However, its efficiency might be much lower as this function may require a large amount of write
  * and read operations.
  *
@@ -74,7 +74,7 @@ esp_err_t kv_storage_get(nvs_handle_t handle, const char *key, void *out_value, 
 esp_err_t kv_storage_erase_entry(nvs_handle_t handle, const char *key);
 
 /**
- * @brief Creates an iterator to enumerate NVS entries.
+ * @brief Create an iterator to enumerate NVS entries.
  *
  * @details When the return value is ESP_OK the iterator is already pointing to the first entry.
  * The `*_get_element()` function should be called before advancing the iterator with `*_next()`.
@@ -106,7 +106,7 @@ esp_err_t kv_storage_iterator_init(
     nvs_handle_t handle, nvs_type_t type, kv_storage_iterator_t *iterator);
 
 /**
- * @brief Checks if the iterator's next item exists without advancing the iterator.
+ * @brief Check if the iterator's next item exists without advancing the iterator.
  *
  * @param[in] iterator Iterator obtained from kv_storage_iterator_init.
  * @param[out] has_next True if iterator can advance at least one more time, false otherwise.
@@ -115,7 +115,7 @@ esp_err_t kv_storage_iterator_init(
 esp_err_t kv_storage_iterator_peek(kv_storage_iterator_t *iterator, bool *has_next);
 
 /**
- * @brief Advances the iterator to next item.
+ * @brief Advance the iterator to next item.
  *
  * @param[inout] iterator Iterator obtained from kv_storage_iterator_init.
  * @return An ESP_OK when operation has been successful, an error code otherwise.
@@ -123,9 +123,9 @@ esp_err_t kv_storage_iterator_peek(kv_storage_iterator_t *iterator, bool *has_ne
 esp_err_t kv_storage_iterator_next(kv_storage_iterator_t *iterator);
 
 /**
- * @brief Gets the entry currently pointed to by the iterator.
+ * @brief Get the entry currently pointed to by the iterator.
  *
- * @note This should be used only for an iterator that has been initialized with the blob type.
+ * @note Should only be used for an iterator that has been initialized with the blob type.
  *
  * @details Can be used in a similar manner as any other getter function from nvs.
  * The function can be called first with the buffer pointers set to NULL to obtained the required

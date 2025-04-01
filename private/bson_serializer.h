@@ -76,7 +76,7 @@ astarte_result_t new_ast_bson_serializer_get_serialized_copy(
     new_ast_bson_serializer_t bson, void *out_buf, int out_buf_size, int *out_doc_size);
 
 /**
- * @brief return the document size
+ * @brief Return the document size
  *
  * @details This function returns BSON document size in bytes.
  * @param[in] bson a valid handle for the serializer instance.
@@ -85,7 +85,7 @@ astarte_result_t new_ast_bson_serializer_get_serialized_copy(
 size_t new_ast_bson_serializer_get_serialized_size(new_ast_bson_serializer_t bson);
 
 /**
- * @brief append end of document marker.
+ * @brief Append end of document marker.
  *
  * @details BSON document MUST be manually terminated with an end of document marker.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -93,7 +93,7 @@ size_t new_ast_bson_serializer_get_serialized_size(new_ast_bson_serializer_t bso
 void new_ast_bson_serializer_append_end_of_document(new_ast_bson_serializer_t *bson);
 
 /**
- * @brief append a double value
+ * @brief Append a double value
  *
  * @details This function appends a double value to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -104,7 +104,7 @@ void new_ast_bson_serializer_append_double(
     new_ast_bson_serializer_t *bson, const char *name, double value);
 
 /**
- * @brief append an int32 value
+ * @brief Append an int32 value
  *
  * @details This function appends an int32 value to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -115,7 +115,7 @@ void new_ast_bson_serializer_append_int32(
     new_ast_bson_serializer_t *bson, const char *name, int32_t value);
 
 /**
- * @brief append an int64 value
+ * @brief Append an int64 value
  *
  * @details This function appends an int64 value to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -126,7 +126,7 @@ void new_ast_bson_serializer_append_int64(
     new_ast_bson_serializer_t *bson, const char *name, int64_t value);
 
 /**
- * @brief append a binary blob value
+ * @brief Append a binary blob value
  *
  * @details This function appends a binary blob to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -138,7 +138,7 @@ void new_ast_bson_serializer_append_binary(
     new_ast_bson_serializer_t *bson, const char *name, const void *value, size_t size);
 
 /**
- * @brief append an UTF-8 string
+ * @brief Append an UTF-8 string
  *
  * @details This function appends an UTF-8 string to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -149,7 +149,7 @@ void new_ast_bson_serializer_append_string(
     new_ast_bson_serializer_t *bson, const char *name, const char *string);
 
 /**
- * @brief append a date time value
+ * @brief Append a date time value
  *
  * @details This function appends a date time value to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -160,7 +160,7 @@ void new_ast_bson_serializer_append_datetime(
     new_ast_bson_serializer_t *bson, const char *name, uint64_t epoch_millis);
 
 /**
- * @brief append a boolean value
+ * @brief Append a boolean value
  *
  * @details This function appends a boolean value to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -171,7 +171,7 @@ void new_ast_bson_serializer_append_boolean(
     new_ast_bson_serializer_t *bson, const char *name, bool value);
 
 /**
- * @brief append a sub-BSON document.
+ * @brief Append a sub-BSON document.
  *
  * @details This function appends a BSON subdocument to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -182,7 +182,7 @@ void new_ast_bson_serializer_append_document(
     new_ast_bson_serializer_t *bson, const char *name, const void *document);
 
 /**
- * @brief append a double array
+ * @brief Append a double array
  *
  * @details This function appends a double array to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -195,7 +195,7 @@ astarte_result_t new_ast_bson_serializer_append_double_array(
     new_ast_bson_serializer_t *bson, const char *name, const double *arr, int count);
 
 /**
- * @brief append an int32 array
+ * @brief Append an int32 array
  *
  * @details This function appends an int32 array to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -208,7 +208,7 @@ astarte_result_t new_ast_bson_serializer_append_int32_array(
     new_ast_bson_serializer_t *bson, const char *name, const int32_t *arr, int count);
 
 /**
- * @brief append an int64 array
+ * @brief Append an int64 array
  *
  * @details This function appends an int64 array to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -221,7 +221,7 @@ astarte_result_t new_ast_bson_serializer_append_int64_array(
     new_ast_bson_serializer_t *bson, const char *name, const int64_t *arr, int count);
 
 /**
- * @brief append a string array
+ * @brief Append a string array
  *
  * @details This function appends a string array to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -234,7 +234,7 @@ astarte_result_t new_ast_bson_serializer_append_string_array(
     new_ast_bson_serializer_t *bson, const char *name, const char *const *arr, int count);
 
 /**
- * @brief append a binary blob array
+ * @brief Append a binary blob array
  *
  * @details This function appends a binary blob array to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -248,7 +248,7 @@ astarte_result_t new_ast_bson_serializer_append_binary_array(new_ast_bson_serial
     const char *name, const void *const *arr, const size_t *sizes, int count);
 
 /**
- * @brief append a date time array
+ * @brief Append a date time array
  *
  * @details This function appends a date time array to the document.
  * @param[in,out] bson a valid handle for the serializer instance.
@@ -262,7 +262,7 @@ astarte_result_t new_ast_bson_serializer_append_datetime_array(
     new_ast_bson_serializer_t *bson, const char *name, const int64_t *arr, int count);
 
 /**
- * @brief append a boolean array
+ * @brief Append a boolean array
  *
  * @details This function appends a boolean array to the document.
  * @param[in,out] bson a valid handle for the serializer instance.

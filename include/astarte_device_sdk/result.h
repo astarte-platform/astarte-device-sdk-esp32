@@ -110,10 +110,10 @@ extern "C" {
 #endif
 
 /**
- * @brief Returns string for result codes.
+ * @brief Return string for result codes.
  *
- * @details This function finds the result code in a pre-generated lookup-table and returns its
- * string representation.
+ * @details Find the result code in a pre-generated lookup-table and return its string
+ * representation.
  *
  * @param[in] code Result code
  * @return String result message

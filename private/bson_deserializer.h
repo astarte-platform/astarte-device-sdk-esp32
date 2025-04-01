@@ -67,7 +67,7 @@ bool astarte_bson_deserializer_check_validity(const void *buffer, size_t buffer_
 astarte_bson_document_t astarte_bson_deserializer_init_doc(const void *buffer);
 
 /**
- * @brief Counts the number of elements in a BSON document.
+ * @brief Count the number of elements in a BSON document.
  *
  * @param[in] document Document from which to count the number of elements.
  * @param[out] count The number of counted elements.
