@@ -37,9 +37,14 @@ jobs:
       run: |
         apt update
         apt install -y build-essential
-    - name: Run unit tests
+    - name: Build and run host unit tests
+      working-directory: ./tests/host_app
       run: |
         . $IDF_PATH/export.sh
         idf.py build
         ./build/host_app.elf
-      working-directory: ./tests/host_app
+    - name: Only build target unit tests
+      working-directory: ./tests/target_app
+      run: |
+        . $IDF_PATH/export.sh
+        idf.py build
