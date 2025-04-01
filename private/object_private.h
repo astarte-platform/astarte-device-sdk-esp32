@@ -50,7 +50,7 @@ astarte_result_t astarte_object_entries_serialize(
  * @param[out] entries_length The deserialized number of elements for the @p entries array.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_elem,
+astarte_result_t astarte_object_entries_deserialize(new_ast_bson_element_t bson_elem,
     const astarte_interface_t *interface, const char *path, astarte_object_entry_t **entries,
     size_t *entries_length);
 

@@ -48,7 +48,7 @@ astarte_result_t astarte_data_serialize(
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 astarte_result_t astarte_data_deserialize(
-    astarte_bson_element_t bson_elem, astarte_mapping_type_t type, astarte_data_t *data);
+    new_ast_bson_element_t bson_elem, astarte_mapping_type_t type, astarte_data_t *data);
 
 /**
  * @brief Destroy the data serialized with #astarte_data_deserialize.

@@ -578,29 +578,29 @@ static astarte_result_t parse_property_bson(
     const char *value, uint32_t *out_major, astarte_data_t *data)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
-    astarte_bson_document_t full_document = astarte_bson_deserializer_init_doc(value);
+    new_ast_bson_document_t full_document = new_ast_bson_deserializer_init_doc(value);
     if (out_major) {
-        astarte_bson_element_t major_elem = { 0 };
-        ares = astarte_bson_deserializer_element_lookup(full_document, "major", &major_elem);
+        new_ast_bson_element_t major_elem = { 0 };
+        ares = new_ast_bson_deserializer_element_lookup(full_document, "major", &major_elem);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Cannot parse BSON element for major version.");
             return ares;
         }
-        int32_t major = astarte_bson_deserializer_element_to_int32(major_elem);
+        int32_t major = new_ast_bson_deserializer_element_to_int32(major_elem);
         *out_major = *(uint32_t *) &major;
     }
     if (data) {
-        astarte_bson_element_t type_elem = { 0 };
-        ares = astarte_bson_deserializer_element_lookup(full_document, "type", &type_elem);
+        new_ast_bson_element_t type_elem = { 0 };
+        ares = new_ast_bson_deserializer_element_lookup(full_document, "type", &type_elem);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Cannot parse BSON element for type.");
             return ares;
         }
         astarte_mapping_type_t type
-            = (astarte_mapping_type_t) astarte_bson_deserializer_element_to_int64(type_elem);
+            = (astarte_mapping_type_t) new_ast_bson_deserializer_element_to_int64(type_elem);
 
-        astarte_bson_element_t data_elem = { 0 };
-        ares = astarte_bson_deserializer_element_lookup(full_document, "data", &data_elem);
+        new_ast_bson_element_t data_elem = { 0 };
+        ares = new_ast_bson_deserializer_element_lookup(full_document, "data", &data_elem);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Cannot parse BSON element for data.");
             return ares;

@@ -58,7 +58,7 @@ astarte_result_t astarte_object_entries_serialize(
     return ares;
 }
 
-astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_elem,
+astarte_result_t astarte_object_entries_deserialize(new_ast_bson_element_t bson_elem,
     const astarte_interface_t *interface, const char *path, astarte_object_entry_t **entries,
     size_t *entries_length)
 {
@@ -72,10 +72,10 @@ astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_
         ares = ASTARTE_RESULT_BSON_DESERIALIZER_ERROR;
         goto failure;
     }
-    astarte_bson_document_t bson_doc = astarte_bson_deserializer_element_to_document(bson_elem);
+    new_ast_bson_document_t bson_doc = new_ast_bson_deserializer_element_to_document(bson_elem);
 
     size_t bson_doc_length = 0;
-    ares = astarte_bson_deserializer_doc_count_elements(bson_doc, &bson_doc_length);
+    ares = new_ast_bson_deserializer_doc_count_elements(bson_doc, &bson_doc_length);
     if (ares != ASTARTE_RESULT_OK) {
         goto failure;
     }
@@ -94,8 +94,8 @@ astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_
     }
 
     // Step 3: Fill the allocated memory
-    astarte_bson_element_t inner_elem = { 0 };
-    ares = astarte_bson_deserializer_first_element(bson_doc, &inner_elem);
+    new_ast_bson_element_t inner_elem = { 0 };
+    ares = new_ast_bson_deserializer_first_element(bson_doc, &inner_elem);
     if (ares != ASTARTE_RESULT_OK) {
         goto failure;
     }
@@ -113,7 +113,7 @@ astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_
             goto failure;
         }
         deserialize_idx++;
-        ares = astarte_bson_deserializer_next_element(bson_doc, inner_elem, &inner_elem);
+        ares = new_ast_bson_deserializer_next_element(bson_doc, inner_elem, &inner_elem);
         if ((ares != ASTARTE_RESULT_OK) && (ares != ASTARTE_RESULT_NOT_FOUND)) {
             goto failure;
         }
