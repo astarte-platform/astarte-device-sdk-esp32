@@ -35,7 +35,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Creates a new introspection instance
+ * @brief Create a new introspection instance
  *
  * @details The resulting instance should be deallocated by the user using #introspection_free
  *
@@ -44,7 +44,7 @@ extern "C" {
 introspection_t introspection_new(void);
 
 /**
- * @brief Deallocates an introspection instance
+ * @brief Deallocate an introspection instance
  *
  * @details The struct must first get initialized using #introspection_new
  *
@@ -53,7 +53,7 @@ introspection_t introspection_new(void);
 void introspection_free(introspection_t introspection);
 
 /**
- * @brief Adds an interface to the introspection list
+ * @brief Add an interface to the introspection list
  *
  * @details No update will be performed by this function. If an interface with the same name is
  * already present an error will be returned.
@@ -66,7 +66,7 @@ astarte_result_t introspection_add(
     introspection_t *introspection, const astarte_interface_t *interface);
 
 /**
- * @brief Updates or adds an interface in the introspection list
+ * @brief Update or adds an interface in the introspection list
  *
  * @details If no interface with the same name as the one passed exists,
  * the function adds the interface to the introspection list. If an interface matching the name is
@@ -80,7 +80,7 @@ astarte_result_t introspection_update(
     introspection_t *introspection, const astarte_interface_t *interface);
 
 /**
- * @brief Retrieves an interface from the introspection list using the name as a key
+ * @brief Retrieve an interface from the introspection list using the name as a key
  *
  * @details A null pointer is returned if no interface is found for the @p interface_name
  *
@@ -92,7 +92,7 @@ const astarte_interface_t *introspection_get(
     introspection_t *introspection, const char *interface_name);
 
 /**
- * @brief Computes the introspection string length
+ * @brief Compute the introspection string length
  *
  * @details The returned length includes the byte for the terminating null character '\0'.
  * A buffer of the returned size in bytes can be allocated and passed to #introspection_fill_string
@@ -103,7 +103,7 @@ const astarte_interface_t *introspection_get(
 size_t introspection_get_string_size(introspection_t *introspection);
 
 /**
- * @brief Returns the introspection string as described in Astarte documentation
+ * @brief Return the introspection string as described in Astarte documentation
  *
  * @details An empty string is returned if no interfaces got added with #introspection_add
  * The ordering of the interface names is not guaranteed and it should't be relied on

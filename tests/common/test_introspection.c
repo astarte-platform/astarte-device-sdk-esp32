@@ -86,7 +86,8 @@ void test_introspection_iterator(void)
     introspection_t introspection = introspection_new();
 
     introspection_iterator_t iterator_1;
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_NOT_FOUND, introspection_iterator_init(&introspection, &iterator_1));
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_NOT_FOUND, introspection_iterator_init(&introspection, &iterator_1));
 
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, introspection_add(&introspection, &test_interface1));
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, introspection_add(&introspection, &test_interface2));
