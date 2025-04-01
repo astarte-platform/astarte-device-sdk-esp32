@@ -13,6 +13,7 @@
 #include <nvs_flash.h>
 
 #include "astarte_device_sdk/data.h"
+#include "astarte_device_sdk/device.h"
 #include "astarte_device_sdk/device_id.h"
 #include "astarte_device_sdk/interface.h"
 #include "astarte_device_sdk/mapping.h"
