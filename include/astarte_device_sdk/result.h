@@ -77,8 +77,8 @@ typedef enum
     ASTARTE_RESULT_CLIENT_CERT_INVALID = 22,
     /** @brief The provided path does not match the mapping endpoint. */
     ASTARTE_RESULT_MAPPING_PATH_MISMATCH = 23,
-    /** @brief The provided Astarte individual is not compatible with a mapping. */
-    ASTARTE_RESULT_MAPPING_INDIVIDUAL_INCOMPATIBLE = 24,
+    /** @brief The provided Astarte data is not compatible with a mapping. */
+    ASTARTE_RESULT_MAPPING_DATA_INCOMPATIBLE = 24,
     /** @brief Could not find the mapping corresponding to a path in an interface. */
     ASTARTE_RESULT_MAPPING_NOT_IN_INTERFACE = 25,
     /** @brief The specified mapping does not support properties unsetting. */

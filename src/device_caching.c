@@ -15,13 +15,13 @@
 #include <string.h>
 
 #include "astarte_device_sdk/astarte.h"
-#include "astarte_device_sdk/individual.h"
+#include "astarte_device_sdk/data.h"
 #include "astarte_device_sdk/interface.h"
 #include "astarte_device_sdk/mapping.h"
 #include "astarte_device_sdk/result.h"
 #include "bson_deserializer.h"
 #include "bson_serializer.h"
-#include "individual_private.h"
+#include "data_private.h"
 #include "introspection.h"
 #include "kv_storage.h"
 
@@ -44,12 +44,12 @@
  * @param[in] value BSON file
  * @param[out] out_major Pointer to output major version. Might be NULL, in this case the parameter
  * is ignored.
- * @param[out] individual Pointer to output Astarte individual. May be NULL, in this case
+ * @param[out] data Pointer to output Astarte data. May be NULL, in this case
  * the parameter is ignored.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 static astarte_result_t parse_property_bson(
-    const char *value, uint32_t *out_major, astarte_individual_t *individual);
+    const char *value, uint32_t *out_major, astarte_data_t *data);
 /**
  * @brief Append a property to the end of the string.
  *
@@ -195,7 +195,7 @@ exit:
 }
 
 astarte_result_t device_caching_property_store(device_caching_t handle, const char *interface_name,
-    const char *path, uint32_t major, astarte_individual_t individual)
+    const char *path, uint32_t major, astarte_data_t data)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     char *key = NULL;
@@ -218,35 +218,35 @@ astarte_result_t device_caching_property_store(device_caching_t handle, const ch
         goto exit;
     }
 
-    // Serialize the Astarte individual
+    // Serialize the Astarte data
     ares = new_ast_bson_serializer_init(&bson);
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(TAG, "Could not initialize the bson serializer");
         goto exit;
     }
     new_ast_bson_serializer_append_int32(&bson, "major", *(int32_t *) &major);
-    new_ast_bson_serializer_append_int64(&bson, "type", (int64_t) individual.tag);
-    ares = astarte_individual_serialize(&bson, "data", individual);
+    new_ast_bson_serializer_append_int64(&bson, "type", (int64_t) data.tag);
+    ares = astarte_data_serialize(&bson, "data", data);
     if (ares != ASTARTE_RESULT_OK) {
         goto exit;
     }
     new_ast_bson_serializer_append_end_of_document(&bson);
 
-    int data_len = 0;
-    void *data = (void *) new_ast_bson_serializer_get_serialized(bson, &data_len);
-    if (!data) {
+    int data_ser_len = 0;
+    void *data_ser = (void *) new_ast_bson_serializer_get_serialized(bson, &data_ser_len);
+    if (!data_ser) {
         ESP_LOGE(TAG, "Error during BSON serialization.");
         ares = ASTARTE_RESULT_BSON_SERIALIZER_ERROR;
         goto exit;
     }
-    if (data_len < 0) {
+    if (data_ser_len < 0) {
         ESP_LOGE(TAG, "BSON document is too long to be cached.");
         ares = ASTARTE_RESULT_BSON_SERIALIZER_ERROR;
         goto exit;
     }
 
     ESP_LOGD(TAG, "Inserting pair in storage. Key: %s", key);
-    esp_err_t esp_err = kv_storage_set(handle.nvs_handle, key, data, data_len);
+    esp_err_t esp_err = kv_storage_set(handle.nvs_handle, key, data_ser, data_ser_len);
     if (esp_err != ESP_OK) {
         ESP_LOGE(TAG, "Error caching property: %s.", astarte_result_to_name(ares));
         ares = ASTARTE_RESULT_NVS_ERROR;
@@ -265,7 +265,7 @@ exit:
 }
 
 astarte_result_t device_caching_property_load(device_caching_t handle, const char *interface_name,
-    const char *path, uint32_t *out_major, astarte_individual_t *individual)
+    const char *path, uint32_t *out_major, astarte_data_t *data)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     char *key = NULL;
@@ -317,7 +317,7 @@ astarte_result_t device_caching_property_load(device_caching_t handle, const cha
     }
 
     // Parse property from the BSON
-    ares = parse_property_bson(value, out_major, individual);
+    ares = parse_property_bson(value, out_major, data);
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(TAG, "Could not parse data from storage: %s.", astarte_result_to_name(ares));
     }
@@ -328,9 +328,9 @@ exit:
     return ares;
 }
 
-void device_caching_property_destroy_loaded(astarte_individual_t individual)
+void device_caching_property_destroy_loaded(astarte_data_t data)
 {
-    astarte_individual_destroy_deserialized(individual);
+    astarte_data_destroy_deserialized(data);
 }
 
 astarte_result_t device_caching_property_get_device_properties_string(
@@ -575,7 +575,7 @@ exit:
  ***********************************************/
 
 static astarte_result_t parse_property_bson(
-    const char *value, uint32_t *out_major, astarte_individual_t *individual)
+    const char *value, uint32_t *out_major, astarte_data_t *data)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     astarte_bson_document_t full_document = astarte_bson_deserializer_init_doc(value);
@@ -589,7 +589,7 @@ static astarte_result_t parse_property_bson(
         int32_t major = astarte_bson_deserializer_element_to_int32(major_elem);
         *out_major = *(uint32_t *) &major;
     }
-    if (individual) {
+    if (data) {
         astarte_bson_element_t type_elem = { 0 };
         ares = astarte_bson_deserializer_element_lookup(full_document, "type", &type_elem);
         if (ares != ASTARTE_RESULT_OK) {
@@ -605,7 +605,7 @@ static astarte_result_t parse_property_bson(
             ESP_LOGE(TAG, "Cannot parse BSON element for data.");
             return ares;
         }
-        ares = astarte_individual_deserialize(data_elem, type, individual);
+        ares = astarte_data_deserialize(data_elem, type, data);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Failed in deserializing BSON file.");
             return ares;

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "astarte_device_sdk/individual.h"
-#include "individual_private.h"
+#include "astarte_device_sdk/data.h"
+#include "data_private.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -23,27 +23,26 @@
  ***********************************************/
 
 /**
- * @brief Fill an empty array Astarte individual of the required type.
+ * @brief Fill an empty array Astarte data of the required type.
  *
- * @param[in] type Mapping type to use for the Astarte individual.
- * @param[out] individual The Astarte individual to fill.
+ * @param[in] type Mapping type to use for the Astarte data.
+ * @param[out] data The Astarte data to fill.
  * @return An Astarte result that may take the following values:
  * @retval ASTARTE_RESULT_OK upon success
  * @retval ASTARTE_RESULT_INTERNAL_ERROR if the input mapping type is not an array.
  */
-static astarte_result_t initialize_empty_array(
-    astarte_mapping_type_t type, astarte_individual_t *individual);
+static astarte_result_t initialize_empty_array(astarte_mapping_type_t type, astarte_data_t *data);
 
 /**
  * @brief Deserialize a scalar bson element.
  *
  * @param[in] bson_elem BSON element to deserialize.
- * @param[in] type The expected type for the Astarte individual.
- * @param[out] individual The Astarte individual where to store the deserialized data.
+ * @param[in] type The expected type for the Astarte data.
+ * @param[out] data The Astarte data where to store the deserialized data.
  * @return ASTARTE_RESULT_OK upon success, an error code otherwise.
  */
-static astarte_result_t deserialize_scalar(astarte_bson_element_t bson_elem,
-    astarte_mapping_type_t type, astarte_individual_t *individual);
+static astarte_result_t deserialize_scalar(
+    astarte_bson_element_t bson_elem, astarte_mapping_type_t type, astarte_data_t *data);
 
 /**
  * @brief Deserialize a bson element containing a binaryblob.
@@ -51,11 +50,11 @@ static astarte_result_t deserialize_scalar(astarte_bson_element_t bson_elem,
  * @note This function will perform dynamic allocation.
  *
  * @param[in] bson_elem BSON element to deserialize.
- * @param[out] individual The Astarte individual where to store the deserialized data.
+ * @param[out] data The Astarte data where to store the deserialized data.
  * @return ASTARTE_RESULT_OK upon success, an error code otherwise.
  */
 static astarte_result_t deserialize_binaryblob(
-    astarte_bson_element_t bson_elem, astarte_individual_t *individual);
+    astarte_bson_element_t bson_elem, astarte_data_t *data);
 
 /**
  * @brief Deserialize a bson element containing a string.
@@ -63,99 +62,98 @@ static astarte_result_t deserialize_binaryblob(
  * @note This function will perform dynamic allocation.
  *
  * @param[in] bson_elem BSON element to deserialize.
- * @param[out] individual The Astarte individual where to store the deserialized data.
+ * @param[out] data The Astarte data where to store the deserialized data.
  * @return ASTARTE_RESULT_OK upon success, an error code otherwise.
  */
-static astarte_result_t deserialize_string(
-    astarte_bson_element_t bson_elem, astarte_individual_t *individual);
+static astarte_result_t deserialize_string(astarte_bson_element_t bson_elem, astarte_data_t *data);
 
 /**
  * @brief Deserialize a bson element containing an array.
  *
  * @param[in] bson_elem BSON element to deserialize.
- * @param[in] type The expected type for the Astarte individual.
- * @param[out] individual The Astarte individual where to store the deserialized data.
+ * @param[in] type The expected type for the Astarte data.
+ * @param[out] data The Astarte data where to store the deserialized data.
  * @return ASTARTE_RESULT_OK upon success, an error code otherwise.
  */
-static astarte_result_t deserialize_array(astarte_bson_element_t bson_elem,
-    astarte_mapping_type_t type, astarte_individual_t *individual);
+static astarte_result_t deserialize_array(
+    astarte_bson_element_t bson_elem, astarte_mapping_type_t type, astarte_data_t *data);
 
 /**
  * @brief Deserialize a bson element containing an array of doubles.
  *
  * @param[in] bson_doc BSON document containing the array to deserialize.
- * @param[out] individual The Astarte individual where to store the deserialized data.
+ * @param[out] data The Astarte data where to store the deserialized data.
  * @param[in] array_length The number of elements of the BSON array.
  * @return ASTARTE_RESULT_OK upon success, an error code otherwise.
  */
 static astarte_result_t deserialize_array_double(
-    astarte_bson_document_t bson_doc, astarte_individual_t *individual, size_t array_length);
+    astarte_bson_document_t bson_doc, astarte_data_t *data, size_t array_length);
 
 /**
  * @brief Deserialize a bson element containing an array of strings.
  *
  * @param[in] bson_doc BSON document containing the array to deserialize.
- * @param[out] individual The Astarte individual where to store the deserialized data.
+ * @param[out] data The Astarte data where to store the deserialized data.
  * @param[in] array_length The number of elements of the BSON array.
  * @return ASTARTE_RESULT_OK upon success, an error code otherwise.
  */
 static astarte_result_t deserialize_array_string(
-    astarte_bson_document_t bson_doc, astarte_individual_t *individual, size_t array_length);
+    astarte_bson_document_t bson_doc, astarte_data_t *data, size_t array_length);
 
 /**
  * @brief Deserialize a bson element containing an array of booleans.
  *
  * @param[in] bson_doc BSON document containing the array to deserialize.
- * @param[out] individual The Astarte individual where to store the deserialized data.
+ * @param[out] data The Astarte data where to store the deserialized data.
  * @param[in] array_length The number of elements of the BSON array.
  * @return ASTARTE_RESULT_OK upon success, an error code otherwise.
  */
 static astarte_result_t deserialize_array_bool(
-    astarte_bson_document_t bson_doc, astarte_individual_t *individual, size_t array_length);
+    astarte_bson_document_t bson_doc, astarte_data_t *data, size_t array_length);
 
 /**
  * @brief Deserialize a bson element containing an array of datetimes.
  *
  * @param[in] bson_doc BSON document containing the array to deserialize.
- * @param[out] individual The Astarte individual where to store the deserialized data.
+ * @param[out] data The Astarte data where to store the deserialized data.
  * @param[in] array_length The number of elements of the BSON array.
  * @return ASTARTE_RESULT_OK upon success, an error code otherwise.
  */
 static astarte_result_t deserialize_array_datetime(
-    astarte_bson_document_t bson_doc, astarte_individual_t *individual, size_t array_length);
+    astarte_bson_document_t bson_doc, astarte_data_t *data, size_t array_length);
 
 /**
  * @brief Deserialize a bson element containing an array of integers.
  *
  * @param[in] bson_doc BSON document containing the array to deserialize.
- * @param[out] individual The Astarte individual where to store the deserialized data.
+ * @param[out] data The Astarte data where to store the deserialized data.
  * @param[in] array_length The number of elements of the BSON array.
  * @return ASTARTE_RESULT_OK upon success, an error code otherwise.
  */
 static astarte_result_t deserialize_array_int32(
-    astarte_bson_document_t bson_doc, astarte_individual_t *individual, size_t array_length);
+    astarte_bson_document_t bson_doc, astarte_data_t *data, size_t array_length);
 
 /**
  * @brief Deserialize a bson element containing an array of long integers.
  *
  * @param[in] bson_doc BSON document containing the array to deserialize.
- * @param[out] individual The Astarte individual where to store the deserialized data.
+ * @param[out] data The Astarte data where to store the deserialized data.
  * @param[in] array_length The number of elements of the BSON array.
  * @return ASTARTE_RESULT_OK upon success, an error code otherwise.
  */
 static astarte_result_t deserialize_array_int64(
-    astarte_bson_document_t bson_doc, astarte_individual_t *individual, size_t array_length);
+    astarte_bson_document_t bson_doc, astarte_data_t *data, size_t array_length);
 
 /**
  * @brief Deserialize a bson element containing an array of binary blobs.
  *
  * @param[in] bson_doc BSON document containing the array to deserialize.
- * @param[out] individual The Astarte individual where to store the deserialized data.
+ * @param[out] data The Astarte data where to store the deserialized data.
  * @param[in] array_length The number of elements of the BSON array.
  * @return ASTARTE_RESULT_OK upon success, an error code otherwise.
  */
 static astarte_result_t deserialize_array_binblob(
-    astarte_bson_document_t bson_doc, astarte_individual_t *individual, size_t array_length);
+    astarte_bson_document_t bson_doc, astarte_data_t *data, size_t array_length);
 
 /**
  * @brief Check if a BSON type is compatible with a mapping type.
@@ -172,206 +170,203 @@ static bool check_if_bson_type_is_mapping_type(
  ***********************************************/
 
 // clang-format off
-#define MAKE_INDIVIDUAL_FROM_FUNC(NAME, ENUM, TYPE, PARAM)                                         \
-    astarte_individual_t astarte_individual_from_##NAME(TYPE PARAM)                                \
-    {                                                                                              \
-        return (astarte_individual_t) {                                                            \
-            .data = {                                                                              \
-                .PARAM = (PARAM),                                                                  \
-            },                                                                                     \
-            .tag = (ENUM),                                                                         \
-        };                                                                                         \
-    }
+ #define MAKE_FUNCTION_DATA_FROM(NAME, ENUM, TYPE, PARAM)                                           \
+     astarte_data_t astarte_data_from_##NAME(TYPE PARAM)                                            \
+     {                                                                                              \
+         return (astarte_data_t) {                                                                  \
+             .data = {                                                                              \
+                 .PARAM = (PARAM),                                                                  \
+             },                                                                                     \
+             .tag = (ENUM),                                                                         \
+         };                                                                                         \
+     }
 
-#define MAKE_INDIVIDUAL_FROM_ARRAY_FUNC(NAME, ENUM, TYPE, PARAM)                                   \
-    astarte_individual_t astarte_individual_from_##NAME(TYPE PARAM, size_t len)                    \
-    {                                                                                              \
-        return (astarte_individual_t) {                                                            \
-            .data = {                                                                              \
-                .PARAM = {                                                                         \
-                    .buf = (PARAM),                                                                \
-                    .len = len,                                                                    \
-                },                                                                                 \
-            },                                                                                     \
-            .tag = (ENUM),                                                                         \
-        };                                                                                         \
-    }
+ #define MAKE_FUNCTION_DATA_FROM_ARRAY(NAME, ENUM, TYPE, PARAM)                                     \
+     astarte_data_t astarte_data_from_##NAME(TYPE PARAM, size_t len)                                \
+     {                                                                                              \
+         return (astarte_data_t) {                                                                  \
+             .data = {                                                                              \
+                 .PARAM = {                                                                         \
+                     .buf = (PARAM),                                                                \
+                     .len = len,                                                                    \
+                 },                                                                                 \
+             },                                                                                     \
+             .tag = (ENUM),                                                                         \
+         };                                                                                         \
+     }
 // clang-format on
 
-MAKE_INDIVIDUAL_FROM_ARRAY_FUNC(binaryblob, ASTARTE_MAPPING_TYPE_BINARYBLOB, void *, binaryblob)
-MAKE_INDIVIDUAL_FROM_FUNC(boolean, ASTARTE_MAPPING_TYPE_BOOLEAN, bool, boolean)
-MAKE_INDIVIDUAL_FROM_FUNC(datetime, ASTARTE_MAPPING_TYPE_DATETIME, int64_t, datetime)
-MAKE_INDIVIDUAL_FROM_FUNC(double, ASTARTE_MAPPING_TYPE_DOUBLE, double, dbl)
-MAKE_INDIVIDUAL_FROM_FUNC(integer, ASTARTE_MAPPING_TYPE_INTEGER, int32_t, integer)
-MAKE_INDIVIDUAL_FROM_FUNC(longinteger, ASTARTE_MAPPING_TYPE_LONGINTEGER, int64_t, longinteger)
-MAKE_INDIVIDUAL_FROM_FUNC(string, ASTARTE_MAPPING_TYPE_STRING, const char *, string)
+MAKE_FUNCTION_DATA_FROM_ARRAY(binaryblob, ASTARTE_MAPPING_TYPE_BINARYBLOB, void *, binaryblob)
+MAKE_FUNCTION_DATA_FROM(boolean, ASTARTE_MAPPING_TYPE_BOOLEAN, bool, boolean)
+MAKE_FUNCTION_DATA_FROM(datetime, ASTARTE_MAPPING_TYPE_DATETIME, int64_t, datetime)
+MAKE_FUNCTION_DATA_FROM(double, ASTARTE_MAPPING_TYPE_DOUBLE, double, dbl)
+MAKE_FUNCTION_DATA_FROM(integer, ASTARTE_MAPPING_TYPE_INTEGER, int32_t, integer)
+MAKE_FUNCTION_DATA_FROM(longinteger, ASTARTE_MAPPING_TYPE_LONGINTEGER, int64_t, longinteger)
+MAKE_FUNCTION_DATA_FROM(string, ASTARTE_MAPPING_TYPE_STRING, const char *, string)
 
-astarte_individual_t astarte_individual_from_binaryblob_array(
-    const void **blobs, size_t *sizes, size_t count)
+astarte_data_t astarte_data_from_binaryblob_array(const void **blobs, size_t *sizes, size_t count)
 {
-    return (astarte_individual_t) {
-        .data = {
-            .binaryblob_array = {
-                .blobs = blobs,
-                .sizes = sizes,
-                .count = count,
-            },
-        },
-        .tag = ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY,
-    };
+    return (astarte_data_t) {
+         .data = {
+             .binaryblob_array = {
+                 .blobs = blobs,
+                 .sizes = sizes,
+                 .count = count,
+             },
+         },
+         .tag = ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY,
+     };
 }
 
-MAKE_INDIVIDUAL_FROM_ARRAY_FUNC(
+MAKE_FUNCTION_DATA_FROM_ARRAY(
     boolean_array, ASTARTE_MAPPING_TYPE_BOOLEANARRAY, bool *, boolean_array)
-MAKE_INDIVIDUAL_FROM_ARRAY_FUNC(
+MAKE_FUNCTION_DATA_FROM_ARRAY(
     datetime_array, ASTARTE_MAPPING_TYPE_DATETIMEARRAY, int64_t *, datetime_array)
-MAKE_INDIVIDUAL_FROM_ARRAY_FUNC(
+MAKE_FUNCTION_DATA_FROM_ARRAY(
     double_array, ASTARTE_MAPPING_TYPE_DOUBLEARRAY, double *, double_array)
-MAKE_INDIVIDUAL_FROM_ARRAY_FUNC(
+MAKE_FUNCTION_DATA_FROM_ARRAY(
     integer_array, ASTARTE_MAPPING_TYPE_INTEGERARRAY, int32_t *, integer_array)
-MAKE_INDIVIDUAL_FROM_ARRAY_FUNC(
+MAKE_FUNCTION_DATA_FROM_ARRAY(
     longinteger_array, ASTARTE_MAPPING_TYPE_LONGINTEGERARRAY, int64_t *, longinteger_array)
-MAKE_INDIVIDUAL_FROM_ARRAY_FUNC(
+MAKE_FUNCTION_DATA_FROM_ARRAY(
     string_array, ASTARTE_MAPPING_TYPE_STRINGARRAY, const char **, string_array)
 
-astarte_mapping_type_t astarte_individual_get_type(astarte_individual_t individual)
+astarte_mapping_type_t astarte_data_get_type(astarte_data_t data)
 {
-    return individual.tag;
+    return data.tag;
 }
 
 // clang-format off
-// NOLINTBEGIN(bugprone-macro-parentheses)
-#define MAKE_INDIVIDUAL_TO_FUNC(NAME, ENUM, TYPE, PARAM)                                           \
-    astarte_result_t astarte_individual_to_##NAME(astarte_individual_t individual, TYPE *PARAM)    \
-    {                                                                                              \
-        if (!(PARAM) || (individual.tag != (ENUM))) {                                              \
-            ESP_LOGE(TAG, "Conversion from Astarte individual to %s error.", #NAME);               \
-            return ASTARTE_RESULT_INVALID_PARAM;                                                   \
-        }                                                                                          \
-        *PARAM = individual.data.PARAM;                                                            \
-        return ASTARTE_RESULT_OK;                                                                  \
-    }
+ // NOLINTBEGIN(bugprone-macro-parentheses)
+ #define MAKE_FUNCTION_DATA_TO(NAME, ENUM, TYPE, PARAM)                                             \
+     astarte_result_t astarte_data_to_##NAME(astarte_data_t data, TYPE *PARAM)                      \
+     {                                                                                              \
+         if (!(PARAM) || (data.tag != (ENUM))) {                                                    \
+             ESP_LOGE(TAG, "Conversion from Astarte data to %s error.", #NAME);                     \
+             return ASTARTE_RESULT_INVALID_PARAM;                                                   \
+         }                                                                                          \
+         *PARAM = data.data.PARAM;                                                                  \
+         return ASTARTE_RESULT_OK;                                                                  \
+     }
 
-#define MAKE_INDIVIDUAL_TO_ARRAY_FUNC(NAME, ENUM, TYPE, PARAM)                                     \
-    astarte_result_t astarte_individual_to_##NAME(                                                 \
-        astarte_individual_t individual, TYPE *PARAM, size_t *len)                                 \
-    {                                                                                              \
-        if (!(PARAM) || !len || (individual.tag != (ENUM))) {                                      \
-            ESP_LOGE(TAG, "Conversion from Astarte individual to %s error.", #NAME);               \
-            return ASTARTE_RESULT_INVALID_PARAM;                                                   \
-        }                                                                                          \
-        *PARAM = individual.data.PARAM.buf;                                                        \
-        *len = individual.data.PARAM.len;                                                          \
-        return ASTARTE_RESULT_OK;                                                                  \
-    }
-// NOLINTEND(bugprone-macro-parentheses)
+ #define MAKE_FUNCTION_DATA_TO_ARRAY(NAME, ENUM, TYPE, PARAM)                                       \
+     astarte_result_t astarte_data_to_##NAME(                                                       \
+         astarte_data_t data, TYPE *PARAM, size_t *len)                                             \
+     {                                                                                              \
+         if (!(PARAM) || !len || (data.tag != (ENUM))) {                                            \
+             ESP_LOGE(TAG, "Conversion from Astarte data to %s error.", #NAME);                     \
+             return ASTARTE_RESULT_INVALID_PARAM;                                                   \
+         }                                                                                          \
+         *PARAM = data.data.PARAM.buf;                                                              \
+         *len = data.data.PARAM.len;                                                                \
+         return ASTARTE_RESULT_OK;                                                                  \
+     }
+ // NOLINTEND(bugprone-macro-parentheses)
 // clang-format on
 
-MAKE_INDIVIDUAL_TO_ARRAY_FUNC(binaryblob, ASTARTE_MAPPING_TYPE_BINARYBLOB, void *, binaryblob)
-MAKE_INDIVIDUAL_TO_FUNC(boolean, ASTARTE_MAPPING_TYPE_BOOLEAN, bool, boolean)
-MAKE_INDIVIDUAL_TO_FUNC(datetime, ASTARTE_MAPPING_TYPE_DATETIME, int64_t, datetime)
-MAKE_INDIVIDUAL_TO_FUNC(double, ASTARTE_MAPPING_TYPE_DOUBLE, double, dbl)
-MAKE_INDIVIDUAL_TO_FUNC(integer, ASTARTE_MAPPING_TYPE_INTEGER, int32_t, integer)
-MAKE_INDIVIDUAL_TO_FUNC(longinteger, ASTARTE_MAPPING_TYPE_LONGINTEGER, int64_t, longinteger)
-MAKE_INDIVIDUAL_TO_FUNC(string, ASTARTE_MAPPING_TYPE_STRING, const char *, string)
+MAKE_FUNCTION_DATA_TO_ARRAY(binaryblob, ASTARTE_MAPPING_TYPE_BINARYBLOB, void *, binaryblob)
+MAKE_FUNCTION_DATA_TO(boolean, ASTARTE_MAPPING_TYPE_BOOLEAN, bool, boolean)
+MAKE_FUNCTION_DATA_TO(datetime, ASTARTE_MAPPING_TYPE_DATETIME, int64_t, datetime)
+MAKE_FUNCTION_DATA_TO(double, ASTARTE_MAPPING_TYPE_DOUBLE, double, dbl)
+MAKE_FUNCTION_DATA_TO(integer, ASTARTE_MAPPING_TYPE_INTEGER, int32_t, integer)
+MAKE_FUNCTION_DATA_TO(longinteger, ASTARTE_MAPPING_TYPE_LONGINTEGER, int64_t, longinteger)
+MAKE_FUNCTION_DATA_TO(string, ASTARTE_MAPPING_TYPE_STRING, const char *, string)
 
-astarte_result_t astarte_individual_to_binaryblob_array(
-    astarte_individual_t individual, const void ***blobs, size_t **sizes, size_t *count)
+astarte_result_t astarte_data_to_binaryblob_array(
+    astarte_data_t data, const void ***blobs, size_t **sizes, size_t *count)
 {
-    if (!blobs || !sizes || !count || (individual.tag != ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY)) {
-        ESP_LOGE(TAG, "Conversion from Astarte individual to binaryblob_array error.");
+    if (!blobs || !sizes || !count || (data.tag != ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY)) {
+        ESP_LOGE(TAG, "Conversion from Astarte data to binaryblob_array error.");
         return ASTARTE_RESULT_INVALID_PARAM;
     }
-    *blobs = individual.data.binaryblob_array.blobs;
-    *sizes = individual.data.binaryblob_array.sizes;
-    *count = individual.data.binaryblob_array.count;
+    *blobs = data.data.binaryblob_array.blobs;
+    *sizes = data.data.binaryblob_array.sizes;
+    *count = data.data.binaryblob_array.count;
     return ASTARTE_RESULT_OK;
 }
 
-MAKE_INDIVIDUAL_TO_ARRAY_FUNC(
-    boolean_array, ASTARTE_MAPPING_TYPE_BOOLEANARRAY, bool *, boolean_array)
-MAKE_INDIVIDUAL_TO_ARRAY_FUNC(
+MAKE_FUNCTION_DATA_TO_ARRAY(boolean_array, ASTARTE_MAPPING_TYPE_BOOLEANARRAY, bool *, boolean_array)
+MAKE_FUNCTION_DATA_TO_ARRAY(
     datetime_array, ASTARTE_MAPPING_TYPE_DATETIMEARRAY, int64_t *, datetime_array)
-MAKE_INDIVIDUAL_TO_ARRAY_FUNC(
-    double_array, ASTARTE_MAPPING_TYPE_DOUBLEARRAY, double *, double_array)
-MAKE_INDIVIDUAL_TO_ARRAY_FUNC(
+MAKE_FUNCTION_DATA_TO_ARRAY(double_array, ASTARTE_MAPPING_TYPE_DOUBLEARRAY, double *, double_array)
+MAKE_FUNCTION_DATA_TO_ARRAY(
     integer_array, ASTARTE_MAPPING_TYPE_INTEGERARRAY, int32_t *, integer_array)
-MAKE_INDIVIDUAL_TO_ARRAY_FUNC(
+MAKE_FUNCTION_DATA_TO_ARRAY(
     longinteger_array, ASTARTE_MAPPING_TYPE_LONGINTEGERARRAY, int64_t *, longinteger_array)
-MAKE_INDIVIDUAL_TO_ARRAY_FUNC(
+MAKE_FUNCTION_DATA_TO_ARRAY(
     string_array, ASTARTE_MAPPING_TYPE_STRINGARRAY, const char **, string_array)
 
 /************************************************
  *     Global private functions definitions     *
  ***********************************************/
 
-astarte_result_t astarte_individual_serialize(
-    new_ast_bson_serializer_t *bson, const char *key, astarte_individual_t individual)
+astarte_result_t astarte_data_serialize(
+    new_ast_bson_serializer_t *bson, const char *key, astarte_data_t data)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
 
-    switch (individual.tag) {
+    switch (data.tag) {
         case ASTARTE_MAPPING_TYPE_INTEGER:
-            new_ast_bson_serializer_append_int32(bson, key, individual.data.integer);
+            new_ast_bson_serializer_append_int32(bson, key, data.data.integer);
             break;
         case ASTARTE_MAPPING_TYPE_LONGINTEGER:
-            new_ast_bson_serializer_append_int64(bson, key, individual.data.longinteger);
+            new_ast_bson_serializer_append_int64(bson, key, data.data.longinteger);
             break;
         case ASTARTE_MAPPING_TYPE_DOUBLE:
-            new_ast_bson_serializer_append_double(bson, key, individual.data.dbl);
+            new_ast_bson_serializer_append_double(bson, key, data.data.dbl);
             break;
         case ASTARTE_MAPPING_TYPE_STRING:
-            new_ast_bson_serializer_append_string(bson, key, individual.data.string);
+            new_ast_bson_serializer_append_string(bson, key, data.data.string);
             break;
         case ASTARTE_MAPPING_TYPE_BINARYBLOB: {
-            astarte_individual_binaryblob_t binaryblob = individual.data.binaryblob;
+            astarte_data_binaryblob_t binaryblob = data.data.binaryblob;
             new_ast_bson_serializer_append_binary(bson, key, binaryblob.buf, binaryblob.len);
             break;
         }
         case ASTARTE_MAPPING_TYPE_BOOLEAN:
-            new_ast_bson_serializer_append_boolean(bson, key, individual.data.boolean);
+            new_ast_bson_serializer_append_boolean(bson, key, data.data.boolean);
             break;
         case ASTARTE_MAPPING_TYPE_DATETIME:
-            new_ast_bson_serializer_append_datetime(bson, key, individual.data.datetime);
+            new_ast_bson_serializer_append_datetime(bson, key, data.data.datetime);
             break;
         case ASTARTE_MAPPING_TYPE_INTEGERARRAY: {
-            astarte_individual_integerarray_t int32_array = individual.data.integer_array;
+            astarte_data_integerarray_t int32_array = data.data.integer_array;
             ares = new_ast_bson_serializer_append_int32_array(
                 bson, key, int32_array.buf, (int) int32_array.len);
             break;
         }
         case ASTARTE_MAPPING_TYPE_LONGINTEGERARRAY: {
-            astarte_individual_longintegerarray_t int64_array = individual.data.longinteger_array;
+            astarte_data_longintegerarray_t int64_array = data.data.longinteger_array;
             ares = new_ast_bson_serializer_append_int64_array(
                 bson, key, int64_array.buf, (int) int64_array.len);
             break;
         }
         case ASTARTE_MAPPING_TYPE_DOUBLEARRAY: {
-            astarte_individual_doublearray_t double_array = individual.data.double_array;
+            astarte_data_doublearray_t double_array = data.data.double_array;
             ares = new_ast_bson_serializer_append_double_array(
                 bson, key, double_array.buf, (int) double_array.len);
             break;
         }
         case ASTARTE_MAPPING_TYPE_STRINGARRAY: {
-            astarte_individual_stringarray_t string_array = individual.data.string_array;
+            astarte_data_stringarray_t string_array = data.data.string_array;
             ares = new_ast_bson_serializer_append_string_array(
                 bson, key, string_array.buf, (int) string_array.len);
             break;
         }
         case ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY: {
-            astarte_individual_binaryblobarray_t binary_arrays = individual.data.binaryblob_array;
+            astarte_data_binaryblobarray_t binary_arrays = data.data.binaryblob_array;
             ares = new_ast_bson_serializer_append_binary_array(
                 bson, key, binary_arrays.blobs, binary_arrays.sizes, (int) binary_arrays.count);
             break;
         }
         case ASTARTE_MAPPING_TYPE_BOOLEANARRAY: {
-            astarte_individual_booleanarray_t bool_array = individual.data.boolean_array;
+            astarte_data_booleanarray_t bool_array = data.data.boolean_array;
             ares = new_ast_bson_serializer_append_boolean_array(
                 bson, key, bool_array.buf, (int) bool_array.len);
             break;
         }
         case ASTARTE_MAPPING_TYPE_DATETIMEARRAY: {
-            astarte_individual_longintegerarray_t dt_array = individual.data.datetime_array;
+            astarte_data_longintegerarray_t dt_array = data.data.datetime_array;
             ares = new_ast_bson_serializer_append_datetime_array(
                 bson, key, dt_array.buf, (int) dt_array.len);
             break;
@@ -384,8 +379,8 @@ astarte_result_t astarte_individual_serialize(
     return ares;
 }
 
-astarte_result_t astarte_individual_deserialize(
-    astarte_bson_element_t bson_elem, astarte_mapping_type_t type, astarte_individual_t *individual)
+astarte_result_t astarte_data_deserialize(
+    astarte_bson_element_t bson_elem, astarte_mapping_type_t type, astarte_data_t *data)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
 
@@ -397,7 +392,7 @@ astarte_result_t astarte_individual_deserialize(
         case ASTARTE_MAPPING_TYPE_INTEGER:
         case ASTARTE_MAPPING_TYPE_LONGINTEGER:
         case ASTARTE_MAPPING_TYPE_STRING:
-            ares = deserialize_scalar(bson_elem, type, individual);
+            ares = deserialize_scalar(bson_elem, type, data);
             break;
         case ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY:
         case ASTARTE_MAPPING_TYPE_BOOLEANARRAY:
@@ -406,7 +401,7 @@ astarte_result_t astarte_individual_deserialize(
         case ASTARTE_MAPPING_TYPE_INTEGERARRAY:
         case ASTARTE_MAPPING_TYPE_LONGINTEGERARRAY:
         case ASTARTE_MAPPING_TYPE_STRINGARRAY:
-            ares = deserialize_array(bson_elem, type, individual);
+            ares = deserialize_array(bson_elem, type, data);
             break;
         default:
             ESP_LOGE(TAG, "Unsupported mapping type.");
@@ -416,42 +411,42 @@ astarte_result_t astarte_individual_deserialize(
     return ares;
 }
 
-void astarte_individual_destroy_deserialized(astarte_individual_t individual)
+void astarte_data_destroy_deserialized(astarte_data_t data)
 {
-    switch (individual.tag) {
+    switch (data.tag) {
         case ASTARTE_MAPPING_TYPE_BINARYBLOB:
-            free(individual.data.binaryblob.buf);
+            free(data.data.binaryblob.buf);
             break;
         case ASTARTE_MAPPING_TYPE_STRING:
-            free((void *) individual.data.string);
+            free((void *) data.data.string);
             break;
         case ASTARTE_MAPPING_TYPE_INTEGERARRAY:
-            free(individual.data.integer_array.buf);
+            free(data.data.integer_array.buf);
             break;
         case ASTARTE_MAPPING_TYPE_LONGINTEGERARRAY:
-            free(individual.data.longinteger_array.buf);
+            free(data.data.longinteger_array.buf);
             break;
         case ASTARTE_MAPPING_TYPE_DOUBLEARRAY:
-            free(individual.data.double_array.buf);
+            free(data.data.double_array.buf);
             break;
         case ASTARTE_MAPPING_TYPE_STRINGARRAY:
-            for (size_t i = 0; i < individual.data.string_array.len; i++) {
-                free((void *) individual.data.string_array.buf[i]);
+            for (size_t i = 0; i < data.data.string_array.len; i++) {
+                free((void *) data.data.string_array.buf[i]);
             }
-            free((void *) individual.data.string_array.buf);
+            free((void *) data.data.string_array.buf);
             break;
         case ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY:
-            for (size_t i = 0; i < individual.data.binaryblob_array.count; i++) {
-                free((void *) individual.data.binaryblob_array.blobs[i]);
+            for (size_t i = 0; i < data.data.binaryblob_array.count; i++) {
+                free((void *) data.data.binaryblob_array.blobs[i]);
             }
-            free(individual.data.binaryblob_array.sizes);
-            free((void *) individual.data.binaryblob_array.blobs);
+            free(data.data.binaryblob_array.sizes);
+            free((void *) data.data.binaryblob_array.blobs);
             break;
         case ASTARTE_MAPPING_TYPE_BOOLEANARRAY:
-            free(individual.data.boolean_array.buf);
+            free(data.data.boolean_array.buf);
             break;
         case ASTARTE_MAPPING_TYPE_DATETIMEARRAY:
-            free(individual.data.datetime_array.buf);
+            free(data.data.datetime_array.buf);
             break;
         default:
             break;
@@ -462,49 +457,48 @@ void astarte_individual_destroy_deserialized(astarte_individual_t individual)
  *         Static functions definitions         *
  ***********************************************/
 
-static astarte_result_t initialize_empty_array(
-    astarte_mapping_type_t type, astarte_individual_t *individual)
+static astarte_result_t initialize_empty_array(astarte_mapping_type_t type, astarte_data_t *data)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     switch (type) {
         case ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY:
-            individual->tag = type;
-            individual->data.binaryblob_array.count = 0;
-            individual->data.binaryblob_array.blobs = NULL;
-            individual->data.binaryblob_array.sizes = NULL;
+            data->tag = type;
+            data->data.binaryblob_array.count = 0;
+            data->data.binaryblob_array.blobs = NULL;
+            data->data.binaryblob_array.sizes = NULL;
             break;
         case ASTARTE_MAPPING_TYPE_BOOLEANARRAY:
-            individual->tag = type;
-            individual->data.boolean_array.len = 0;
-            individual->data.boolean_array.buf = NULL;
+            data->tag = type;
+            data->data.boolean_array.len = 0;
+            data->data.boolean_array.buf = NULL;
             break;
         case ASTARTE_MAPPING_TYPE_DATETIMEARRAY:
-            individual->tag = type;
-            individual->data.datetime_array.len = 0;
-            individual->data.datetime_array.buf = NULL;
+            data->tag = type;
+            data->data.datetime_array.len = 0;
+            data->data.datetime_array.buf = NULL;
             break;
         case ASTARTE_MAPPING_TYPE_DOUBLEARRAY:
-            individual->tag = type;
-            individual->data.double_array.len = 0;
-            individual->data.double_array.buf = NULL;
+            data->tag = type;
+            data->data.double_array.len = 0;
+            data->data.double_array.buf = NULL;
             break;
         case ASTARTE_MAPPING_TYPE_INTEGERARRAY:
-            individual->tag = type;
-            individual->data.integer_array.len = 0;
-            individual->data.integer_array.buf = NULL;
+            data->tag = type;
+            data->data.integer_array.len = 0;
+            data->data.integer_array.buf = NULL;
             break;
         case ASTARTE_MAPPING_TYPE_LONGINTEGERARRAY:
-            individual->tag = type;
-            individual->data.longinteger_array.len = 0;
-            individual->data.longinteger_array.buf = NULL;
+            data->tag = type;
+            data->data.longinteger_array.len = 0;
+            data->data.longinteger_array.buf = NULL;
             break;
         case ASTARTE_MAPPING_TYPE_STRINGARRAY:
-            individual->tag = type;
-            individual->data.string_array.len = 0;
-            individual->data.string_array.buf = NULL;
+            data->tag = type;
+            data->data.string_array.len = 0;
+            data->data.string_array.buf = NULL;
             break;
         default:
-            ESP_LOGE(TAG, "Creating empty array Astarte individual for scalar mapping type.");
+            ESP_LOGE(TAG, "Creating empty array Astarte data for scalar mapping type.");
             ares = ASTARTE_RESULT_INTERNAL_ERROR;
             break;
     }
@@ -512,7 +506,7 @@ static astarte_result_t initialize_empty_array(
 }
 
 static astarte_result_t deserialize_scalar(
-    astarte_bson_element_t bson_elem, astarte_mapping_type_t type, astarte_individual_t *individual)
+    astarte_bson_element_t bson_elem, astarte_mapping_type_t type, astarte_data_t *data)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
 
@@ -523,42 +517,42 @@ static astarte_result_t deserialize_scalar(
 
     switch (type) {
         case ASTARTE_MAPPING_TYPE_BINARYBLOB:
-            ESP_LOGD(TAG, "Deserializing binary blob individual.");
-            ares = deserialize_binaryblob(bson_elem, individual);
+            ESP_LOGD(TAG, "Deserializing binary blob data.");
+            ares = deserialize_binaryblob(bson_elem, data);
             break;
         case ASTARTE_MAPPING_TYPE_BOOLEAN:
-            ESP_LOGD(TAG, "Deserializing boolean individual.");
+            ESP_LOGD(TAG, "Deserializing boolean data.");
             bool bool_tmp = astarte_bson_deserializer_element_to_bool(bson_elem);
-            *individual = astarte_individual_from_boolean(bool_tmp);
+            *data = astarte_data_from_boolean(bool_tmp);
             break;
         case ASTARTE_MAPPING_TYPE_DATETIME:
-            ESP_LOGD(TAG, "Deserializing datetime individual.");
+            ESP_LOGD(TAG, "Deserializing datetime data.");
             int64_t datetime_tmp = astarte_bson_deserializer_element_to_datetime(bson_elem);
-            *individual = astarte_individual_from_datetime(datetime_tmp);
+            *data = astarte_data_from_datetime(datetime_tmp);
             break;
         case ASTARTE_MAPPING_TYPE_DOUBLE:
-            ESP_LOGD(TAG, "Deserializing double individual.");
+            ESP_LOGD(TAG, "Deserializing double data.");
             double double_tmp = astarte_bson_deserializer_element_to_double(bson_elem);
-            *individual = astarte_individual_from_double(double_tmp);
+            *data = astarte_data_from_double(double_tmp);
             break;
         case ASTARTE_MAPPING_TYPE_INTEGER:
-            ESP_LOGD(TAG, "Deserializing integer individual.");
+            ESP_LOGD(TAG, "Deserializing integer data.");
             int32_t int32_tmp = astarte_bson_deserializer_element_to_int32(bson_elem);
-            *individual = astarte_individual_from_integer(int32_tmp);
+            *data = astarte_data_from_integer(int32_tmp);
             break;
         case ASTARTE_MAPPING_TYPE_LONGINTEGER:
-            ESP_LOGD(TAG, "Deserializing long integer individual.");
+            ESP_LOGD(TAG, "Deserializing long integer data.");
             int64_t int64_tmp = 0U;
             if (bson_elem.type == ASTARTE_BSON_TYPE_INT32) {
                 int64_tmp = (int64_t) astarte_bson_deserializer_element_to_int32(bson_elem);
             } else {
                 int64_tmp = astarte_bson_deserializer_element_to_int64(bson_elem);
             }
-            *individual = astarte_individual_from_longinteger(int64_tmp);
+            *data = astarte_data_from_longinteger(int64_tmp);
             break;
         case ASTARTE_MAPPING_TYPE_STRING:
-            ESP_LOGD(TAG, "Deserializing string individual.");
-            ares = deserialize_string(bson_elem, individual);
+            ESP_LOGD(TAG, "Deserializing string data.");
+            ares = deserialize_string(bson_elem, data);
             break;
         default:
             ESP_LOGE(TAG, "Unsupported mapping type.");
@@ -569,9 +563,8 @@ static astarte_result_t deserialize_scalar(
 }
 
 static astarte_result_t deserialize_binaryblob(
-    astarte_bson_element_t bson_elem, astarte_individual_t *individual)
+    astarte_bson_element_t bson_elem, astarte_data_t *data)
 {
-    astarte_result_t ares = ASTARTE_RESULT_OK;
     uint8_t *dyn_deserialized = NULL;
 
     uint32_t deserialized_len = 0;
@@ -581,23 +574,16 @@ static astarte_result_t deserialize_binaryblob(
     dyn_deserialized = calloc(deserialized_len, sizeof(uint8_t));
     if (!dyn_deserialized) {
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
-        ares = ASTARTE_RESULT_OUT_OF_MEMORY;
-        goto failure;
+        return ASTARTE_RESULT_OUT_OF_MEMORY;
     }
 
     memcpy(dyn_deserialized, deserialized, deserialized_len);
-    *individual = astarte_individual_from_binaryblob((void *) dyn_deserialized, deserialized_len);
-    return ares;
-
-failure:
-    free(dyn_deserialized);
-    return ares;
+    *data = astarte_data_from_binaryblob((void *) dyn_deserialized, deserialized_len);
+    return ASTARTE_RESULT_OK;
 }
 
-static astarte_result_t deserialize_string(
-    astarte_bson_element_t bson_elem, astarte_individual_t *individual)
+static astarte_result_t deserialize_string(astarte_bson_element_t bson_elem, astarte_data_t *data)
 {
-    astarte_result_t ares = ASTARTE_RESULT_OK;
     char *dyn_deserialized = NULL;
 
     uint32_t deserialized_len = 0;
@@ -607,21 +593,16 @@ static astarte_result_t deserialize_string(
     dyn_deserialized = calloc(deserialized_len + 1, sizeof(char));
     if (!dyn_deserialized) {
         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
-        ares = ASTARTE_RESULT_OUT_OF_MEMORY;
-        goto failure;
+        return ASTARTE_RESULT_OUT_OF_MEMORY;
     }
 
     strncpy(dyn_deserialized, deserialized, deserialized_len);
-    *individual = astarte_individual_from_string(dyn_deserialized);
-    return ares;
-
-failure:
-    free(dyn_deserialized);
-    return ares;
+    *data = astarte_data_from_string(dyn_deserialized);
+    return ASTARTE_RESULT_OK;
 }
 
 static astarte_result_t deserialize_array(
-    astarte_bson_element_t bson_elem, astarte_mapping_type_t type, astarte_individual_t *individual)
+    astarte_bson_element_t bson_elem, astarte_mapping_type_t type, astarte_data_t *data)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
 
@@ -636,7 +617,7 @@ static astarte_result_t deserialize_array(
     astarte_bson_element_t inner_elem = { 0 };
     ares = astarte_bson_deserializer_first_element(bson_doc, &inner_elem);
     if (ares != ASTARTE_RESULT_OK) {
-        return initialize_empty_array(type, individual);
+        return initialize_empty_array(type, data);
     }
     size_t array_length = 0U;
 
@@ -664,31 +645,31 @@ static astarte_result_t deserialize_array(
     switch (scalar_type) {
         case ASTARTE_MAPPING_TYPE_BINARYBLOB:
             ESP_LOGD(TAG, "Deserializing array of binary blobs.");
-            ares = deserialize_array_binblob(bson_doc, individual, array_length);
+            ares = deserialize_array_binblob(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_BOOLEAN:
             ESP_LOGD(TAG, "Deserializing array of booleans.");
-            ares = deserialize_array_bool(bson_doc, individual, array_length);
+            ares = deserialize_array_bool(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_DATETIME:
             ESP_LOGD(TAG, "Deserializing array of datetimes.");
-            ares = deserialize_array_datetime(bson_doc, individual, array_length);
+            ares = deserialize_array_datetime(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_DOUBLE:
             ESP_LOGD(TAG, "Deserializing array of doubles.");
-            ares = deserialize_array_double(bson_doc, individual, array_length);
+            ares = deserialize_array_double(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_INTEGER:
             ESP_LOGD(TAG, "Deserializing array of integers.");
-            ares = deserialize_array_int32(bson_doc, individual, array_length);
+            ares = deserialize_array_int32(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_LONGINTEGER:
             ESP_LOGD(TAG, "Deserializing array of long integers.");
-            ares = deserialize_array_int64(bson_doc, individual, array_length);
+            ares = deserialize_array_int64(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_STRING:
             ESP_LOGD(TAG, "Deserializing array of strings.");
-            ares = deserialize_array_string(bson_doc, individual, array_length);
+            ares = deserialize_array_string(bson_doc, data, array_length);
             break;
         default:
             ESP_LOGE(TAG, "Unsupported mapping type.");
@@ -700,53 +681,54 @@ static astarte_result_t deserialize_array(
 }
 
 // clang-format off
-// NOLINTBEGIN(bugprone-macro-parentheses) Some can't be wrapped in parenthesis
-#define DESERIALIZE_ARRAY_FUNC(NAME, TYPE, TYPE_TAG, UNION)                                        \
-static astarte_result_t deserialize_array_##NAME(                                                  \
-    astarte_bson_document_t bson_doc, astarte_individual_t *individual, size_t array_length)       \
-{                                                                                                  \
-    astarte_result_t ares = ASTARTE_RESULT_OK;                                                     \
-    TYPE *array = calloc(array_length, sizeof(TYPE));                                              \
-    if (!array) {                                                                                  \
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);                               \
-        ares = ASTARTE_RESULT_OUT_OF_MEMORY;                                                       \
-        goto failure;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    astarte_bson_element_t inner_elem = {0};                                                       \
-    ares = astarte_bson_deserializer_first_element(bson_doc, &inner_elem);                         \
-    if (ares != ASTARTE_RESULT_OK) {                                                               \
-        goto failure;                                                                              \
-    }                                                                                              \
-    array[0] = astarte_bson_deserializer_element_to_##NAME(inner_elem);                            \
-                                                                                                   \
-    for (size_t i = 1; i < array_length; i++) {                                                    \
-        ares = astarte_bson_deserializer_next_element(bson_doc, inner_elem, &inner_elem);          \
-        if (ares != ASTARTE_RESULT_OK) {                                                           \
-            goto failure;                                                                          \
-        }                                                                                          \
-        array[i] = astarte_bson_deserializer_element_to_##NAME(inner_elem);                        \
-    }                                                                                              \
-                                                                                                   \
-    individual->tag = (TYPE_TAG);                                                                  \
-    individual->data.UNION.len = array_length;                                                     \
-    individual->data.UNION.buf = array;                                                            \
-    return ASTARTE_RESULT_OK;                                                                      \
-                                                                                                   \
-failure:                                                                                           \
-    free(array);                                                                                   \
-    return ares;                                                                                   \
-}
-// NOLINTEND(bugprone-macro-parentheses)
+ // NOLINTBEGIN(bugprone-macro-parentheses) Some can't be wrapped in parenthesis
+ #define MAKE_FUNCTION_DESERIALIZE_ARRAY(NAME, TYPE, TYPE_TAG, UNION)                                    \
+ static astarte_result_t deserialize_array_##NAME(                                                  \
+     astarte_bson_document_t bson_doc, astarte_data_t *data, size_t array_length)                   \
+ {                                                                                                  \
+     astarte_result_t ares = ASTARTE_RESULT_OK;                                                     \
+     TYPE *array = calloc(array_length, sizeof(TYPE));                                              \
+     if (!array) {                                                                                  \
+         ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);                               \
+         ares = ASTARTE_RESULT_OUT_OF_MEMORY;                                                       \
+         goto failure;                                                                              \
+     }                                                                                              \
+                                                                                                    \
+     astarte_bson_element_t inner_elem = {0};                                                       \
+     ares = astarte_bson_deserializer_first_element(bson_doc, &inner_elem);                         \
+     if (ares != ASTARTE_RESULT_OK) {                                                               \
+         goto failure;                                                                              \
+     }                                                                                              \
+     array[0] = astarte_bson_deserializer_element_to_##NAME(inner_elem);                            \
+                                                                                                    \
+     for (size_t i = 1; i < array_length; i++) {                                                    \
+         ares = astarte_bson_deserializer_next_element(bson_doc, inner_elem, &inner_elem);          \
+         if (ares != ASTARTE_RESULT_OK) {                                                           \
+             goto failure;                                                                          \
+         }                                                                                          \
+         array[i] = astarte_bson_deserializer_element_to_##NAME(inner_elem);                        \
+     }                                                                                              \
+                                                                                                    \
+     data->tag = (TYPE_TAG);                                                                             \
+     data->data.UNION.len = array_length;                                                           \
+     data->data.UNION.buf = array;                                                                  \
+     return ASTARTE_RESULT_OK;                                                                      \
+                                                                                                    \
+ failure:                                                                                           \
+     free(array);                                                                                   \
+     return ares;                                                                                   \
+ }
+ // NOLINTEND(bugprone-macro-parentheses)
 // clang-format on
 
-DESERIALIZE_ARRAY_FUNC(double, double, ASTARTE_MAPPING_TYPE_DOUBLEARRAY, double_array)
-DESERIALIZE_ARRAY_FUNC(bool, bool, ASTARTE_MAPPING_TYPE_BOOLEANARRAY, boolean_array)
-DESERIALIZE_ARRAY_FUNC(datetime, int64_t, ASTARTE_MAPPING_TYPE_DATETIMEARRAY, datetime_array)
-DESERIALIZE_ARRAY_FUNC(int32, int32_t, ASTARTE_MAPPING_TYPE_INTEGERARRAY, integer_array)
+MAKE_FUNCTION_DESERIALIZE_ARRAY(double, double, ASTARTE_MAPPING_TYPE_DOUBLEARRAY, double_array)
+MAKE_FUNCTION_DESERIALIZE_ARRAY(bool, bool, ASTARTE_MAPPING_TYPE_BOOLEANARRAY, boolean_array)
+MAKE_FUNCTION_DESERIALIZE_ARRAY(
+    datetime, int64_t, ASTARTE_MAPPING_TYPE_DATETIMEARRAY, datetime_array)
+MAKE_FUNCTION_DESERIALIZE_ARRAY(int32, int32_t, ASTARTE_MAPPING_TYPE_INTEGERARRAY, integer_array)
 
 static astarte_result_t deserialize_array_int64(
-    astarte_bson_document_t bson_doc, astarte_individual_t *individual, size_t array_length)
+    astarte_bson_document_t bson_doc, astarte_data_t *data, size_t array_length)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     int64_t *array = calloc(array_length, sizeof(int64_t));
@@ -781,9 +763,9 @@ static astarte_result_t deserialize_array_int64(
         }
     }
 
-    individual->tag = ASTARTE_MAPPING_TYPE_LONGINTEGERARRAY;
-    individual->data.longinteger_array.len = array_length;
-    individual->data.longinteger_array.buf = array;
+    data->tag = ASTARTE_MAPPING_TYPE_LONGINTEGERARRAY;
+    data->data.longinteger_array.len = array_length;
+    data->data.longinteger_array.buf = array;
     return ASTARTE_RESULT_OK;
 
 failure:
@@ -792,7 +774,7 @@ failure:
 }
 
 static astarte_result_t deserialize_array_string(
-    astarte_bson_document_t bson_doc, astarte_individual_t *individual, size_t array_length)
+    astarte_bson_document_t bson_doc, astarte_data_t *data, size_t array_length)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     // Step 1: allocate enough memory to contain the array from the BSON file
@@ -838,9 +820,9 @@ static astarte_result_t deserialize_array_string(
     }
 
     // Step 3: Place the generated array in the output struct
-    individual->tag = ASTARTE_MAPPING_TYPE_STRINGARRAY;
-    individual->data.string_array.len = array_length;
-    individual->data.string_array.buf = (const char **) array;
+    data->tag = ASTARTE_MAPPING_TYPE_STRINGARRAY;
+    data->data.string_array.len = array_length;
+    data->data.string_array.buf = (const char **) array;
 
     return ASTARTE_RESULT_OK;
 
@@ -855,7 +837,7 @@ failure:
 }
 
 static astarte_result_t deserialize_array_binblob(
-    astarte_bson_document_t bson_doc, astarte_individual_t *individual, size_t array_length)
+    astarte_bson_document_t bson_doc, astarte_data_t *data, size_t array_length)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     uint8_t **array = NULL;
@@ -910,10 +892,10 @@ static astarte_result_t deserialize_array_binblob(
     }
 
     // Step 3: Place the generated array in the output struct
-    individual->tag = ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY;
-    individual->data.binaryblob_array.count = array_length;
-    individual->data.binaryblob_array.sizes = array_sizes;
-    individual->data.binaryblob_array.blobs = (const void **) array;
+    data->tag = ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY;
+    data->data.binaryblob_array.count = array_length;
+    data->data.binaryblob_array.sizes = array_sizes;
+    data->data.binaryblob_array.blobs = (const void **) array;
 
     return ASTARTE_RESULT_OK;
 

@@ -16,7 +16,7 @@
 #include <stdint.h>
 
 #include "astarte_device_sdk/astarte.h"
-#include "astarte_device_sdk/individual.h"
+#include "astarte_device_sdk/data.h"
 #include "astarte_device_sdk/result.h"
 #include "introspection.h"
 #include "kv_storage.h"
@@ -98,16 +98,16 @@ astarte_result_t device_caching_introspection_check(
  * @param[in] interface_name Interface name
  * @param[in] path Property endpoint
  * @param[in] major Major version name
- * @param[in] individual Data to store as a generic binary buffer
+ * @param[in] data Data to store as a generic binary buffer
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 astarte_result_t device_caching_property_store(device_caching_t handle, const char *interface_name,
-    const char *path, uint32_t major, astarte_individual_t individual);
+    const char *path, uint32_t major, astarte_data_t data);
 
 /**
  * @brief Load a stored property
  *
- * @warning The @p individual parameter should be destroyed using
+ * @warning The @p data parameter should be destroyed using
  * #device_caching_property_destroy_loaded after its usage has ended.
  *
  * @param[in] handle Device caching instance handle.
@@ -115,11 +115,11 @@ astarte_result_t device_caching_property_store(device_caching_t handle, const ch
  * @param[in] path Property endpoint
  * @param[out] out_major Pointer to output major version. Might be NULL, in this case the parameter
  * is ignored.
- * @param[out] individual Loaded property value
+ * @param[out] data Loaded property value
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 astarte_result_t device_caching_property_load(device_caching_t handle, const char *interface_name,
-    const char *path, uint32_t *out_major, astarte_individual_t *individual);
+    const char *path, uint32_t *out_major, astarte_data_t *data);
 
 /**
  * @brief Destroy data for a previously loaded property.
@@ -128,7 +128,7 @@ astarte_result_t device_caching_property_load(device_caching_t handle, const cha
  *
  * @param[out] data Astarte data loaded by #device_caching_property_load.
  */
-void device_caching_property_destroy_loaded(astarte_individual_t individual);
+void device_caching_property_destroy_loaded(astarte_data_t data);
 
 /**
  * @brief Get the device properties string.

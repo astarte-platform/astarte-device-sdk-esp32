@@ -183,12 +183,12 @@ void test_device_caching_property_store_load_delete_cycle(void)
 
     // Variables where to store read payloads
     uint32_t i1_major_read = 0;
-    astarte_individual_t i1_p1_individual_read = { 0 };
+    astarte_data_t i1_p1_data_read = { 0 };
     const char *i1_p1_payload_read = NULL;
-    astarte_individual_t i1_p2_individual_read = { 0 };
+    astarte_data_t i1_p2_data_read = { 0 };
     const char *i1_p2_payload_read = NULL;
     uint32_t i2_major_read = 0;
-    astarte_individual_t i2_p1_individual_read = { 0 };
+    astarte_data_t i2_p1_data_read = { 0 };
     const char *i2_p1_payload_read = NULL;
 
     // Open storage
@@ -219,43 +219,43 @@ void test_device_caching_property_store_load_delete_cycle(void)
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_store(device_caching, interface1.name,
             interface1.mappings[0].endpoint, interface1.major_version,
-            astarte_individual_from_string(I1_P1_PAYLOAD)));
+            astarte_data_from_string(I1_P1_PAYLOAD)));
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_store(device_caching, interface1.name,
             interface1.mappings[1].endpoint, interface1.major_version,
-            astarte_individual_from_string(I1_P2_PAYLOAD)));
+            astarte_data_from_string(I1_P2_PAYLOAD)));
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_store(device_caching, interface2.name,
             interface2.mappings[0].endpoint, interface2.major_version,
-            astarte_individual_from_string(I2_P1_PAYLOAD)));
+            astarte_data_from_string(I2_P1_PAYLOAD)));
 
     // Load properties
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_load(device_caching, interface1.name,
-            interface1.mappings[0].endpoint, &i1_major_read, &i1_p1_individual_read));
+            interface1.mappings[0].endpoint, &i1_major_read, &i1_p1_data_read));
     TEST_ASSERT_EQUAL(interface1.major_version, i1_major_read);
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        astarte_individual_to_string(i1_p1_individual_read, &i1_p1_payload_read));
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, astarte_data_to_string(i1_p1_data_read, &i1_p1_payload_read));
     TEST_ASSERT_EQUAL_STRING(I1_P1_PAYLOAD, i1_p1_payload_read);
-    device_caching_property_destroy_loaded(i1_p1_individual_read);
+    device_caching_property_destroy_loaded(i1_p1_data_read);
 
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_load(device_caching, interface1.name,
-            interface1.mappings[1].endpoint, &i1_major_read, &i1_p2_individual_read));
+            interface1.mappings[1].endpoint, &i1_major_read, &i1_p2_data_read));
     TEST_ASSERT_EQUAL(interface1.major_version, i1_major_read);
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        astarte_individual_to_string(i1_p2_individual_read, &i1_p2_payload_read));
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, astarte_data_to_string(i1_p2_data_read, &i1_p2_payload_read));
     TEST_ASSERT_EQUAL_STRING(I1_P2_PAYLOAD, i1_p2_payload_read);
-    device_caching_property_destroy_loaded(i1_p2_individual_read);
+    device_caching_property_destroy_loaded(i1_p2_data_read);
 
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_load(device_caching, interface2.name,
-            interface2.mappings[0].endpoint, &i2_major_read, &i2_p1_individual_read));
+            interface2.mappings[0].endpoint, &i2_major_read, &i2_p1_data_read));
     TEST_ASSERT_EQUAL(interface2.major_version, i2_major_read);
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        astarte_individual_to_string(i2_p1_individual_read, &i2_p1_payload_read));
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, astarte_data_to_string(i2_p1_data_read, &i2_p1_payload_read));
     TEST_ASSERT_EQUAL_STRING(I2_P1_PAYLOAD, i2_p1_payload_read);
-    device_caching_property_destroy_loaded(i2_p1_individual_read);
+    device_caching_property_destroy_loaded(i2_p1_data_read);
 
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_NOT_FOUND,
         device_caching_property_load(
@@ -269,12 +269,12 @@ void test_device_caching_property_store_load_delete_cycle(void)
     // Load updated properties
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_load(device_caching, interface1.name,
-            interface1.mappings[0].endpoint, &i1_major_read, &i1_p1_individual_read));
+            interface1.mappings[0].endpoint, &i1_major_read, &i1_p1_data_read));
     TEST_ASSERT_EQUAL(interface1.major_version, i1_major_read);
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        astarte_individual_to_string(i1_p1_individual_read, &i1_p1_payload_read));
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, astarte_data_to_string(i1_p1_data_read, &i1_p1_payload_read));
     TEST_ASSERT_EQUAL_STRING(I1_P1_PAYLOAD, i1_p1_payload_read);
-    device_caching_property_destroy_loaded(i1_p1_individual_read);
+    device_caching_property_destroy_loaded(i1_p1_data_read);
 
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_NOT_FOUND,
         device_caching_property_load(
@@ -282,12 +282,12 @@ void test_device_caching_property_store_load_delete_cycle(void)
 
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_load(device_caching, interface2.name,
-            interface2.mappings[0].endpoint, &i2_major_read, &i2_p1_individual_read));
+            interface2.mappings[0].endpoint, &i2_major_read, &i2_p1_data_read));
     TEST_ASSERT_EQUAL(interface2.major_version, i2_major_read);
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        astarte_individual_to_string(i2_p1_individual_read, &i2_p1_payload_read));
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, astarte_data_to_string(i2_p1_data_read, &i2_p1_payload_read));
     TEST_ASSERT_EQUAL_STRING(I2_P1_PAYLOAD, i2_p1_payload_read);
-    device_caching_property_destroy_loaded(i2_p1_individual_read);
+    device_caching_property_destroy_loaded(i2_p1_data_read);
 
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_NOT_FOUND,
         device_caching_property_load(
@@ -309,12 +309,12 @@ void test_device_caching_property_store_load_delete_cycle(void)
 
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_load(device_caching, interface2.name,
-            interface2.mappings[0].endpoint, &i2_major_read, &i2_p1_individual_read));
+            interface2.mappings[0].endpoint, &i2_major_read, &i2_p1_data_read));
     TEST_ASSERT_EQUAL(interface2.major_version, i2_major_read);
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        astarte_individual_to_string(i2_p1_individual_read, &i2_p1_payload_read));
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, astarte_data_to_string(i2_p1_data_read, &i2_p1_payload_read));
     TEST_ASSERT_EQUAL_STRING(I2_P1_PAYLOAD, i2_p1_payload_read);
-    device_caching_property_destroy_loaded(i2_p1_individual_read);
+    device_caching_property_destroy_loaded(i2_p1_data_read);
 
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_NOT_FOUND,
         device_caching_property_load(
@@ -343,7 +343,7 @@ void test_device_caching_property_store_load_delete_cycle(void)
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_store(device_caching, interface2.name,
             interface2.mappings[0].endpoint, interface2.major_version,
-            astarte_individual_from_string(I2_P1_PAYLOAD)));
+            astarte_data_from_string(I2_P1_PAYLOAD)));
 
     // Load updated properties
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_NOT_FOUND,
@@ -356,12 +356,12 @@ void test_device_caching_property_store_load_delete_cycle(void)
 
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_load(device_caching, interface2.name,
-            interface2.mappings[0].endpoint, &i2_major_read, &i2_p1_individual_read));
+            interface2.mappings[0].endpoint, &i2_major_read, &i2_p1_data_read));
     TEST_ASSERT_EQUAL(interface2.major_version, i2_major_read);
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        astarte_individual_to_string(i2_p1_individual_read, &i2_p1_payload_read));
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, astarte_data_to_string(i2_p1_data_read, &i2_p1_payload_read));
     TEST_ASSERT_EQUAL_STRING(I2_P1_PAYLOAD, i2_p1_payload_read);
-    device_caching_property_destroy_loaded(i2_p1_individual_read);
+    device_caching_property_destroy_loaded(i2_p1_data_read);
 
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_NOT_FOUND,
         device_caching_property_load(
@@ -405,19 +405,19 @@ void test_device_caching_property_get_device_properties_string(void)
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_store(device_caching, interface1.name,
             interface1.mappings[0].endpoint, interface1.major_version,
-            astarte_individual_from_string(I1_P1_PAYLOAD)));
+            astarte_data_from_string(I1_P1_PAYLOAD)));
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_store(device_caching, interface1.name,
             interface1.mappings[1].endpoint, interface1.major_version,
-            astarte_individual_from_string(I1_P2_PAYLOAD)));
+            astarte_data_from_string(I1_P2_PAYLOAD)));
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_store(device_caching, interface2.name,
             interface2.mappings[0].endpoint, interface2.major_version,
-            astarte_individual_from_string(I2_P1_PAYLOAD)));
+            astarte_data_from_string(I2_P1_PAYLOAD)));
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_store(device_caching, interface2.name,
             interface2.mappings[1].endpoint, interface2.major_version,
-            astarte_individual_from_string(I2_P2_PAYLOAD)));
+            astarte_data_from_string(I2_P2_PAYLOAD)));
 
     // Get the string
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
@@ -477,15 +477,15 @@ void test_device_caching_property_iteration(void)
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_store(device_caching, interface1.name,
             interface1.mappings[0].endpoint, interface1.major_version,
-            astarte_individual_from_string(I1_P1_PAYLOAD)));
+            astarte_data_from_string(I1_P1_PAYLOAD)));
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_store(device_caching, interface1.name,
             interface1.mappings[1].endpoint, interface1.major_version,
-            astarte_individual_from_string(I1_P2_PAYLOAD)));
+            astarte_data_from_string(I1_P2_PAYLOAD)));
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
         device_caching_property_store(device_caching, interface2.name,
             interface2.mappings[0].endpoint, interface2.major_version,
-            astarte_individual_from_string(I2_P1_PAYLOAD)));
+            astarte_data_from_string(I2_P1_PAYLOAD)));
 
     // Create iterator
     device_caching_iterator_t iterator;

@@ -17,7 +17,7 @@
  ***********************************************/
 
 astarte_result_t data_validation_individual_datastream(const astarte_interface_t *interface,
-    const char *path, astarte_individual_t individual, const int64_t *timestamp)
+    const char *path, astarte_data_t data, const int64_t *timestamp)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
 
@@ -28,7 +28,7 @@ astarte_result_t data_validation_individual_datastream(const astarte_interface_t
         return ares;
     }
 
-    ares = astarte_mapping_check_individual(mapping, individual);
+    ares = astarte_mapping_check_data(mapping, data);
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(
             TAG, "Individual validation failed, interface/path (%s/%s).", interface->name, path);
@@ -67,7 +67,7 @@ astarte_result_t data_validation_aggregated_datastream(const astarte_interface_t
             return ares;
         }
 
-        ares = astarte_mapping_check_individual(mapping, entry.individual);
+        ares = astarte_mapping_check_data(mapping, entry.data);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Individual validation failed, interface/path (%s/%s/%s).",
                 interface->name, path, entry.path);
@@ -93,9 +93,9 @@ astarte_result_t data_validation_aggregated_datastream(const astarte_interface_t
 }
 
 astarte_result_t data_validation_set_property(
-    const astarte_interface_t *interface, const char *path, astarte_individual_t individual)
+    const astarte_interface_t *interface, const char *path, astarte_data_t data)
 {
-    return data_validation_individual_datastream(interface, path, individual, NULL);
+    return data_validation_individual_datastream(interface, path, data, NULL);
 }
 
 astarte_result_t data_validation_unset_property(
