@@ -40,8 +40,7 @@ extern "C" {
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 astarte_result_t new_ast_pairing_register_device(
-    const char *device_id,
-    char out_cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1]);
+    const char *device_id, char out_cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1]);
 
 #ifdef __cplusplus
 }
