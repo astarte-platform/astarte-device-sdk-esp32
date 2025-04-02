@@ -9,7 +9,7 @@
 
 /**
  * @file astarte.h
- * @brief Astarte types and defines.
+ * @brief Global Astarte includes and defines.
  */
 
 #include <stdbool.h>

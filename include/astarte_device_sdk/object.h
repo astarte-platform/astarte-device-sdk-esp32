@@ -20,7 +20,7 @@
  */
 
 #include "astarte_device_sdk/astarte.h"
-#include "astarte_device_sdk/individual.h"
+#include "astarte_device_sdk/data.h"
 #include "astarte_device_sdk/result.h"
 
 /**
@@ -34,14 +34,14 @@
  *
  * See the following initialization/getter methods:
  *  - #astarte_object_entry_new
- *  - #astarte_object_entry_to_path_and_individual
+ *  - #astarte_object_entry_to_path_and_data
  */
 typedef struct
 {
     /** @brief Path for the entry */
     const char *path;
-    /** @brief Individual for the entry */
-    astarte_individual_t individual;
+    /** @brief Data for the entry */
+    astarte_data_t data;
 } astarte_object_entry_t;
 
 #ifdef __cplusplus
@@ -52,21 +52,21 @@ extern "C" {
  * @brief Initialize an Astarte object entry.
  *
  * @param[in] path Path to store in the entry.
- * @param[in] individual Individual data to store in the entry.
+ * @param[in] data Data to store in the entry.
  * @return The Astarte object entry created from the inputs.
  */
-astarte_object_entry_t astarte_object_entry_new(const char *path, astarte_individual_t individual);
+astarte_object_entry_t astarte_object_entry_new(const char *path, astarte_data_t data);
 
 /**
- * @brief Convert an Astarte object entry to an Astarte individual and path.
+ * @brief Convert an Astarte object entry to an Astarte data and path.
  *
  * @param[in] entry Input Astarte object entry.
  * @param[out] path Path extracted from the entry.
- * @param[out] individual Individual extracted from the entry.
+ * @param[out] data Data extracted from the entry.
  * @return ASTARTE_RESULT_OK if the conversion was successful, an error otherwise.
  */
-astarte_result_t astarte_object_entry_to_path_and_individual(
-    astarte_object_entry_t entry, const char **path, astarte_individual_t *individual);
+astarte_result_t astarte_object_entry_to_path_and_data(
+    astarte_object_entry_t entry, const char **path, astarte_data_t *data);
 
 #ifdef __cplusplus
 }

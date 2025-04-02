@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 #include "bson_types.h"
-#include "individual_private.h"
+#include "data_private.h"
 #include "interface_private.h"
 
 #define TAG "ASTARTE_OBJECT"
@@ -20,23 +20,23 @@
  *     Global public functions definitions      *
  ***********************************************/
 
-astarte_object_entry_t astarte_object_entry_new(const char *path, astarte_individual_t individual)
+astarte_object_entry_t astarte_object_entry_new(const char *path, astarte_data_t data)
 {
     return (astarte_object_entry_t) {
         .path = path,
-        .individual = individual,
+        .data = data,
     };
 }
 
-astarte_result_t astarte_object_entry_to_path_and_individual(
-    astarte_object_entry_t object_entry, const char **path, astarte_individual_t *individual)
+astarte_result_t astarte_object_entry_to_path_and_data(
+    astarte_object_entry_t object_entry, const char **path, astarte_data_t *data)
 {
-    if (!path || !individual) {
-        ESP_LOGE(TAG, "Conversion from Astarte object entry to path and individual error.");
+    if (!path || !data) {
+        ESP_LOGE(TAG, "Conversion from Astarte object entry to path and data error.");
         return ASTARTE_RESULT_INVALID_PARAM;
     }
     *path = object_entry.path;
-    *individual = object_entry.individual;
+    *data = object_entry.data;
     return ASTARTE_RESULT_OK;
 }
 
@@ -49,7 +49,7 @@ astarte_result_t astarte_object_entries_serialize(
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     for (size_t i = 0; i < entries_length; i++) {
-        ares = astarte_individual_serialize(bson, entries[i].path, entries[i].individual);
+        ares = astarte_data_serialize(bson, entries[i].path, entries[i].data);
         if (ares != ASTARTE_RESULT_OK) {
             break;
         }
@@ -58,7 +58,7 @@ astarte_result_t astarte_object_entries_serialize(
     return ares;
 }
 
-astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_elem,
+astarte_result_t astarte_object_entries_deserialize(new_ast_bson_element_t bson_elem,
     const astarte_interface_t *interface, const char *path, astarte_object_entry_t **entries,
     size_t *entries_length)
 {
@@ -72,10 +72,10 @@ astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_
         ares = ASTARTE_RESULT_BSON_DESERIALIZER_ERROR;
         goto failure;
     }
-    astarte_bson_document_t bson_doc = astarte_bson_deserializer_element_to_document(bson_elem);
+    new_ast_bson_document_t bson_doc = new_ast_bson_deserializer_element_to_document(bson_elem);
 
     size_t bson_doc_length = 0;
-    ares = astarte_bson_deserializer_doc_count_elements(bson_doc, &bson_doc_length);
+    ares = new_ast_bson_deserializer_doc_count_elements(bson_doc, &bson_doc_length);
     if (ares != ASTARTE_RESULT_OK) {
         goto failure;
     }
@@ -94,8 +94,8 @@ astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_
     }
 
     // Step 3: Fill the allocated memory
-    astarte_bson_element_t inner_elem = { 0 };
-    ares = astarte_bson_deserializer_first_element(bson_doc, &inner_elem);
+    new_ast_bson_element_t inner_elem = { 0 };
+    ares = new_ast_bson_deserializer_first_element(bson_doc, &inner_elem);
     if (ares != ASTARTE_RESULT_OK) {
         goto failure;
     }
@@ -107,13 +107,13 @@ astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_
         if (ares != ASTARTE_RESULT_OK) {
             goto failure;
         }
-        ares = astarte_individual_deserialize(
-            inner_elem, mapping->type, &(tmp_entries[deserialize_idx].individual));
+        ares = astarte_data_deserialize(
+            inner_elem, mapping->type, &(tmp_entries[deserialize_idx].data));
         if (ares != ASTARTE_RESULT_OK) {
             goto failure;
         }
         deserialize_idx++;
-        ares = astarte_bson_deserializer_next_element(bson_doc, inner_elem, &inner_elem);
+        ares = new_ast_bson_deserializer_next_element(bson_doc, inner_elem, &inner_elem);
         if ((ares != ASTARTE_RESULT_OK) && (ares != ASTARTE_RESULT_NOT_FOUND)) {
             goto failure;
         }
@@ -127,7 +127,7 @@ astarte_result_t astarte_object_entries_deserialize(astarte_bson_element_t bson_
 
 failure:
     for (size_t j = 0; j < deserialize_idx; j++) {
-        astarte_individual_destroy_deserialized(tmp_entries[j].individual);
+        astarte_data_destroy_deserialized(tmp_entries[j].data);
     }
     free(tmp_entries);
 
@@ -138,7 +138,7 @@ void astarte_object_entries_destroy_deserialized(
     astarte_object_entry_t *entries, size_t entries_length)
 {
     for (size_t i = 0; i < entries_length; i++) {
-        astarte_individual_destroy_deserialized(entries[i].individual);
+        astarte_data_destroy_deserialized(entries[i].data);
     }
     free(entries);
 }

@@ -13,7 +13,7 @@
 
 #include <esp_log.h>
 
-#define TAG "ASTARTE_BSON_DESERIALIZER"
+#define TAG "BSON DESERIALIZER"
 
 /************************************************
  *        Defines, constants and typedef        *
@@ -47,9 +47,9 @@ static uint64_t read_uint64(const void *buff);
  *         Global functions definitions         *
  ***********************************************/
 
-bool astarte_bson_deserializer_check_validity(const void *buffer, size_t buffer_size)
+bool new_ast_bson_deserializer_check_validity(const void *buffer, size_t buffer_size)
 {
-    astarte_bson_document_t document;
+    new_ast_bson_document_t document;
 
     // Validate buffer size is at least 5, the size of an empty document.
     if (buffer_size < sizeof(document.size) + NULL_TERM_SIZE) {
@@ -57,11 +57,12 @@ bool astarte_bson_deserializer_check_validity(const void *buffer, size_t buffer_
         return false;
     }
 
-    document = astarte_bson_deserializer_init_doc(buffer);
+    document = new_ast_bson_deserializer_init_doc(buffer);
 
     // Ensure the buffer is larger or equal compared to the decoded document size
     if (buffer_size < document.size) {
-        ESP_LOGW(TAG, "Allocated buffer size (%i) is smaller than BSON document size (%" PRIu32 ")",
+        ESP_LOGW(TAG,
+            "Allocated buffer size (%zu) is smaller than BSON document size (%" PRIu32 ")",
             buffer_size, document.size);
         return false;
     }
@@ -110,21 +111,21 @@ bool astarte_bson_deserializer_check_validity(const void *buffer, size_t buffer_
     return true;
 }
 
-astarte_bson_document_t astarte_bson_deserializer_init_doc(const void *buffer)
+new_ast_bson_document_t new_ast_bson_deserializer_init_doc(const void *buffer)
 {
-    astarte_bson_document_t document = { 0 };
+    new_ast_bson_document_t document = { 0 };
     document.size = read_uint32(buffer);
     document.list = (uint8_t *) buffer + sizeof(document.size);
     document.list_size = document.size - sizeof(document.size) - NULL_TERM_SIZE;
     return document;
 }
 
-astarte_result_t astarte_bson_deserializer_doc_count_elements(
-    astarte_bson_document_t document, size_t *count)
+astarte_result_t new_ast_bson_deserializer_doc_count_elements(
+    new_ast_bson_document_t document, size_t *count)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
-    astarte_bson_element_t element = { 0 };
-    ares = astarte_bson_deserializer_first_element(document, &element);
+    new_ast_bson_element_t element = { 0 };
+    ares = new_ast_bson_deserializer_first_element(document, &element);
     if (ares == ASTARTE_RESULT_NOT_FOUND) {
         *count = 0;
         return ASTARTE_RESULT_OK;
@@ -136,7 +137,7 @@ astarte_result_t astarte_bson_deserializer_doc_count_elements(
 
     do {
         document_length++;
-        ares = astarte_bson_deserializer_next_element(document, element, &element);
+        ares = new_ast_bson_deserializer_next_element(document, element, &element);
     } while (ares == ASTARTE_RESULT_OK);
 
     if (ares != ASTARTE_RESULT_NOT_FOUND) {
@@ -147,8 +148,8 @@ astarte_result_t astarte_bson_deserializer_doc_count_elements(
     return ASTARTE_RESULT_OK;
 }
 
-astarte_result_t astarte_bson_deserializer_first_element(
-    astarte_bson_document_t document, astarte_bson_element_t *element)
+astarte_result_t new_ast_bson_deserializer_first_element(
+    new_ast_bson_document_t document, new_ast_bson_element_t *element)
 {
     // Document should not be empty
     if (document.size <= sizeof(document.size) + NULL_TERM_SIZE) {
@@ -165,8 +166,8 @@ astarte_result_t astarte_bson_deserializer_first_element(
     return ASTARTE_RESULT_OK;
 }
 
-astarte_result_t astarte_bson_deserializer_next_element(astarte_bson_document_t document,
-    astarte_bson_element_t curr_element, astarte_bson_element_t *next_element)
+astarte_result_t new_ast_bson_deserializer_next_element(new_ast_bson_document_t document,
+    new_ast_bson_element_t curr_element, new_ast_bson_element_t *next_element)
 {
     // Get the size of the current element
     size_t element_value_size = 0U;
@@ -225,17 +226,17 @@ astarte_result_t astarte_bson_deserializer_next_element(astarte_bson_document_t 
     return ASTARTE_RESULT_OK;
 }
 
-astarte_result_t astarte_bson_deserializer_element_lookup(
-    astarte_bson_document_t document, const char *key, astarte_bson_element_t *element)
+astarte_result_t new_ast_bson_deserializer_element_lookup(
+    new_ast_bson_document_t document, const char *key, new_ast_bson_element_t *element)
 {
-    astarte_bson_element_t candidate_element = { 0 };
-    astarte_result_t ares = astarte_bson_deserializer_first_element(document, &candidate_element);
+    new_ast_bson_element_t candidate_element = { 0 };
+    astarte_result_t ares = new_ast_bson_deserializer_first_element(document, &candidate_element);
     if (ares != ASTARTE_RESULT_OK) {
         return ares;
     }
 
     while (strncmp(key, candidate_element.name, candidate_element.name_len + NULL_TERM_SIZE) != 0) {
-        ares = astarte_bson_deserializer_next_element(
+        ares = new_ast_bson_deserializer_next_element(
             document, candidate_element, &candidate_element);
         if (ares != ASTARTE_RESULT_OK) {
             return ares;
@@ -251,14 +252,14 @@ astarte_result_t astarte_bson_deserializer_element_lookup(
     return ares;
 }
 
-double astarte_bson_deserializer_element_to_double(astarte_bson_element_t element)
+double new_ast_bson_deserializer_element_to_double(new_ast_bson_element_t element)
 {
     uint64_t value = read_uint64(element.value);
     return ((double *) &value)[0];
 }
 
-const char *astarte_bson_deserializer_element_to_string(
-    astarte_bson_element_t element, uint32_t *len)
+const char *new_ast_bson_deserializer_element_to_string(
+    new_ast_bson_element_t element, uint32_t *len)
 {
     if (len) {
         *len = read_uint32(element.value) - NULL_TERM_SIZE;
@@ -266,19 +267,19 @@ const char *astarte_bson_deserializer_element_to_string(
     return (const char *) ((uint8_t *) element.value + sizeof(uint32_t));
 }
 
-astarte_bson_document_t astarte_bson_deserializer_element_to_document(
-    astarte_bson_element_t element)
+new_ast_bson_document_t new_ast_bson_deserializer_element_to_document(
+    new_ast_bson_element_t element)
 {
-    return astarte_bson_deserializer_init_doc(element.value);
+    return new_ast_bson_deserializer_init_doc(element.value);
 }
 
-astarte_bson_document_t astarte_bson_deserializer_element_to_array(astarte_bson_element_t element)
+new_ast_bson_document_t new_ast_bson_deserializer_element_to_array(new_ast_bson_element_t element)
 {
-    return astarte_bson_deserializer_init_doc(element.value);
+    return new_ast_bson_deserializer_init_doc(element.value);
 }
 
-const uint8_t *astarte_bson_deserializer_element_to_binary(
-    astarte_bson_element_t element, uint32_t *len)
+const uint8_t *new_ast_bson_deserializer_element_to_binary(
+    new_ast_bson_element_t element, uint32_t *len)
 {
     if (len) {
         *len = read_uint32(element.value);
@@ -286,24 +287,24 @@ const uint8_t *astarte_bson_deserializer_element_to_binary(
     return (const uint8_t *) ((uint8_t *) element.value + sizeof(uint32_t) + sizeof(uint8_t));
 }
 
-bool astarte_bson_deserializer_element_to_bool(astarte_bson_element_t element)
+bool new_ast_bson_deserializer_element_to_bool(new_ast_bson_element_t element)
 {
     return *((bool *) element.value);
 }
 
-int64_t astarte_bson_deserializer_element_to_datetime(astarte_bson_element_t element)
+int64_t new_ast_bson_deserializer_element_to_datetime(new_ast_bson_element_t element)
 {
     uint64_t value = read_uint64(element.value);
     return ((int64_t *) &value)[0];
 }
 
-int32_t astarte_bson_deserializer_element_to_int32(astarte_bson_element_t element)
+int32_t new_ast_bson_deserializer_element_to_int32(new_ast_bson_element_t element)
 {
     uint32_t value = read_uint32(element.value);
     return ((int32_t *) &value)[0];
 }
 
-int64_t astarte_bson_deserializer_element_to_int64(astarte_bson_element_t element)
+int64_t new_ast_bson_deserializer_element_to_int64(new_ast_bson_element_t element)
 {
     uint64_t value = read_uint64(element.value);
     return ((int64_t *) &value)[0];

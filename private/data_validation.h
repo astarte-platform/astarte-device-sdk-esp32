@@ -13,7 +13,7 @@
  */
 
 #include "astarte_device_sdk/astarte.h"
-#include "astarte_device_sdk/individual.h"
+#include "astarte_device_sdk/data.h"
 #include "astarte_device_sdk/object.h"
 #include "astarte_device_sdk/result.h"
 
@@ -28,12 +28,12 @@ extern "C" {
  *
  * @param[in] interface Interface to use for the operation.
  * @param[in] path Path to validate.
- * @param[in] individual Astarte individual value to validate.
+ * @param[in] data Astarte value to validate.
  * @param[in] timestamp Timestamp to validate, it might be NULL.
  * @return ASTARTE_RESULT_OK when validation is successful, an error otherwise.
  */
 astarte_result_t data_validation_individual_datastream(const astarte_interface_t *interface,
-    const char *path, astarte_individual_t individual, const int64_t *timestamp);
+    const char *path, astarte_data_t data, const int64_t *timestamp);
 
 /**
  * @brief Validate data for an aggregated datastream against the device introspection.
@@ -54,11 +54,11 @@ astarte_result_t data_validation_aggregated_datastream(const astarte_interface_t
  *
  * @param[in] interface Interface to use for the operation.
  * @param[in] path Path to validate.
- * @param[in] individual Astarte individual value to validate.
+ * @param[in] data Astarte value to validate.
  * @return ASTARTE_RESULT_OK when validation is successful, an error otherwise.
  */
 astarte_result_t data_validation_set_property(
-    const astarte_interface_t *interface, const char *path, astarte_individual_t individual);
+    const astarte_interface_t *interface, const char *path, astarte_data_t data);
 
 /**
  * @brief Validate data for unsetting a device property against the device introspection.

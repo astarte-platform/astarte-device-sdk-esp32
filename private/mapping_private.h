@@ -12,7 +12,7 @@
  * @brief Private methods for the Astarte interfaces.
  */
 
-#include "astarte_device_sdk/individual.h"
+#include "astarte_device_sdk/data.h"
 #include "astarte_device_sdk/mapping.h"
 #include "astarte_device_sdk/result.h"
 
@@ -42,14 +42,13 @@ astarte_result_t astarte_mapping_array_to_scalar_type(
 astarte_result_t astarte_mapping_check_path(astarte_mapping_t mapping, const char *path);
 
 /**
- * @brief Check if a individual is compatible to the type of a mapping.
+ * @brief Check if a data is compatible to the type of a mapping.
  *
  * @param[in] mapping Mapping to use for the comparison.
- * @param[in] individual Astarte individual value to use for comparison.
+ * @param[in] data Astarte data to use for comparison.
  * @return ASTARTE_RESULT_OK on success, otherwise an error code.
  */
-astarte_result_t astarte_mapping_check_individual(
-    const astarte_mapping_t *mapping, astarte_individual_t individual);
+astarte_result_t astarte_mapping_check_data(const astarte_mapping_t *mapping, astarte_data_t data);
 
 #ifdef __cplusplus
 }

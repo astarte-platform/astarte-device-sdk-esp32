@@ -132,24 +132,23 @@ astarte_result_t astarte_mapping_check_path(astarte_mapping_t mapping, const cha
     return ASTARTE_RESULT_OK;
 }
 
-astarte_result_t astarte_mapping_check_individual(
-    const astarte_mapping_t *mapping, astarte_individual_t individual)
+astarte_result_t astarte_mapping_check_data(const astarte_mapping_t *mapping, astarte_data_t data)
 {
-    if (mapping->type != individual.tag) {
-        ESP_LOGE(TAG, "Astarte individual type and mapping type do not match.");
-        return ASTARTE_RESULT_MAPPING_INDIVIDUAL_INCOMPATIBLE;
+    if (mapping->type != data.tag) {
+        ESP_LOGE(TAG, "Astarte data type and mapping type do not match.");
+        return ASTARTE_RESULT_MAPPING_DATA_INCOMPATIBLE;
     }
 
-    if ((mapping->type == ASTARTE_MAPPING_TYPE_DOUBLE) && (isfinite(individual.data.dbl) == 0)) {
-        ESP_LOGE(TAG, "Astarte individual double is not a number.");
-        return ASTARTE_RESULT_MAPPING_INDIVIDUAL_INCOMPATIBLE;
+    if ((mapping->type == ASTARTE_MAPPING_TYPE_DOUBLE) && (isfinite(data.data.dbl) == 0)) {
+        ESP_LOGE(TAG, "Astarte data double is not a number.");
+        return ASTARTE_RESULT_MAPPING_DATA_INCOMPATIBLE;
     }
 
     if (mapping->type == ASTARTE_MAPPING_TYPE_DOUBLEARRAY) {
-        for (size_t i = 0; i < individual.data.double_array.len; i++) {
-            if (isfinite(individual.data.double_array.buf[i]) == 0) {
-                ESP_LOGE(TAG, "Astarte individual double is not a number.");
-                return ASTARTE_RESULT_MAPPING_INDIVIDUAL_INCOMPATIBLE;
+        for (size_t i = 0; i < data.data.double_array.len; i++) {
+            if (isfinite(data.data.double_array.buf[i]) == 0) {
+                ESP_LOGE(TAG, "Astarte data double is not a number.");
+                return ASTARTE_RESULT_MAPPING_DATA_INCOMPATIBLE;
             }
         }
     }
