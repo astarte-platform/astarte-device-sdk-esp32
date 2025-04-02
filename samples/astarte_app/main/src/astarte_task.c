@@ -11,6 +11,7 @@
 
 #include <esp_log.h>
 #include <nvs_flash.h>
+#include <string.h>
 
 #include "astarte_device_sdk/data.h"
 #include "astarte_device_sdk/device.h"
@@ -19,6 +20,8 @@
 #include "astarte_device_sdk/mapping.h"
 #include "astarte_device_sdk/object.h"
 #include "astarte_device_sdk/pairing.h"
+
+#include "generated_interfaces.h"
 
 /************************************************
  * Constants and defines
@@ -38,6 +41,7 @@ void astarte_task_entry(void *ctx)
 {
     (void) ctx;
     esp_err_t esp_err = ESP_OK;
+    astarte_result_t ares = ASTARTE_RESULT_OK;
 
     char device_id[ASTARTE_DEVICE_ID_LEN + 1] = CONFIG_DEVICE_ID;
 #if defined(CONFIG_DEVICE_REGISTRATION)
@@ -57,7 +61,7 @@ void astarte_task_entry(void *ctx)
 
         // If NVS does not contain a credential secret, register the device using the JWT
         ESP_LOGI(TAG, "Performing a new device registration with Astarte");
-        astarte_result_t ares = astarte_pairing_register_device(device_id, cred_secr);
+        ares = astarte_pairing_register_device(device_id, cred_secr);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Device registration failure, err: %s", astarte_result_to_name(ares));
             goto exit;
@@ -65,7 +69,7 @@ void astarte_task_entry(void *ctx)
 
         // Store received credential secret in NVS
         esp_err = nvs_set_str(nvs_handle, "cred secret", cred_secr);
-        if (ares != ASTARTE_RESULT_OK) {
+        if (esp_err != ESP_OK) {
             ESP_LOGE(TAG, "Error storing credential secret in NVS: %s.", esp_err_to_name(esp_err));
             goto exit;
         }
@@ -87,6 +91,40 @@ void astarte_task_entry(void *ctx)
 
     // You shouldn't log a credential secret in a production device
     ESP_LOGI(TAG, "Credential secret: '%s'", cred_secr);
+
+    const astarte_interface_t *interfaces[] = {
+        &org_astarteplatform_esp32_examples_DeviceAggregate,
+        &org_astarteplatform_esp32_examples_DeviceDatastream,
+        &org_astarteplatform_esp32_examples_DeviceProperty,
+        &org_astarteplatform_esp32_examples_ServerAggregate,
+        &org_astarteplatform_esp32_examples_ServerDatastream,
+        &org_astarteplatform_esp32_examples_ServerProperty,
+    };
+
+    astarte_device_config_t device_config = { 0 };
+    // device_config.connection_cbk = connection_callback;
+    // device_config.disconnection_cbk = disconnection_callback;
+    // device_config.datastream_individual_cbk = datastream_individual_callback;
+    // device_config.datastream_object_cbk = datastream_object_callback;
+    // device_config.property_set_cbk = set_property_callback;
+    // device_config.property_unset_cbk = unset_property_callback;
+    device_config.interfaces = interfaces;
+    device_config.interfaces_size = ARRAY_SIZE(interfaces);
+    memcpy(device_config.device_id, device_id, sizeof(device_id));
+    memcpy(device_config.cred_secr, cred_secr, sizeof(cred_secr));
+
+    astarte_device_handle_t device = NULL;
+    ares = astarte_device_new(&device_config, &device);
+    if (ares != ASTARTE_RESULT_OK) {
+        ESP_LOGE(TAG, "Failed in device creation, err: %s", astarte_result_to_name(ares));
+        goto exit;
+    }
+
+    ares = astarte_device_connect(device);
+    if (ares != ASTARTE_RESULT_OK) {
+        ESP_LOGE(TAG, "Failed in device connection, err: %s", astarte_result_to_name(ares));
+        goto exit;
+    }
 
     while (1) {
     }

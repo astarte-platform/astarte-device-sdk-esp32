@@ -20,6 +20,8 @@
 #include "introspection.h"
 #include "tls_credentials.h"
 
+#include <mqtt_client.h>
+
 /** @brief Generic prefix to be used for all MQTT topics. */
 #define MQTT_TOPIC_PREFIX CONFIG_ASTARTE_DEVICE_SDK_REALM_NAME "/"
 /** @brief Generic suffix to be used for all control MQTT topics. */
@@ -106,6 +108,8 @@ struct astarte_device
     astarte_device_property_unset_cbk_t property_unset_cbk;
     /** @brief (optional) User data to pass to all the set callbacks. */
     void *cbk_user_data;
+    /** @brief MQTT client data. */
+    esp_mqtt_client_handle_t mqtt_client;
     /** @brief Connection state of the Astarte device. */
     enum connection_states connection_state;
     /** @brief Set if, since instance creation, a sync with Astarte has ever been performed. */

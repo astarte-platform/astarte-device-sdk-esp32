@@ -23,6 +23,7 @@
 
 #include <esp_log.h>
 
+#include "test_backoff.h"
 #include "test_bson_deserializer.h"
 #include "test_bson_serializer.h"
 #include "test_data.h"
@@ -39,6 +40,8 @@
 void app_main(void)
 {
     UNITY_BEGIN();
+    RUN_TEST(test_backoff_no_jitter);
+
     RUN_TEST(test_bson_serializer_empty_document);
     RUN_TEST(test_bson_serializer_complete_document);
 
