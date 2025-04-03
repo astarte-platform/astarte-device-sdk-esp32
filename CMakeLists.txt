@@ -29,6 +29,7 @@ idf_component_register(
         "./src/data.c"
         "./src/device_caching.c"
         "./src/device_id.c"
+        "./src/device_connection.c"
         "./src/device.c"
         "./src/dlist.c"
         "./src/http.c"

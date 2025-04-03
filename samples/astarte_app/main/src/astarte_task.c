@@ -120,13 +120,37 @@ void astarte_task_entry(void *ctx)
         goto exit;
     }
 
+    ESP_LOGI(TAG, "Connecting the device.");
     ares = astarte_device_connect(device);
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(TAG, "Failed in device connection, err: %s", astarte_result_to_name(ares));
         goto exit;
     }
 
-    while (1) {
+    // TODO wait and check for connectivity
+
+#if defined(CONFIG_DEVICE_INDIVIDUAL_TRANSMISSION) || \
+    defined(CONFIG_DEVICE_OBJECT_TRANSMISSION) || \
+    defined(CONFIG_DEVICE_PROPERTY_SET_TRANSMISSION)  || \
+    defined(CONFIG_DEVICE_PROPERTY_UNSET_TRANSMISSION)
+    // TODO: transmit something
+#else
+    ESP_LOGI(TAG, "No trasmission required, waiting for operational timeout.");
+    vTaskDelay(CONFIG_DEVICE_OPERATIONAL_TIMEOUT * 1000 / portTICK_PERIOD_MS);
+#endif
+
+    ESP_LOGI(TAG, "Disconnecting the device.");
+    ares = astarte_device_disconnect(device);
+    if (ares != ASTARTE_RESULT_OK) {
+        ESP_LOGE(TAG, "Failed in device disconnection, err: %s", astarte_result_to_name(ares));
+        goto exit;
+    }
+
+    ESP_LOGI(TAG, "Destroying the device.");
+    ares = astarte_device_destroy(device);
+    if (ares != ASTARTE_RESULT_OK) {
+        ESP_LOGE(TAG, "Failed in device destruction, err: %s", astarte_result_to_name(ares));
+        goto exit;
     }
 
 exit:

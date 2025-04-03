@@ -204,28 +204,12 @@ astarte_result_t astarte_device_connect(astarte_device_handle_t device);
 /**
  * @brief Disconnect the Astarte device instance.
  *
- * @details This function will block until all QoS 1/2 pending messages have been successfully
- * transmitted for a @p timeout hass been reached.
  * @note It will be possible to re-connect the device after disconnection.
  *
  * @param[in] device Device instance to be disconnected.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 astarte_result_t astarte_device_disconnect(astarte_device_handle_t device);
-
-/**
- * @brief Force a disconnection for the Astarte device instance.
- *
- * @details This function will disconnect the device from the Astarte device, ignoring any
- * pending messages if present. The function will be non blocking and the disconnection
- * immediate.
- *
- * @note It will be possible to re-connect the device after disconnection.
- *
- * @param[in] device Device instance to be disconnected.
- * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
- */
-astarte_result_t astarte_device_force_disconnect(astarte_device_handle_t device);
 
 /**
  * @brief Poll data from Astarte.

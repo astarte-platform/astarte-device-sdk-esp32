@@ -8,6 +8,7 @@
 
 #include "device_caching.h"
 #include "pairing_private.h"
+#include "device_connection.h"
 
 #include <esp_log.h>
 #include <mqtt_client.h>
@@ -153,6 +154,7 @@ astarte_result_t astarte_device_new(astarte_device_config_t *cfg, astarte_device
     }
 
     ares = device_caching_synchronization_get(caching_handle, &handle->synchronization_completed);
+    device_caching_close_namespace(caching_handle);
     if ((ares != ASTARTE_RESULT_OK) && (ares != ASTARTE_RESULT_NOT_FOUND)) {
         ESP_LOGE(TAG, "Synchronization state getter failure %s.", astarte_result_to_name(ares));
         goto failure;
@@ -188,6 +190,9 @@ astarte_result_t astarte_device_new(astarte_device_config_t *cfg, astarte_device
         return ares;
     }
 
+    ESP_LOGW(TAG, "%s", client_crt.crt_pem);
+    ESP_LOGW(TAG, "%s", client_crt.privkey_pem);
+
     const esp_mqtt_client_config_t mqtt_cfg = {
         .broker.address.uri = broker_url,
 #if defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
@@ -195,7 +200,7 @@ astarte_result_t astarte_device_new(astarte_device_config_t *cfg, astarte_device
 #endif
         .credentials.authentication.certificate = client_crt.crt_pem,
         .credentials.authentication.key = (const char *) client_crt.privkey_pem,
-#if defined(CONFIG_ASTARTE_USE_PROPERTY_PERSISTENCY)
+#if defined(CONFIG_ASTARTE_DEVICE_SDK_NVS)
         .session.disable_clean_session = true,
 #endif
     };
@@ -260,15 +265,67 @@ astarte_result_t astarte_device_connect(astarte_device_handle_t device)
         ESP_LOGE(TAG, "Received NULL reference for device handle");
         return ASTARTE_RESULT_INVALID_PARAM;
     }
+    return device_connection_connect(device);
+}
 
-    esp_err_t err = esp_mqtt_client_start(device->mqtt_client);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to start MQTT client: %s", esp_err_to_name(err));
-        return ASTARTE_RESULT_MQTT_ERROR;
+astarte_result_t astarte_device_disconnect(astarte_device_handle_t device)
+{
+    if (!device) {
+        ESP_LOGE(TAG, "Received NULL reference for device handle");
+        return ASTARTE_RESULT_INVALID_PARAM;
     }
+    return device_connection_disconnect(device);
+}
 
+astarte_result_t astarte_device_poll(astarte_device_handle_t device)
+{
+    if (!device) {
+        ESP_LOGE(TAG, "Received NULL reference for device handle");
+        return ASTARTE_RESULT_INVALID_PARAM;
+    }
     return ASTARTE_RESULT_OK;
 }
+
+#if defined(CONFIG_ASTARTE_DEVICE_SDK_NVS)
+astarte_result_t astarte_device_get_property(astarte_device_handle_t device,
+    const char *interface_name, const char *path, astarte_device_property_loader_cbk_t loader_cbk,
+    void *user_data)
+{
+    astarte_result_t ares = ASTARTE_RESULT_OK;
+    if (!device || !interface_name || !path || !loader_cbk) {
+        ESP_LOGE(TAG, "Received a NULL reference for a required input parameter.");
+        return ASTARTE_RESULT_INVALID_PARAM;
+    }
+
+    device_caching_t caching_handle = { 0 };
+    ares = device_caching_open_namespace(&caching_handle, DEVICE_CACHING_NAMESPACE);
+    if ((ares != ASTARTE_RESULT_OK) && (ares != ASTARTE_RESULT_NOT_FOUND)) {
+        ESP_LOGE(TAG, "Failed opening caching %s.", astarte_result_to_name(ares));
+        return ares;
+    }
+
+    astarte_data_t data = { 0 };
+    uint32_t out_major = 0U;
+    ares = device_caching_property_load(caching_handle, interface_name, path, &out_major, &data);
+    device_caching_close_namespace(caching_handle);
+    if (ares != ASTARTE_RESULT_OK) {
+        if (ares != ASTARTE_RESULT_NOT_FOUND) {
+            ESP_LOGE(TAG, "Failed getting property: %s.", astarte_result_to_name(ares));
+        }
+        return ares;
+    }
+
+    astarte_device_property_loader_event_t event = { .device = device,
+        .interface_name = interface_name,
+        .path = path,
+        .data = data,
+        .user_data = user_data };
+    loader_cbk(event);
+
+    device_caching_property_destroy_loaded(data);
+    return ares;
+}
+#endif
 
 /************************************************
  *         Static functions definitions         *
