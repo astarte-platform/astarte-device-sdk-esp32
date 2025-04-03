@@ -52,224 +52,220 @@ static const uint8_t complete_bson_document[] = { 0x3f, 0x1, 0x0, 0x0, 0x1, 0x65
 void test_bson_deserializer_check_validity(void)
 {
     uint8_t empty_buffer[] = {};
-    TEST_ASSERT_FALSE(new_ast_bson_deserializer_check_validity(empty_buffer, sizeof(empty_buffer)));
+    TEST_ASSERT_FALSE(bson_deserializer_check_validity(empty_buffer, sizeof(empty_buffer)));
 
     uint8_t minimal_doc[] = { 0x8, 0x0, 0x0, 0x0, 0x8, 0x0, 0x1, 0x0 };
-    TEST_ASSERT_FALSE(
-        new_ast_bson_deserializer_check_validity(minimal_doc, sizeof(minimal_doc) - 1));
+    TEST_ASSERT_FALSE(bson_deserializer_check_validity(minimal_doc, sizeof(minimal_doc) - 1));
 
     uint8_t empty_doc_incorrect_termination[] = { 0x05, 0x00, 0x00, 0x00, 0x01 };
-    TEST_ASSERT_FALSE(new_ast_bson_deserializer_check_validity(
+    TEST_ASSERT_FALSE(bson_deserializer_check_validity(
         empty_doc_incorrect_termination, sizeof(empty_doc_incorrect_termination)));
 
     TEST_ASSERT_TRUE(
-        new_ast_bson_deserializer_check_validity(empty_bson_document, sizeof(empty_bson_document)));
+        bson_deserializer_check_validity(empty_bson_document, sizeof(empty_bson_document)));
 
     uint8_t too_small_doc[] = { 0x7, 0x0, 0x0, 0x0, 0x8, 0x0, 0x0 };
-    TEST_ASSERT_FALSE(
-        new_ast_bson_deserializer_check_validity(too_small_doc, sizeof(too_small_doc)));
+    TEST_ASSERT_FALSE(bson_deserializer_check_validity(too_small_doc, sizeof(too_small_doc)));
 
     uint8_t fist_element_incorrect_doc[] = { 0x8, 0x0, 0x0, 0x0, 0x6, 0x0, 0x1, 0x0 };
-    TEST_ASSERT_FALSE(new_ast_bson_deserializer_check_validity(
+    TEST_ASSERT_FALSE(bson_deserializer_check_validity(
         fist_element_incorrect_doc, sizeof(fist_element_incorrect_doc)));
 
-    TEST_ASSERT_TRUE(new_ast_bson_deserializer_check_validity(minimal_doc, sizeof(minimal_doc)));
+    TEST_ASSERT_TRUE(bson_deserializer_check_validity(minimal_doc, sizeof(minimal_doc)));
 
-    TEST_ASSERT_TRUE(new_ast_bson_deserializer_check_validity(
-        complete_bson_document, sizeof(complete_bson_document)));
+    TEST_ASSERT_TRUE(
+        bson_deserializer_check_validity(complete_bson_document, sizeof(complete_bson_document)));
 }
 
 void test_bson_deserializer_empty_bson_document(void)
 {
-    new_ast_bson_document_t doc = new_ast_bson_deserializer_init_doc(empty_bson_document);
+    bson_document_t doc = bson_deserializer_init_doc(empty_bson_document);
     TEST_ASSERT_EQUAL(5, doc.size);
 
-    new_ast_bson_element_t element;
-    TEST_ASSERT_EQUAL(
-        ASTARTE_RESULT_NOT_FOUND, new_ast_bson_deserializer_first_element(doc, &element));
+    bson_element_t element;
+    TEST_ASSERT_EQUAL(ASTARTE_RESULT_NOT_FOUND, bson_deserializer_first_element(doc, &element));
 }
 
 void test_bson_deserializer_complete_bson_document(void)
 {
-    new_ast_bson_document_t doc = new_ast_bson_deserializer_init_doc(complete_bson_document);
+    bson_document_t doc = bson_deserializer_init_doc(complete_bson_document);
     TEST_ASSERT_EQUAL(319, doc.size);
 
-    new_ast_bson_element_t element_d;
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, new_ast_bson_deserializer_first_element(doc, &element_d));
+    bson_element_t element_d;
+    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, bson_deserializer_first_element(doc, &element_d));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_DOUBLE, element_d.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_DOUBLE, element_d.type);
     TEST_ASSERT_EQUAL_STRING("element double", element_d.name);
-    double value_d = new_ast_bson_deserializer_element_to_double(element_d);
+    double value_d = bson_deserializer_element_to_double(element_d);
     TEST_ASSERT_DOUBLE_WITHIN(0.01, 42.3, value_d);
 
-    new_ast_bson_element_t element_s;
+    bson_element_t element_s;
     TEST_ASSERT_EQUAL(
-        ASTARTE_RESULT_OK, new_ast_bson_deserializer_next_element(doc, element_d, &element_s));
+        ASTARTE_RESULT_OK, bson_deserializer_next_element(doc, element_d, &element_s));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_STRING, element_s.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_STRING, element_s.type);
     TEST_ASSERT_EQUAL_STRING("element string", element_s.name);
     uint32_t size;
-    const char *value_s = new_ast_bson_deserializer_element_to_string(element_s, &size);
+    const char *value_s = bson_deserializer_element_to_string(element_s, &size);
     TEST_ASSERT_EQUAL_STRING("hello world", value_s);
 
-    new_ast_bson_element_t element_doc;
+    bson_element_t element_doc;
     TEST_ASSERT_EQUAL(
-        ASTARTE_RESULT_OK, new_ast_bson_deserializer_next_element(doc, element_s, &element_doc));
+        ASTARTE_RESULT_OK, bson_deserializer_next_element(doc, element_s, &element_doc));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_DOCUMENT, element_doc.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_DOCUMENT, element_doc.type);
     TEST_ASSERT_EQUAL_STRING("element document", element_doc.name);
-    new_ast_bson_document_t subdocument
-        = new_ast_bson_deserializer_element_to_document(element_doc);
+    bson_document_t subdocument = bson_deserializer_element_to_document(element_doc);
     TEST_ASSERT_EQUAL_INT(50, subdocument.size);
 
-    new_ast_bson_element_t subelement_int32;
+    bson_element_t subelement_int32;
     TEST_ASSERT_EQUAL(
-        ASTARTE_RESULT_OK, new_ast_bson_deserializer_first_element(subdocument, &subelement_int32));
+        ASTARTE_RESULT_OK, bson_deserializer_first_element(subdocument, &subelement_int32));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_INT32, subelement_int32.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_INT32, subelement_int32.type);
     TEST_ASSERT_EQUAL_STRING("subelement int32", subelement_int32.name);
-    int32_t subvalue_int32 = new_ast_bson_deserializer_element_to_int32(subelement_int32);
+    int32_t subvalue_int32 = bson_deserializer_element_to_int32(subelement_int32);
     TEST_ASSERT_EQUAL_INT(10, subvalue_int32);
 
-    new_ast_bson_element_t subelement_bool;
+    bson_element_t subelement_bool;
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        new_ast_bson_deserializer_next_element(subdocument, subelement_int32, &subelement_bool));
+        bson_deserializer_next_element(subdocument, subelement_int32, &subelement_bool));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_BOOLEAN, subelement_bool.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_BOOLEAN, subelement_bool.type);
     TEST_ASSERT_EQUAL_STRING("subelement bool true", subelement_bool.name);
-    bool subvalue_bool = new_ast_bson_deserializer_element_to_bool(subelement_bool);
+    bool subvalue_bool = bson_deserializer_element_to_bool(subelement_bool);
     TEST_ASSERT_TRUE(subvalue_bool);
 
-    new_ast_bson_element_t element_arr;
+    bson_element_t element_arr;
     TEST_ASSERT_EQUAL(
-        ASTARTE_RESULT_OK, new_ast_bson_deserializer_next_element(doc, element_doc, &element_arr));
+        ASTARTE_RESULT_OK, bson_deserializer_next_element(doc, element_doc, &element_arr));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_ARRAY, element_arr.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_ARRAY, element_arr.type);
     TEST_ASSERT_EQUAL_STRING("element array", element_arr.name);
-    new_ast_bson_document_t subdoc_arr = new_ast_bson_deserializer_element_to_document(element_arr);
+    bson_document_t subdoc_arr = bson_deserializer_element_to_document(element_arr);
     TEST_ASSERT_EQUAL_INT(23, subdoc_arr.size);
 
-    new_ast_bson_element_t subelement_arr_1;
+    bson_element_t subelement_arr_1;
     TEST_ASSERT_EQUAL(
-        ASTARTE_RESULT_OK, new_ast_bson_deserializer_first_element(subdoc_arr, &subelement_arr_1));
+        ASTARTE_RESULT_OK, bson_deserializer_first_element(subdoc_arr, &subelement_arr_1));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_INT32, subelement_arr_1.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_INT32, subelement_arr_1.type);
     TEST_ASSERT_EQUAL_STRING("0", subelement_arr_1.name);
-    int32_t subvalue_arr_1 = new_ast_bson_deserializer_element_to_int32(subelement_arr_1);
+    int32_t subvalue_arr_1 = bson_deserializer_element_to_int32(subelement_arr_1);
     TEST_ASSERT_EQUAL_INT(10, subvalue_arr_1);
 
-    new_ast_bson_element_t subelement_arr_2;
+    bson_element_t subelement_arr_2;
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        new_ast_bson_deserializer_next_element(subdoc_arr, subelement_arr_1, &subelement_arr_2));
+        bson_deserializer_next_element(subdoc_arr, subelement_arr_1, &subelement_arr_2));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_DOUBLE, subelement_arr_2.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_DOUBLE, subelement_arr_2.type);
     TEST_ASSERT_EQUAL_STRING("1", subelement_arr_2.name);
-    double subvalue_arr_2 = new_ast_bson_deserializer_element_to_double(subelement_arr_2);
+    double subvalue_arr_2 = bson_deserializer_element_to_double(subelement_arr_2);
     TEST_ASSERT_DOUBLE_WITHIN(0.01, 42.3, subvalue_arr_2);
 
-    new_ast_bson_element_t element_bin;
+    bson_element_t element_bin;
     TEST_ASSERT_EQUAL(
-        ASTARTE_RESULT_OK, new_ast_bson_deserializer_next_element(doc, element_arr, &element_bin));
+        ASTARTE_RESULT_OK, bson_deserializer_next_element(doc, element_arr, &element_bin));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_BINARY, element_bin.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_BINARY, element_bin.type);
     TEST_ASSERT_EQUAL_STRING("element binary", element_bin.name);
-    const uint8_t *value_bin = new_ast_bson_deserializer_element_to_binary(element_bin, &size);
+    const uint8_t *value_bin = bson_deserializer_element_to_binary(element_bin, &size);
     TEST_ASSERT_EQUAL_UINT32(18, size);
     uint8_t expected_value_bin[] = { 0x62, 0x69, 0x6e, 0x20, 0x65, 0x6e, 0x63, 0x6f, 0x64, 0x65,
         0x64, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67 };
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_value_bin, value_bin, size);
 
-    new_ast_bson_element_t element_bool_false;
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        new_ast_bson_deserializer_next_element(doc, element_bin, &element_bool_false));
+    bson_element_t element_bool_false;
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, bson_deserializer_next_element(doc, element_bin, &element_bool_false));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_BOOLEAN, element_bool_false.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_BOOLEAN, element_bool_false.type);
     TEST_ASSERT_EQUAL_STRING("element bool false", element_bool_false.name);
-    bool value_bool = new_ast_bson_deserializer_element_to_bool(element_bool_false);
+    bool value_bool = bson_deserializer_element_to_bool(element_bool_false);
     TEST_ASSERT_FALSE(value_bool);
 
-    new_ast_bson_element_t element_bool_true;
+    bson_element_t element_bool_true;
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        new_ast_bson_deserializer_next_element(doc, element_bool_false, &element_bool_true));
+        bson_deserializer_next_element(doc, element_bool_false, &element_bool_true));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_BOOLEAN, element_bool_true.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_BOOLEAN, element_bool_true.type);
     TEST_ASSERT_EQUAL_STRING("element bool true", element_bool_true.name);
-    value_bool = new_ast_bson_deserializer_element_to_bool(element_bool_true);
+    value_bool = bson_deserializer_element_to_bool(element_bool_true);
     TEST_ASSERT_TRUE(value_bool);
 
-    new_ast_bson_element_t element_utc;
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        new_ast_bson_deserializer_next_element(doc, element_bool_true, &element_utc));
+    bson_element_t element_utc;
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, bson_deserializer_next_element(doc, element_bool_true, &element_utc));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_DATETIME, element_utc.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_DATETIME, element_utc.type);
     TEST_ASSERT_EQUAL_STRING("element UTC datetime", element_utc.name);
-    int64_t value_utc = new_ast_bson_deserializer_element_to_datetime(element_utc);
+    int64_t value_utc = bson_deserializer_element_to_datetime(element_utc);
     TEST_ASSERT_EQUAL_INT(1686304399422, value_utc);
 
-    new_ast_bson_element_t element_int32;
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        new_ast_bson_deserializer_next_element(doc, element_utc, &element_int32));
+    bson_element_t element_int32;
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, bson_deserializer_next_element(doc, element_utc, &element_int32));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_INT32, element_int32.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_INT32, element_int32.type);
     TEST_ASSERT_EQUAL_STRING("element int32", element_int32.name);
-    int32_t value_int32 = new_ast_bson_deserializer_element_to_int32(element_int32);
+    int32_t value_int32 = bson_deserializer_element_to_int32(element_int32);
     TEST_ASSERT_EQUAL_INT(10, value_int32);
 
-    new_ast_bson_element_t element_int64;
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        new_ast_bson_deserializer_next_element(doc, element_int32, &element_int64));
+    bson_element_t element_int64;
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, bson_deserializer_next_element(doc, element_int32, &element_int64));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_INT64, element_int64.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_INT64, element_int64.type);
     TEST_ASSERT_EQUAL_STRING("element int64", element_int64.name);
-    int64_t value_int64 = new_ast_bson_deserializer_element_to_int64(element_int64);
+    int64_t value_int64 = bson_deserializer_element_to_int64(element_int64);
     TEST_ASSERT_EQUAL_INT(17179869184, value_int64);
 
-    new_ast_bson_element_t element_non_existant;
+    bson_element_t element_non_existant;
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_NOT_FOUND,
-        new_ast_bson_deserializer_next_element(doc, element_int64, &element_non_existant));
+        bson_deserializer_next_element(doc, element_int64, &element_non_existant));
 }
 
 void test_bson_deserializer_bson_document_lookup(void)
 {
-    new_ast_bson_document_t doc = new_ast_bson_deserializer_init_doc(complete_bson_document);
+    bson_document_t doc = bson_deserializer_init_doc(complete_bson_document);
     TEST_ASSERT_EQUAL(319, doc.size);
 
     // Lookup for the first element
-    new_ast_bson_element_t element_double;
+    bson_element_t element_double;
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        new_ast_bson_deserializer_element_lookup(doc, "element double", &element_double));
+        bson_deserializer_element_lookup(doc, "element double", &element_double));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_DOUBLE, element_double.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_DOUBLE, element_double.type);
     TEST_ASSERT_EQUAL_STRING("element double", element_double.name);
-    double value_double = new_ast_bson_deserializer_element_to_double(element_double);
+    double value_double = bson_deserializer_element_to_double(element_double);
     TEST_ASSERT_DOUBLE_WITHIN(0.01, 42.3, value_double);
 
     // Lookup for an element in the middle
-    new_ast_bson_element_t element_bool;
+    bson_element_t element_bool;
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        new_ast_bson_deserializer_element_lookup(doc, "element bool true", &element_bool));
+        bson_deserializer_element_lookup(doc, "element bool true", &element_bool));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_BOOLEAN, element_bool.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_BOOLEAN, element_bool.type);
     TEST_ASSERT_EQUAL_STRING("element bool true", element_bool.name);
-    bool value_bool = new_ast_bson_deserializer_element_to_bool(element_bool);
+    bool value_bool = bson_deserializer_element_to_bool(element_bool);
     TEST_ASSERT_TRUE(value_bool);
 
     // Lookup for the last element
-    new_ast_bson_element_t element_int64;
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK,
-        new_ast_bson_deserializer_element_lookup(doc, "element int64", &element_int64));
+    bson_element_t element_int64;
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_OK, bson_deserializer_element_lookup(doc, "element int64", &element_int64));
 
-    TEST_ASSERT_EQUAL_INT(ASTARTE_BSON_TYPE_INT64, element_int64.type);
+    TEST_ASSERT_EQUAL_INT(BSON_TYPE_INT64, element_int64.type);
     TEST_ASSERT_EQUAL_STRING("element int64", element_int64.name);
-    int64_t value_int64 = new_ast_bson_deserializer_element_to_int64(element_int64);
+    int64_t value_int64 = bson_deserializer_element_to_int64(element_int64);
     TEST_ASSERT_EQUAL_INT(17179869184, value_int64);
 
     // Lookup non existing element
-    new_ast_bson_element_t element_foo;
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_NOT_FOUND,
-        new_ast_bson_deserializer_element_lookup(doc, "foo", &element_foo));
+    bson_element_t element_foo;
+    TEST_ASSERT_EQUAL(
+        ASTARTE_RESULT_NOT_FOUND, bson_deserializer_element_lookup(doc, "foo", &element_foo));
 
     // Lookup long key that starts with valid key
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_NOT_FOUND,
-        new_ast_bson_deserializer_element_lookup(doc, "element string foo", &element_foo));
+        bson_deserializer_element_lookup(doc, "element string foo", &element_foo));
 }

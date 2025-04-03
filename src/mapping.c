@@ -36,7 +36,7 @@ static bool check_path_segment(const char *endpoint_start, const char *endpoint_
  *         Global functions definitions         *
  ***********************************************/
 
-astarte_result_t astarte_mapping_array_to_scalar_type(
+astarte_result_t mapping_array_to_scalar_type(
     astarte_mapping_type_t array_type, astarte_mapping_type_t *scalar_type)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
@@ -70,7 +70,7 @@ astarte_result_t astarte_mapping_array_to_scalar_type(
     return ares;
 }
 
-astarte_result_t astarte_mapping_check_path(astarte_mapping_t mapping, const char *path)
+astarte_result_t mapping_check_path(astarte_mapping_t mapping, const char *path)
 {
     // The endpoint is in the format "/segment1/%{param1}/%{param2}/segment2/segment3/..."
     const char *endpoint_segment_start = mapping.endpoint;
@@ -132,7 +132,7 @@ astarte_result_t astarte_mapping_check_path(astarte_mapping_t mapping, const cha
     return ASTARTE_RESULT_OK;
 }
 
-astarte_result_t astarte_mapping_check_data(const astarte_mapping_t *mapping, astarte_data_t data)
+astarte_result_t mapping_check_data(const astarte_mapping_t *mapping, astarte_data_t data)
 {
     if (mapping->type != data.tag) {
         ESP_LOGE(TAG, "Astarte data type and mapping type do not match.");

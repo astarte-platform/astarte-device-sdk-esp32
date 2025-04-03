@@ -27,7 +27,7 @@ extern "C" {
  * @param[out] scalar_type The resulting scalar type.
  * @return ASTARTE_RESULT_OK on success, otherwise an error code.
  */
-astarte_result_t astarte_mapping_array_to_scalar_type(
+astarte_result_t mapping_array_to_scalar_type(
     astarte_mapping_type_t array_type, astarte_mapping_type_t *scalar_type);
 
 /**
@@ -39,7 +39,7 @@ astarte_result_t astarte_mapping_array_to_scalar_type(
  * @param[in] path Path to use for comparison.
  * @return ASTARTE_RESULT_OK on success, otherwise an error code.
  */
-astarte_result_t astarte_mapping_check_path(astarte_mapping_t mapping, const char *path);
+astarte_result_t mapping_check_path(astarte_mapping_t mapping, const char *path);
 
 /**
  * @brief Check if a data is compatible to the type of a mapping.
@@ -48,7 +48,7 @@ astarte_result_t astarte_mapping_check_path(astarte_mapping_t mapping, const cha
  * @param[in] data Astarte data to use for comparison.
  * @return ASTARTE_RESULT_OK on success, otherwise an error code.
  */
-astarte_result_t astarte_mapping_check_data(const astarte_mapping_t *mapping, astarte_data_t data);
+astarte_result_t mapping_check_data(const astarte_mapping_t *mapping, astarte_data_t data);
 
 #ifdef __cplusplus
 }

@@ -199,7 +199,7 @@ astarte_result_t device_caching_property_store(device_caching_t handle, const ch
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     char *key = NULL;
-    new_ast_bson_serializer_t bson = { 0 };
+    bson_serializer_t bson = { 0 };
 
     ESP_LOGD(TAG, "Caching property ('%s' - '%s').", interface_name, path);
 
@@ -219,21 +219,21 @@ astarte_result_t device_caching_property_store(device_caching_t handle, const ch
     }
 
     // Serialize the Astarte data
-    ares = new_ast_bson_serializer_init(&bson);
+    ares = bson_serializer_init(&bson);
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(TAG, "Could not initialize the bson serializer");
         goto exit;
     }
-    new_ast_bson_serializer_append_int32(&bson, "major", *(int32_t *) &major);
-    new_ast_bson_serializer_append_int64(&bson, "type", (int64_t) data.tag);
-    ares = astarte_data_serialize(&bson, "data", data);
+    bson_serializer_append_int32(&bson, "major", *(int32_t *) &major);
+    bson_serializer_append_int64(&bson, "type", (int64_t) data.tag);
+    ares = data_serialize(&bson, "data", data);
     if (ares != ASTARTE_RESULT_OK) {
         goto exit;
     }
-    new_ast_bson_serializer_append_end_of_document(&bson);
+    bson_serializer_append_end_of_document(&bson);
 
     int data_ser_len = 0;
-    void *data_ser = (void *) new_ast_bson_serializer_get_serialized(bson, &data_ser_len);
+    void *data_ser = (void *) bson_serializer_get_serialized(bson, &data_ser_len);
     if (!data_ser) {
         ESP_LOGE(TAG, "Error during BSON serialization.");
         ares = ASTARTE_RESULT_BSON_SERIALIZER_ERROR;
@@ -260,7 +260,7 @@ astarte_result_t device_caching_property_store(device_caching_t handle, const ch
 
 exit:
     free(key);
-    new_ast_bson_serializer_destroy(&bson);
+    bson_serializer_destroy(&bson);
     return ares;
 }
 
@@ -330,7 +330,7 @@ exit:
 
 void device_caching_property_destroy_loaded(astarte_data_t data)
 {
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 astarte_result_t device_caching_property_get_device_properties_string(
@@ -578,34 +578,34 @@ static astarte_result_t parse_property_bson(
     const char *value, uint32_t *out_major, astarte_data_t *data)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
-    new_ast_bson_document_t full_document = new_ast_bson_deserializer_init_doc(value);
+    bson_document_t full_document = bson_deserializer_init_doc(value);
     if (out_major) {
-        new_ast_bson_element_t major_elem = { 0 };
-        ares = new_ast_bson_deserializer_element_lookup(full_document, "major", &major_elem);
+        bson_element_t major_elem = { 0 };
+        ares = bson_deserializer_element_lookup(full_document, "major", &major_elem);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Cannot parse BSON element for major version.");
             return ares;
         }
-        int32_t major = new_ast_bson_deserializer_element_to_int32(major_elem);
+        int32_t major = bson_deserializer_element_to_int32(major_elem);
         *out_major = *(uint32_t *) &major;
     }
     if (data) {
-        new_ast_bson_element_t type_elem = { 0 };
-        ares = new_ast_bson_deserializer_element_lookup(full_document, "type", &type_elem);
+        bson_element_t type_elem = { 0 };
+        ares = bson_deserializer_element_lookup(full_document, "type", &type_elem);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Cannot parse BSON element for type.");
             return ares;
         }
         astarte_mapping_type_t type
-            = (astarte_mapping_type_t) new_ast_bson_deserializer_element_to_int64(type_elem);
+            = (astarte_mapping_type_t) bson_deserializer_element_to_int64(type_elem);
 
-        new_ast_bson_element_t data_elem = { 0 };
-        ares = new_ast_bson_deserializer_element_lookup(full_document, "data", &data_elem);
+        bson_element_t data_elem = { 0 };
+        ares = bson_deserializer_element_lookup(full_document, "data", &data_elem);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Cannot parse BSON element for data.");
             return ares;
         }
-        ares = astarte_data_deserialize(data_elem, type, data);
+        ares = data_deserialize(data_elem, type, data);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Failed in deserializing BSON file.");
             return ares;

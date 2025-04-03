@@ -17,7 +17,7 @@
 
 #define TAG "ASTARTE_INTERFACE"
 
-astarte_result_t astarte_interface_validate(const astarte_interface_t *interface)
+astarte_result_t interface_validate(const astarte_interface_t *interface)
 {
     if (!interface) {
         ESP_LOGE(TAG, "Received NULL interface reference");
@@ -31,11 +31,11 @@ astarte_result_t astarte_interface_validate(const astarte_interface_t *interface
     return ASTARTE_RESULT_OK;
 }
 
-astarte_result_t astarte_interface_get_mapping_from_path(
+astarte_result_t interface_get_mapping_from_path(
     const astarte_interface_t *interface, const char *path, const astarte_mapping_t **mapping)
 {
     for (size_t i = 0; i < interface->mappings_length; i++) {
-        astarte_result_t ares = astarte_mapping_check_path(interface->mappings[i], path);
+        astarte_result_t ares = mapping_check_path(interface->mappings[i], path);
         if (ares == ASTARTE_RESULT_OK) {
             *mapping = &interface->mappings[i];
             return ASTARTE_RESULT_OK;
@@ -49,7 +49,7 @@ astarte_result_t astarte_interface_get_mapping_from_path(
     return ASTARTE_RESULT_MAPPING_NOT_IN_INTERFACE;
 }
 
-astarte_result_t astarte_interface_get_mapping_from_paths(const astarte_interface_t *interface,
+astarte_result_t interface_get_mapping_from_paths(const astarte_interface_t *interface,
     const char *path1, const char *path2, const astarte_mapping_t **mapping)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
@@ -64,7 +64,7 @@ astarte_result_t astarte_interface_get_mapping_from_paths(const astarte_interfac
         ares = ASTARTE_RESULT_INTERNAL_ERROR;
         goto exit;
     }
-    ares = astarte_interface_get_mapping_from_path(interface, fullpath, mapping);
+    ares = interface_get_mapping_from_path(interface, fullpath, mapping);
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(TAG, "For path '%s' could not find mapping in interface '%s'.", fullpath,
             interface->name);
@@ -77,8 +77,7 @@ exit:
     return ares;
 }
 
-astarte_result_t astarte_interface_get_qos(
-    const astarte_interface_t *interface, const char *path, int *qos)
+astarte_result_t interface_get_qos(const astarte_interface_t *interface, const char *path, int *qos)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     if (!qos) {
@@ -88,7 +87,7 @@ astarte_result_t astarte_interface_get_qos(
 
     const astarte_mapping_t *mapping = NULL;
     if (interface->aggregation == ASTARTE_INTERFACE_AGGREGATION_INDIVIDUAL) {
-        ares = astarte_interface_get_mapping_from_path(interface, path, &mapping);
+        ares = interface_get_mapping_from_path(interface, path, &mapping);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(
                 TAG, "Couldn't find mapping in interface %s for path %s.", interface->name, path);

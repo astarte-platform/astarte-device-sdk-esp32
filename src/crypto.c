@@ -25,10 +25,10 @@
  *         Global functions definitions         *
  ***********************************************/
 
-astarte_result_t astarte_crypto_create_key(unsigned char *privkey_pem, size_t privkey_pem_size)
+astarte_result_t crypto_create_key(unsigned char *privkey_pem, size_t privkey_pem_size)
 {
     astarte_result_t ares = ASTARTE_RESULT_MBEDTLS_ERROR;
-    if (privkey_pem_size < ASTARTE_CRYPTO_PRIVKEY_BUFFER_SIZE) {
+    if (privkey_pem_size < CRYPTO_PRIVKEY_BUFFER_SIZE) {
         ESP_LOGE(TAG, "Insufficient output buffer size for client private key.");
         return ASTARTE_RESULT_INVALID_PARAM;
     }
@@ -86,11 +86,11 @@ exit:
     return ares;
 }
 
-astarte_result_t astarte_crypto_create_csr(
+astarte_result_t crypto_create_csr(
     const unsigned char *privkey_pem, unsigned char *csr_pem, size_t csr_pem_size)
 {
     astarte_result_t ares = ASTARTE_RESULT_MBEDTLS_ERROR;
-    if (csr_pem_size < ASTARTE_CRYPTO_CSR_BUFFER_SIZE) {
+    if (csr_pem_size < CRYPTO_CSR_BUFFER_SIZE) {
         ESP_LOGE(TAG, "Insufficient output buffer size for certificate signing request.");
         return ASTARTE_RESULT_INVALID_PARAM;
     }
@@ -158,7 +158,7 @@ exit:
     return ares;
 }
 
-astarte_result_t astarte_crypto_get_certificate_info(
+astarte_result_t crypto_get_certificate_info(
     const char *cert_pem, char *cert_cn, size_t cert_cn_size)
 {
     astarte_result_t ares = ASTARTE_RESULT_MBEDTLS_ERROR;

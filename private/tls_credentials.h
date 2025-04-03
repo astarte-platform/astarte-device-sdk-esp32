@@ -25,9 +25,9 @@
 typedef struct
 {
     /** @brief Buffer containing the private key bound to the client certificate (PEM format). */
-    unsigned char privkey_pem[ASTARTE_CRYPTO_PRIVKEY_BUFFER_SIZE];
+    unsigned char privkey_pem[CRYPTO_PRIVKEY_BUFFER_SIZE];
     /** @brief Buffer containing the client certificate (PEM format). */
     char crt_pem[CONFIG_ASTARTE_DEVICE_SDK_ADVANCED_CLIENT_CRT_BUFFER_SIZE];
-} astarte_tls_credentials_client_crt_t;
+} tls_credentials_client_crt_t;
 
 #endif // TLS_CREDENTIALS_H

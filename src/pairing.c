@@ -66,7 +66,7 @@
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 static astarte_result_t parse_register_device_response(
-    const char response[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1],
+    const char response[HTTP_OUTPUT_BUFFER_LEN + 1],
     char out_cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1]);
 /**
  * @brief Parse the response from the get broker url HTTP request.
@@ -76,8 +76,7 @@ static astarte_result_t parse_register_device_response(
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 static astarte_result_t parse_get_borker_url_response(
-    const char response[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1],
-    char out_url[NEW_AST_PAIRING_MAX_BROKER_URL_LEN + 1]);
+    const char response[HTTP_OUTPUT_BUFFER_LEN + 1], char out_url[PAIRING_MAX_BROKER_URL_LEN + 1]);
 /**
  * @brief Parse the response from the get client certificate HTTP request.
  *
@@ -86,7 +85,7 @@ static astarte_result_t parse_get_borker_url_response(
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 static astarte_result_t parse_get_client_certificate_response(
-    const char response[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1],
+    const char response[HTTP_OUTPUT_BUFFER_LEN + 1],
     char out_crt_pem[CONFIG_ASTARTE_DEVICE_SDK_ADVANCED_CLIENT_CRT_BUFFER_SIZE]);
 /**
  * @brief Parse the response from the verify client certificate HTTP request.
@@ -96,7 +95,7 @@ static astarte_result_t parse_get_client_certificate_response(
  * is invalid, otherwise an error code.
  */
 static astarte_result_t parse_verify_client_certificate_response(
-    const char response[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1]);
+    const char response[HTTP_OUTPUT_BUFFER_LEN + 1]);
 
 /************************************************
  *         Global functions definitions         *
@@ -132,9 +131,9 @@ astarte_result_t new_ast_pairing_register_device(
     payload = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
-    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
+    uint8_t reply[HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
 
-    ares = astarte_http_post(host, path, auth_bearer, payload, reply);
+    ares = http_post(host, path, auth_bearer, payload, reply);
     if (ares != ASTARTE_RESULT_OK) {
         goto exit;
     }
@@ -148,8 +147,8 @@ exit:
     return ares;
 }
 
-astarte_result_t new_ast_pairing_get_mqtt_broker_url(const char *device_id, const char *cred_secr,
-    char out_url[NEW_AST_PAIRING_MAX_BROKER_URL_LEN + 1])
+astarte_result_t pairing_get_mqtt_broker_url(
+    const char *device_id, const char *cred_secr, char out_url[PAIRING_MAX_BROKER_URL_LEN + 1])
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     // Step 1: check the input parameters
@@ -173,8 +172,8 @@ astarte_result_t new_ast_pairing_get_mqtt_broker_url(const char *device_id, cons
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
 
-    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
-    ares = astarte_http_get(host, path, cred_secr, reply);
+    uint8_t reply[HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
+    ares = http_get(host, path, cred_secr, reply);
     if (ares != ASTARTE_RESULT_OK) {
         return ares;
     }
@@ -183,8 +182,8 @@ astarte_result_t new_ast_pairing_get_mqtt_broker_url(const char *device_id, cons
     return parse_get_borker_url_response((const char *) reply, out_url);
 }
 
-astarte_result_t new_ast_pairing_get_client_certificate(
-    const char *device_id, const char *cred_secr, astarte_tls_credentials_client_crt_t *client_crt)
+astarte_result_t pairing_get_client_certificate(
+    const char *device_id, const char *cred_secr, tls_credentials_client_crt_t *client_crt)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     char *payload = NULL;
@@ -203,13 +202,13 @@ astarte_result_t new_ast_pairing_get_client_certificate(
     }
 
     // Step 2: create a private key and a CSR
-    ares = astarte_crypto_create_key(client_crt->privkey_pem, ARRAY_SIZE(client_crt->privkey_pem));
+    ares = crypto_create_key(client_crt->privkey_pem, ARRAY_SIZE(client_crt->privkey_pem));
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(TAG, "Failed in creating a private key.");
         goto exit;
     }
-    unsigned char csr_buf[ASTARTE_CRYPTO_CSR_BUFFER_SIZE];
-    ares = astarte_crypto_create_csr(client_crt->privkey_pem, csr_buf, sizeof(csr_buf));
+    unsigned char csr_buf[CRYPTO_CSR_BUFFER_SIZE];
+    ares = crypto_create_csr(client_crt->privkey_pem, csr_buf, sizeof(csr_buf));
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(TAG, "Failed in creating a CSR.");
         goto exit;
@@ -233,9 +232,9 @@ astarte_result_t new_ast_pairing_get_client_certificate(
     payload = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
-    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
+    uint8_t reply[HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
 
-    ares = astarte_http_post(host, path, cred_secr, payload, reply);
+    ares = http_post(host, path, cred_secr, payload, reply);
     if (ares != ASTARTE_RESULT_OK) {
         goto exit;
     }
@@ -252,7 +251,7 @@ exit:
     return ares;
 }
 
-astarte_result_t new_ast_pairing_verify_client_certificate(
+astarte_result_t pairing_verify_client_certificate(
     const char *device_id, const char *cred_secr, const char *crt_pem)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
@@ -293,9 +292,9 @@ astarte_result_t new_ast_pairing_verify_client_certificate(
     payload = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
-    uint8_t reply[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
+    uint8_t reply[HTTP_OUTPUT_BUFFER_LEN + 1] = { 0 };
 
-    ares = astarte_http_post(host, path, cred_secr, payload, reply);
+    ares = http_post(host, path, cred_secr, payload, reply);
     if (ares != ASTARTE_RESULT_OK) {
         goto exit;
     }
@@ -313,8 +312,7 @@ exit:
  ***********************************************/
 
 static astarte_result_t parse_get_borker_url_response(
-    const char response[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1],
-    char out_url[NEW_AST_PAIRING_MAX_BROKER_URL_LEN + 1])
+    const char response[HTTP_OUTPUT_BUFFER_LEN + 1], char out_url[PAIRING_MAX_BROKER_URL_LEN + 1])
 {
     const cJSON *response_json = cJSON_Parse(response);
     const cJSON *data = cJSON_GetObjectItemCaseSensitive(response_json, "data");
@@ -325,12 +323,12 @@ static astarte_result_t parse_get_borker_url_response(
         ESP_LOGE(TAG, "Parsing the MQTT broker URL failed.");
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
-    strncpy(out_url, broker_url->valuestring, NEW_AST_PAIRING_MAX_BROKER_URL_LEN);
+    strncpy(out_url, broker_url->valuestring, PAIRING_MAX_BROKER_URL_LEN);
     return ASTARTE_RESULT_OK;
 }
 
 static astarte_result_t parse_register_device_response(
-    const char response[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1],
+    const char response[HTTP_OUTPUT_BUFFER_LEN + 1],
     char out_cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1])
 {
     const cJSON *response_json = cJSON_Parse(response);
@@ -345,7 +343,7 @@ static astarte_result_t parse_register_device_response(
 }
 
 static astarte_result_t parse_get_client_certificate_response(
-    const char response[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1],
+    const char response[HTTP_OUTPUT_BUFFER_LEN + 1],
     char out_crt_pem[CONFIG_ASTARTE_DEVICE_SDK_ADVANCED_CLIENT_CRT_BUFFER_SIZE])
 {
 
@@ -368,7 +366,7 @@ static astarte_result_t parse_get_client_certificate_response(
 }
 
 static astarte_result_t parse_verify_client_certificate_response(
-    const char response[ASTARTE_HTTP_OUTPUT_BUFFER_LEN + 1])
+    const char response[HTTP_OUTPUT_BUFFER_LEN + 1])
 {
     const cJSON *response_json = cJSON_Parse(response);
     const cJSON *data = cJSON_GetObjectItemCaseSensitive(response_json, "data");

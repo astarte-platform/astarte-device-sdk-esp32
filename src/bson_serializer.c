@@ -62,7 +62,7 @@ static void double_to_bytes(double input, uint8_t out[static sizeof(double)])
     }
 }
 
-static astarte_result_t byte_array_init(new_ast_bson_serializer_t *bson, void *bytes, size_t size)
+static astarte_result_t byte_array_init(bson_serializer_t *bson, void *bytes, size_t size)
 {
     bson->capacity = size;
     bson->size = size;
@@ -77,7 +77,7 @@ static astarte_result_t byte_array_init(new_ast_bson_serializer_t *bson, void *b
     return ASTARTE_RESULT_OK;
 }
 
-static void byte_array_destroy(new_ast_bson_serializer_t *bson)
+static void byte_array_destroy(bson_serializer_t *bson)
 {
     bson->capacity = 0;
     bson->size = 0;
@@ -85,7 +85,7 @@ static void byte_array_destroy(new_ast_bson_serializer_t *bson)
     bson->buf = NULL;
 }
 
-static void byte_array_grow(new_ast_bson_serializer_t *bson, size_t needed_size)
+static void byte_array_grow(bson_serializer_t *bson, size_t needed_size)
 {
     if (bson->size + needed_size >= bson->capacity) {
         size_t new_capacity = bson->capacity * 2;
@@ -104,14 +104,14 @@ static void byte_array_grow(new_ast_bson_serializer_t *bson, size_t needed_size)
     }
 }
 
-static void byte_array_append_byte(new_ast_bson_serializer_t *bson, uint8_t byte)
+static void byte_array_append_byte(bson_serializer_t *bson, uint8_t byte)
 {
     byte_array_grow(bson, sizeof(uint8_t));
     bson->buf[bson->size] = byte;
     bson->size++;
 }
 
-static void byte_array_append(new_ast_bson_serializer_t *bson, const void *bytes, size_t count)
+static void byte_array_append(bson_serializer_t *bson, const void *bytes, size_t count)
 {
     byte_array_grow(bson, count);
 
@@ -120,12 +120,12 @@ static void byte_array_append(new_ast_bson_serializer_t *bson, const void *bytes
 }
 
 static void byte_array_replace(
-    new_ast_bson_serializer_t *bson, unsigned int pos, size_t count, const uint8_t *bytes)
+    bson_serializer_t *bson, unsigned int pos, size_t count, const uint8_t *bytes)
 {
     memcpy(bson->buf + pos, bytes, count);
 }
 
-astarte_result_t new_ast_bson_serializer_init(new_ast_bson_serializer_t *bson)
+astarte_result_t bson_serializer_init(bson_serializer_t *bson)
 {
     astarte_result_t ares = byte_array_init(bson, "\0\0\0\0", 4);
     if (ares != ASTARTE_RESULT_OK) {
@@ -134,12 +134,12 @@ astarte_result_t new_ast_bson_serializer_init(new_ast_bson_serializer_t *bson)
     return ares;
 }
 
-void new_ast_bson_serializer_destroy(new_ast_bson_serializer_t *bson)
+void bson_serializer_destroy(bson_serializer_t *bson)
 {
     byte_array_destroy(bson);
 }
 
-const void *new_ast_bson_serializer_get_serialized(new_ast_bson_serializer_t bson, int *size)
+const void *bson_serializer_get_serialized(bson_serializer_t bson, int *size)
 {
     if (size) {
         *size = (int) bson.size;
@@ -147,8 +147,8 @@ const void *new_ast_bson_serializer_get_serialized(new_ast_bson_serializer_t bso
     return bson.buf;
 }
 
-astarte_result_t new_ast_bson_serializer_get_serialized_copy(
-    new_ast_bson_serializer_t bson, void *out_buf, int out_buf_size, int *out_doc_size)
+astarte_result_t bson_serializer_get_serialized_copy(
+    bson_serializer_t bson, void *out_buf, int out_buf_size, int *out_doc_size)
 {
     size_t doc_size = bson.size;
     if (out_doc_size) {
@@ -164,12 +164,12 @@ astarte_result_t new_ast_bson_serializer_get_serialized_copy(
     return ASTARTE_RESULT_OK;
 }
 
-size_t new_ast_bson_serializer_get_serialized_size(new_ast_bson_serializer_t bson)
+size_t bson_serializer_get_serialized_size(bson_serializer_t bson)
 {
     return bson.size;
 }
 
-void new_ast_bson_serializer_append_end_of_document(new_ast_bson_serializer_t *bson)
+void bson_serializer_append_end_of_document(bson_serializer_t *bson)
 {
     byte_array_append_byte(bson, '\0');
 
@@ -179,104 +179,99 @@ void new_ast_bson_serializer_append_end_of_document(new_ast_bson_serializer_t *b
     byte_array_replace(bson, 0, sizeof(int32_t), size_buf);
 }
 
-void new_ast_bson_serializer_append_double(
-    new_ast_bson_serializer_t *bson, const char *name, double value)
+void bson_serializer_append_double(bson_serializer_t *bson, const char *name, double value)
 {
     uint8_t val_buf[sizeof(double)] = { 0 };
     double_to_bytes(value, val_buf);
 
-    byte_array_append_byte(bson, ASTARTE_BSON_TYPE_DOUBLE);
+    byte_array_append_byte(bson, BSON_TYPE_DOUBLE);
     byte_array_append(bson, name, strlen(name) + 1);
     byte_array_append(bson, val_buf, sizeof(double));
 }
 
-void new_ast_bson_serializer_append_int32(
-    new_ast_bson_serializer_t *bson, const char *name, int32_t value)
+void bson_serializer_append_int32(bson_serializer_t *bson, const char *name, int32_t value)
 {
     uint8_t val_buf[4] = { 0 };
     int32_to_bytes(value, val_buf);
 
-    byte_array_append_byte(bson, ASTARTE_BSON_TYPE_INT32);
+    byte_array_append_byte(bson, BSON_TYPE_INT32);
     byte_array_append(bson, name, strlen(name) + 1);
     byte_array_append(bson, val_buf, sizeof(int32_t));
 }
 
-void new_ast_bson_serializer_append_int64(
-    new_ast_bson_serializer_t *bson, const char *name, int64_t value)
+void bson_serializer_append_int64(bson_serializer_t *bson, const char *name, int64_t value)
 {
     uint8_t val_buf[sizeof(int64_t)] = { 0 };
     int64_to_bytes(value, val_buf);
 
-    byte_array_append_byte(bson, ASTARTE_BSON_TYPE_INT64);
+    byte_array_append_byte(bson, BSON_TYPE_INT64);
     byte_array_append(bson, name, strlen(name) + 1);
     byte_array_append(bson, val_buf, sizeof(int64_t));
 }
 
-void new_ast_bson_serializer_append_binary(
-    new_ast_bson_serializer_t *bson, const char *name, const void *value, size_t size)
+void bson_serializer_append_binary(
+    bson_serializer_t *bson, const char *name, const void *value, size_t size)
 {
     uint8_t len_buf[4] = { 0 };
     uint32_to_bytes(size, len_buf);
 
-    byte_array_append_byte(bson, ASTARTE_BSON_TYPE_BINARY);
+    byte_array_append_byte(bson, BSON_TYPE_BINARY);
     byte_array_append(bson, name, strlen(name) + 1);
     byte_array_append(bson, len_buf, sizeof(int32_t));
-    byte_array_append_byte(bson, ASTARTE_BSON_SUBTYPE_DEFAULT_BINARY);
+    byte_array_append_byte(bson, BSON_SUBTYPE_DEFAULT_BINARY);
     byte_array_append(bson, value, size);
 }
 
-void new_ast_bson_serializer_append_string(
-    new_ast_bson_serializer_t *bson, const char *name, const char *string)
+void bson_serializer_append_string(bson_serializer_t *bson, const char *name, const char *string)
 {
     size_t string_len = strlen(string);
 
     uint8_t len_buf[4] = { 0 };
     uint32_to_bytes(string_len + 1, len_buf);
 
-    byte_array_append_byte(bson, ASTARTE_BSON_TYPE_STRING);
+    byte_array_append_byte(bson, BSON_TYPE_STRING);
     byte_array_append(bson, name, strlen(name) + 1);
     byte_array_append(bson, len_buf, sizeof(int32_t));
     byte_array_append(bson, string, string_len + 1);
 }
 
-void new_ast_bson_serializer_append_datetime(
-    new_ast_bson_serializer_t *bson, const char *name, uint64_t epoch_millis)
+void bson_serializer_append_datetime(
+    bson_serializer_t *bson, const char *name, uint64_t epoch_millis)
 {
     uint8_t val_buf[sizeof(uint64_t)] = { 0 };
     uint64_to_bytes(epoch_millis, val_buf);
 
-    byte_array_append_byte(bson, ASTARTE_BSON_TYPE_DATETIME);
+    byte_array_append_byte(bson, BSON_TYPE_DATETIME);
     byte_array_append(bson, name, strlen(name) + 1);
     byte_array_append(bson, val_buf, sizeof(uint64_t));
 }
 
-void new_ast_bson_serializer_append_boolean(
-    new_ast_bson_serializer_t *bson, const char *name, bool value)
+void bson_serializer_append_boolean(bson_serializer_t *bson, const char *name, bool value)
 {
-    byte_array_append_byte(bson, ASTARTE_BSON_TYPE_BOOLEAN);
+    byte_array_append_byte(bson, BSON_TYPE_BOOLEAN);
     byte_array_append(bson, name, strlen(name) + 1);
     byte_array_append_byte(bson, value ? '\1' : '\0');
 }
 
-void new_ast_bson_serializer_append_document(
-    new_ast_bson_serializer_t *bson, const char *name, const void *document)
+void bson_serializer_append_document(
+    bson_serializer_t *bson, const char *name, const void *document)
 {
     uint32_t size = 0U;
     memcpy(&size, document, sizeof(uint32_t));
     size = le32toh(size);
 
-    byte_array_append_byte(bson, ASTARTE_BSON_TYPE_DOCUMENT);
+    byte_array_append_byte(bson, BSON_TYPE_DOCUMENT);
     byte_array_append(bson, name, strlen(name) + 1);
 
     byte_array_append(bson, document, size);
 }
 
 #define IMPLEMENT_ASTARTE_BSON_SERIALIZER_APPEND_TYPE_ARRAY(TYPE, TYPE_NAME)                       \
-    astarte_result_t new_ast_bson_serializer_append_##TYPE_NAME##_array(                           \
-        new_ast_bson_serializer_t *bson, const char *name, TYPE arr, int count)                    \
+    astarte_result_t bson_serializer_append_##TYPE_NAME##_array(                                   \
+        bson_serializer_t *bson, const char *name, TYPE arr, int count)                            \
     {                                                                                              \
-        new_ast_bson_serializer_t array_ser = { 0 };                                               \
-        astarte_result_t ares = new_ast_bson_serializer_init(&array_ser);                          \
+        bson_serializer_t array_ser = { 0 };                                                       \
+        astarte_result_t ares = bson_serializer_init(&array_ser);                                  \
         if (ares != ASTARTE_RESULT_OK) {                                                           \
             return ares;                                                                           \
         }                                                                                          \
@@ -286,19 +281,19 @@ void new_ast_bson_serializer_append_document(
             if ((ret < 0) || (ret >= BSON_ARRAY_SIZE_STR_LEN)) {                                   \
                 ares = ASTARTE_RESULT_INTERNAL_ERROR;                                              \
             }                                                                                      \
-            new_ast_bson_serializer_append_##TYPE_NAME(&array_ser, key, arr[i]);                   \
+            bson_serializer_append_##TYPE_NAME(&array_ser, key, arr[i]);                           \
         }                                                                                          \
-        new_ast_bson_serializer_append_end_of_document(&array_ser);                                \
+        bson_serializer_append_end_of_document(&array_ser);                                        \
                                                                                                    \
         int size;                                                                                  \
-        const void *document = new_ast_bson_serializer_get_serialized(array_ser, &size);           \
+        const void *document = bson_serializer_get_serialized(array_ser, &size);                   \
                                                                                                    \
-        byte_array_append_byte(bson, ASTARTE_BSON_TYPE_ARRAY);                                     \
+        byte_array_append_byte(bson, BSON_TYPE_ARRAY);                                             \
         byte_array_append(bson, name, strlen(name) + 1);                                           \
                                                                                                    \
         byte_array_append(bson, document, size);                                                   \
                                                                                                    \
-        new_ast_bson_serializer_destroy(&array_ser);                                               \
+        bson_serializer_destroy(&array_ser);                                                       \
                                                                                                    \
         return ares;                                                                               \
     }
@@ -310,11 +305,11 @@ IMPLEMENT_ASTARTE_BSON_SERIALIZER_APPEND_TYPE_ARRAY(const char *const *, string)
 IMPLEMENT_ASTARTE_BSON_SERIALIZER_APPEND_TYPE_ARRAY(const int64_t *, datetime)
 IMPLEMENT_ASTARTE_BSON_SERIALIZER_APPEND_TYPE_ARRAY(const bool *, boolean)
 
-astarte_result_t new_ast_bson_serializer_append_binary_array(new_ast_bson_serializer_t *bson,
-    const char *name, const void *const *arr, const size_t *sizes, int count)
+astarte_result_t bson_serializer_append_binary_array(bson_serializer_t *bson, const char *name,
+    const void *const *arr, const size_t *sizes, int count)
 {
-    new_ast_bson_serializer_t array_ser = { 0 };
-    astarte_result_t ares = new_ast_bson_serializer_init(&array_ser);
+    bson_serializer_t array_ser = { 0 };
+    astarte_result_t ares = bson_serializer_init(&array_ser);
     if (ares != ASTARTE_RESULT_OK) {
         return ares;
     }
@@ -324,18 +319,18 @@ astarte_result_t new_ast_bson_serializer_append_binary_array(new_ast_bson_serial
         if ((ret < 0) || (ret >= BSON_ARRAY_SIZE_STR_LEN)) {
             ares = ASTARTE_RESULT_INTERNAL_ERROR;
         }
-        new_ast_bson_serializer_append_binary(&array_ser, key, arr[i], sizes[i]);
+        bson_serializer_append_binary(&array_ser, key, arr[i], sizes[i]);
     }
-    new_ast_bson_serializer_append_end_of_document(&array_ser);
+    bson_serializer_append_end_of_document(&array_ser);
 
     int size = 0;
-    const void *document = new_ast_bson_serializer_get_serialized(array_ser, &size);
+    const void *document = bson_serializer_get_serialized(array_ser, &size);
 
-    byte_array_append_byte(bson, ASTARTE_BSON_TYPE_ARRAY);
+    byte_array_append_byte(bson, BSON_TYPE_ARRAY);
     byte_array_append(bson, name, strlen(name) + 1);
     byte_array_append(bson, document, size);
 
-    new_ast_bson_serializer_destroy(&array_ser);
+    bson_serializer_destroy(&array_ser);
 
     return ares;
 }
