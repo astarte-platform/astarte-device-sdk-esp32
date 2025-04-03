@@ -23,35 +23,79 @@
 
 #include <esp_log.h>
 
-#include "test_astarte_bson_deserializer.h"
-#include "test_astarte_bson_serializer.h"
+#include "test_bson_deserializer.h"
+#include "test_bson_serializer.h"
+#include "test_data.h"
+#include "test_data_validation.h"
 #include "test_device_caching.h"
+#include "test_device_id.h"
 #include "test_dlist.h"
+#include "test_interface.h"
 #include "test_introspection.h"
 #include "test_kv_storage.h"
+#include "test_mapping.h"
+#include "test_object.h"
 
 void app_main(void)
 {
-    // Disable logs for the bson deserializer to avoid printouts
-    esp_log_level_set("ASTARTE_BSON_SERIALIZER", ESP_LOG_NONE);
-    esp_log_level_set("ASTARTE_BSON_DESERIALIZER", ESP_LOG_NONE);
-    // esp_log_level_set("NVS_KEY_VALUE", ESP_LOG_NONE);
-    // esp_log_level_set("ASTARTE_STORAGE", ESP_LOG_NONE);
-
     UNITY_BEGIN();
-    RUN_TEST(test_astarte_bson_serializer_empty_document);
-    RUN_TEST(test_astarte_bson_serializer_complete_document);
+    RUN_TEST(test_bson_serializer_empty_document);
+    RUN_TEST(test_bson_serializer_complete_document);
 
-    RUN_TEST(test_astarte_bson_deserializer_check_validity);
-    RUN_TEST(test_astarte_bson_deserializer_empty_bson_document);
-    RUN_TEST(test_astarte_bson_deserializer_complete_bson_document);
-    RUN_TEST(test_astarte_bson_deserializer_bson_document_lookup);
+    RUN_TEST(test_bson_deserializer_check_validity);
+    RUN_TEST(test_bson_deserializer_empty_bson_document);
+    RUN_TEST(test_bson_deserializer_complete_bson_document);
+    RUN_TEST(test_bson_deserializer_bson_document_lookup);
+
+    RUN_TEST(test_data_serialize_integer);
+    RUN_TEST(test_data_serialize_longinteger);
+    RUN_TEST(test_data_serialize_double);
+    RUN_TEST(test_data_serialize_boolean);
+    RUN_TEST(test_data_serialize_string);
+    RUN_TEST(test_data_serialize_integer_array);
+    RUN_TEST(test_data_serialize_string_array);
+    RUN_TEST(test_data_serialize_binaryblob_array);
+
+    RUN_TEST(test_data_validation_individual_datastream_ok);
+    RUN_TEST(test_data_validation_individual_datastream_incorrect_path);
+    RUN_TEST(test_data_validation_individual_datastream_incorrect_data);
+    RUN_TEST(test_data_validation_individual_datastream_incorrect_timestamp_required);
+    RUN_TEST(test_data_validation_individual_datastream_incorrect_timestamp_not_allowed);
+    RUN_TEST(test_data_validation_aggregated_datastream_ok);
+    RUN_TEST(test_data_validation_aggregated_datastream_incorrect_path);
+    RUN_TEST(test_data_validation_aggregated_datastream_incorrect_data);
+    RUN_TEST(test_data_validation_aggregated_datastream_incorrect_timestamp_required);
+    RUN_TEST(test_data_validation_aggregated_datastream_timestamp_not_allowed);
+    RUN_TEST(test_data_validation_unset_properties_ok);
+    RUN_TEST(test_data_validation_unset_properties_incorrect_path);
+    RUN_TEST(test_data_validation_unset_properties_not_allowed);
+
+    RUN_TEST(test_data_deserialize_astarte_data_from_incorrect_type);
+    RUN_TEST(test_data_deserialize_astarte_data_from_binblob);
+    RUN_TEST(test_data_deserialize_astarte_data_from_boolean);
+    RUN_TEST(test_data_deserialize_astarte_data_from_datetime);
+    RUN_TEST(test_data_deserialize_astarte_data_from_double);
+    RUN_TEST(test_data_deserialize_astarte_data_from_integer);
+    RUN_TEST(test_data_deserialize_astarte_data_from_longinteger);
+    RUN_TEST(test_data_deserialize_astarte_data_from_string);
+    RUN_TEST(test_data_deserialize_astarte_data_from_binblob_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_boolean_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_double_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_datetime_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_integer_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_longinteger_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_string_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_empty_array);
+    RUN_TEST(test_data_deserialize_astarte_data_from_mismatched_array_initial);
+    RUN_TEST(test_data_deserialize_astarte_data_from_mismatched_array_final);
 
     RUN_TEST(test_dlist_is_empty);
     RUN_TEST(test_dlist_append_remove_tail);
     RUN_TEST(test_dlist_destroy);
     RUN_TEST(test_dlist_iterator);
     RUN_TEST(test_dlist_iterator_replace);
+
+    RUN_TEST(test_interface_get_mapping);
 
     RUN_TEST(test_introspection_creation);
     RUN_TEST(test_introspection_add_get_update);
@@ -64,6 +108,19 @@ void app_main(void)
     RUN_TEST(test_device_caching_property_get_device_properties_string);
     RUN_TEST(test_device_caching_property_iteration);
     RUN_TEST(test_device_caching_property_iteration_empty_memory);
+
+    RUN_TEST(test_device_id_generate_deterministic);
+
+    RUN_TEST(test_mapping_check_path_one_segment_no_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_multiple_segments_no_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_one_segment_single_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_multiple_segments_single_pattern);
+    RUN_TEST(test_astarte_mapping_check_path_multiple_segments_three_patterns);
+    RUN_TEST(test_astarte_mapping_check_data_double);
+    RUN_TEST(test_astarte_mapping_check_data_doublearray);
+
+    RUN_TEST(test_object_deserialize_astarte_object_from_aggregate);
+    RUN_TEST(test_object_deserialize_astarte_object_from_empty_aggregate);
 
     RUN_TEST(test_kv_storage_set_get_cycle);
     RUN_TEST(test_kv_storage_erase_entry);

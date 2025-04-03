@@ -21,16 +21,19 @@
 idf_component_register(
     SRCS
         "test_device_caching.c"
+        "test_device_id.c"
         "test_kv_storage.c"
         "../../src/bson_serializer.c"
         "../../src/data.c"
         "../../src/device_caching.c"
+        "../../src/device_id.c"
         "../../src/kv_storage.c"
         "../../src/mapping.c"
         "../../src/result.c"
+        "../../src/uuid.c"
     INCLUDE_DIRS
         "."
         "../../include"
         "../../private"
-    PRIV_REQUIRES nvs_flash unity
+    PRIV_REQUIRES nvs_flash esp_system mbedtls esp_hw_support unity
 )
