@@ -31,11 +31,6 @@
 
 int main(int argc, char **argv)
 {
-    // Disable logs for the modules under test to avoid garbage prints
-    esp_log_level_set("ASTARTE_BSON_SERIALIZER", ESP_LOG_NONE);
-    esp_log_level_set("ASTARTE_BSON_DESERIALIZER", ESP_LOG_NONE);
-    esp_log_level_set("uuid", ESP_LOG_NONE);
-
     UNITY_BEGIN();
     RUN_TEST(test_astarte_bson_serializer_empty_document);
     RUN_TEST(test_astarte_bson_serializer_complete_document);
