@@ -25,7 +25,7 @@ const astarte_interface_t test_interface1 = {
     .ownership = ASTARTE_INTERFACE_OWNERSHIP_DEVICE,
     .aggregation = ASTARTE_INTERFACE_AGGREGATION_INDIVIDUAL,
     .mappings = test_interface1_mappings,
-    .mappings_length = 1U,
+    .mappings_length = ARRAY_SIZE(test_interface1_mappings),
 };
 
 const astarte_interface_t test_interface2 = {
@@ -77,5 +77,5 @@ const astarte_interface_t test_interface3 = {
     .ownership = ASTARTE_INTERFACE_OWNERSHIP_DEVICE,
     .aggregation = ASTARTE_INTERFACE_AGGREGATION_INDIVIDUAL,
     .mappings = test_interface3_mappings,
-    .mappings_length = 2U,
+    .mappings_length = ARRAY_SIZE(test_interface3_mappings),
 };

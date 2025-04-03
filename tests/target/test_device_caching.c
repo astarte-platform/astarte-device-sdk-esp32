@@ -43,7 +43,7 @@ static const astarte_interface_t interface1 = {
     .ownership = ASTARTE_INTERFACE_OWNERSHIP_DEVICE,
     .aggregation = ASTARTE_INTERFACE_AGGREGATION_INDIVIDUAL,
     .mappings = i1_mappings,
-    .mappings_length = 2U,
+    .mappings_length = ARRAY_SIZE(i1_mappings),
 };
 static const astarte_mapping_t i2_mappings[2] = {
     {
@@ -69,7 +69,7 @@ static const astarte_interface_t interface2 = {
     .ownership = ASTARTE_INTERFACE_OWNERSHIP_DEVICE,
     .aggregation = ASTARTE_INTERFACE_AGGREGATION_INDIVIDUAL,
     .mappings = i2_mappings,
-    .mappings_length = 2U,
+    .mappings_length = ARRAY_SIZE(i2_mappings),
 };
 
 #define I1_P1_PAYLOAD "iZDzYntqlF"
