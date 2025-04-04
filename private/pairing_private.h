@@ -29,7 +29,7 @@
  *
  * Total: 268 characters
  */
-#define NEW_AST_PAIRING_MAX_BROKER_URL_LEN 268
+#define PAIRING_MAX_BROKER_URL_LEN 268
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,8 +43,8 @@ extern "C" {
  * @param[out] out_url Output buffer where to store the fetched ULR.
  * @return ASTARTE_RESULT_OK if publish has been successful, an error code otherwise.
  */
-astarte_result_t new_ast_pairing_get_mqtt_broker_url(const char *device_id, const char *cred_secr,
-    char out_url[NEW_AST_PAIRING_MAX_BROKER_URL_LEN + 1]);
+astarte_result_t pairing_get_mqtt_broker_url(
+    const char *device_id, const char *cred_secr, char out_url[PAIRING_MAX_BROKER_URL_LEN + 1]);
 
 /**
  * @brief Fetch the client x509 certificate from Astarte.
@@ -54,8 +54,8 @@ astarte_result_t new_ast_pairing_get_mqtt_broker_url(const char *device_id, cons
  * @param[out] client_crt Client private key and certificate for mutual TLS authentication.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t new_ast_pairing_get_client_certificate(
-    const char *device_id, const char *cred_secr, astarte_tls_credentials_client_crt_t *client_crt);
+astarte_result_t pairing_get_client_certificate(
+    const char *device_id, const char *cred_secr, tls_credentials_client_crt_t *client_crt);
 
 /**
  * @brief Verify a client x509 certificate from Astarte is valid.
@@ -65,7 +65,7 @@ astarte_result_t new_ast_pairing_get_client_certificate(
  * @param[in] crt_pem Input buffer containing the PEM certificate to verify.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t new_ast_pairing_verify_client_certificate(
+astarte_result_t pairing_verify_client_certificate(
     const char *device_id, const char *cred_secr, const char *crt_pem);
 
 #ifdef __cplusplus

@@ -55,24 +55,24 @@ void test_interface_get_mapping(void)
 
     const char path_first_endpoint[] = "/binaryblob_endpoint";
     mapping = NULL;
-    res = astarte_interface_get_mapping_from_path(&interface, path_first_endpoint, &mapping);
+    res = interface_get_mapping_from_path(&interface, path_first_endpoint, &mapping);
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, res);
     TEST_ASSERT_EQUAL_PTR(&mappings[0], mapping);
 
     const char path_second_endpoint[] = "/binaryblobarray_endpoint";
     mapping = NULL;
-    res = astarte_interface_get_mapping_from_path(&interface, path_second_endpoint, &mapping);
+    res = interface_get_mapping_from_path(&interface, path_second_endpoint, &mapping);
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, res);
     TEST_ASSERT_EQUAL_PTR(&mappings[1], mapping);
 
     const char path_third_endpoint[] = "/boolean_endpoint";
     mapping = NULL;
-    res = astarte_interface_get_mapping_from_path(&interface, path_third_endpoint, &mapping);
+    res = interface_get_mapping_from_path(&interface, path_third_endpoint, &mapping);
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, res);
     TEST_ASSERT_EQUAL_PTR(&mappings[2], mapping);
 
     const char path_missing_endpoint[] = "/missing_endpoint";
     mapping = NULL;
-    res = astarte_interface_get_mapping_from_path(&interface, path_missing_endpoint, &mapping);
+    res = interface_get_mapping_from_path(&interface, path_missing_endpoint, &mapping);
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_MAPPING_NOT_IN_INTERFACE, res);
 }

@@ -116,12 +116,12 @@ static const uint8_t test_data_serialized_mismatched_array_final[] = { 0x2e, 0x0
 void test_data_serialize_integer(void)
 {
     astarte_data_t data = astarte_data_from_integer(test_data_integer);
-    new_ast_bson_serializer_t bson = { 0 };
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, new_ast_bson_serializer_init(&bson));
-    astarte_data_serialize(&bson, "v", data);
-    new_ast_bson_serializer_append_end_of_document(&bson);
+    bson_serializer_t bson = { 0 };
+    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, bson_serializer_init(&bson));
+    data_serialize(&bson, "v", data);
+    bson_serializer_append_end_of_document(&bson);
     int len = 0;
-    const void *data_ser = new_ast_bson_serializer_get_serialized(bson, &len);
+    const void *data_ser = bson_serializer_get_serialized(bson, &len);
     TEST_ASSERT_EQUAL(sizeof(test_data_serialized_integer), len);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(test_data_serialized_integer, data_ser, len);
 }
@@ -129,12 +129,12 @@ void test_data_serialize_integer(void)
 void test_data_serialize_longinteger(void)
 {
     astarte_data_t data = astarte_data_from_longinteger(test_data_longinteger);
-    new_ast_bson_serializer_t bson = { 0 };
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, new_ast_bson_serializer_init(&bson));
-    astarte_data_serialize(&bson, "v", data);
-    new_ast_bson_serializer_append_end_of_document(&bson);
+    bson_serializer_t bson = { 0 };
+    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, bson_serializer_init(&bson));
+    data_serialize(&bson, "v", data);
+    bson_serializer_append_end_of_document(&bson);
     int len = 0;
-    const void *data_ser = new_ast_bson_serializer_get_serialized(bson, &len);
+    const void *data_ser = bson_serializer_get_serialized(bson, &len);
     TEST_ASSERT_EQUAL(sizeof(test_data_serialized_longinteger), len);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(test_data_serialized_longinteger, data_ser, len);
 }
@@ -142,12 +142,12 @@ void test_data_serialize_longinteger(void)
 void test_data_serialize_double(void)
 {
     astarte_data_t data = astarte_data_from_double(test_data_double);
-    new_ast_bson_serializer_t bson = { 0 };
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, new_ast_bson_serializer_init(&bson));
-    astarte_data_serialize(&bson, "v", data);
-    new_ast_bson_serializer_append_end_of_document(&bson);
+    bson_serializer_t bson = { 0 };
+    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, bson_serializer_init(&bson));
+    data_serialize(&bson, "v", data);
+    bson_serializer_append_end_of_document(&bson);
     int len = 0;
-    const void *data_ser = new_ast_bson_serializer_get_serialized(bson, &len);
+    const void *data_ser = bson_serializer_get_serialized(bson, &len);
     TEST_ASSERT_EQUAL(sizeof(test_data_serialized_double), len);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(test_data_serialized_double, data_ser, len);
 }
@@ -155,12 +155,12 @@ void test_data_serialize_double(void)
 void test_data_serialize_boolean(void)
 {
     astarte_data_t data = astarte_data_from_boolean(test_data_boolean);
-    new_ast_bson_serializer_t bson = { 0 };
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, new_ast_bson_serializer_init(&bson));
-    astarte_data_serialize(&bson, "v", data);
-    new_ast_bson_serializer_append_end_of_document(&bson);
+    bson_serializer_t bson = { 0 };
+    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, bson_serializer_init(&bson));
+    data_serialize(&bson, "v", data);
+    bson_serializer_append_end_of_document(&bson);
     int len = 0;
-    const void *data_ser = new_ast_bson_serializer_get_serialized(bson, &len);
+    const void *data_ser = bson_serializer_get_serialized(bson, &len);
     TEST_ASSERT_EQUAL(sizeof(test_data_serialized_boolean), len);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(test_data_serialized_boolean, data_ser, len);
 }
@@ -168,12 +168,12 @@ void test_data_serialize_boolean(void)
 void test_data_serialize_string(void)
 {
     astarte_data_t data = astarte_data_from_string(test_data_string);
-    new_ast_bson_serializer_t bson = { 0 };
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, new_ast_bson_serializer_init(&bson));
-    astarte_data_serialize(&bson, "v", data);
-    new_ast_bson_serializer_append_end_of_document(&bson);
+    bson_serializer_t bson = { 0 };
+    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, bson_serializer_init(&bson));
+    data_serialize(&bson, "v", data);
+    bson_serializer_append_end_of_document(&bson);
     int len = 0;
-    const void *data_ser = new_ast_bson_serializer_get_serialized(bson, &len);
+    const void *data_ser = bson_serializer_get_serialized(bson, &len);
     TEST_ASSERT_EQUAL(sizeof(test_data_serialized_string), len);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(test_data_serialized_string, data_ser, len);
 }
@@ -182,12 +182,12 @@ void test_data_serialize_integer_array(void)
 {
     astarte_data_t data = astarte_data_from_integer_array(
         (int32_t *) &(test_data_integer_array), sizeof(test_data_integer_array) / sizeof(int32_t));
-    new_ast_bson_serializer_t bson = { 0 };
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, new_ast_bson_serializer_init(&bson));
-    astarte_data_serialize(&bson, "v", data);
-    new_ast_bson_serializer_append_end_of_document(&bson);
+    bson_serializer_t bson = { 0 };
+    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, bson_serializer_init(&bson));
+    data_serialize(&bson, "v", data);
+    bson_serializer_append_end_of_document(&bson);
     int len = 0;
-    const void *data_ser = new_ast_bson_serializer_get_serialized(bson, &len);
+    const void *data_ser = bson_serializer_get_serialized(bson, &len);
     TEST_ASSERT_EQUAL(sizeof(test_data_serialized_integer_array), len);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(test_data_serialized_integer_array, data_ser, len);
 }
@@ -196,12 +196,12 @@ void test_data_serialize_string_array(void)
 {
     astarte_data_t data = astarte_data_from_string_array((const char **) &(test_data_string_array),
         sizeof(test_data_string_array) / sizeof(const char *const));
-    new_ast_bson_serializer_t bson = { 0 };
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, new_ast_bson_serializer_init(&bson));
-    astarte_data_serialize(&bson, "v", data);
-    new_ast_bson_serializer_append_end_of_document(&bson);
+    bson_serializer_t bson = { 0 };
+    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, bson_serializer_init(&bson));
+    data_serialize(&bson, "v", data);
+    bson_serializer_append_end_of_document(&bson);
     int len = 0;
-    const void *data_ser = new_ast_bson_serializer_get_serialized(bson, &len);
+    const void *data_ser = bson_serializer_get_serialized(bson, &len);
     TEST_ASSERT_EQUAL(sizeof(test_data_serialized_string_array), len);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(test_data_serialized_string_array, data_ser, len);
 }
@@ -212,12 +212,12 @@ void test_data_serialize_binaryblob_array(void)
         (size_t *) test_data_binaryblob_sizes,
         sizeof(test_data_binaryblob_array) / sizeof(uint8_t *));
 
-    new_ast_bson_serializer_t bson = { 0 };
-    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, new_ast_bson_serializer_init(&bson));
-    astarte_data_serialize(&bson, "v", data);
-    new_ast_bson_serializer_append_end_of_document(&bson);
+    bson_serializer_t bson = { 0 };
+    TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, bson_serializer_init(&bson));
+    data_serialize(&bson, "v", data);
+    bson_serializer_append_end_of_document(&bson);
     int len = 0;
-    const void *data_ser = new_ast_bson_serializer_get_serialized(bson, &len);
+    const void *data_ser = bson_serializer_get_serialized(bson, &len);
 
     TEST_ASSERT_EQUAL(sizeof(test_data_serialized_binaryblob_array), len);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(test_data_serialized_binaryblob_array, data_ser, len);
@@ -225,135 +225,124 @@ void test_data_serialize_binaryblob_array(void)
 
 void test_data_deserialize_astarte_data_from_incorrect_type(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_binaryblob);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_binaryblob);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DATETIMEARRAY, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DATETIMEARRAY, &data);
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_BSON_DESERIALIZER_TYPES_ERROR, res);
 }
 
 void test_data_deserialize_astarte_data_from_binblob(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_binaryblob);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_binaryblob);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_BINARYBLOB, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_BINARYBLOB, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_BINARYBLOB);
     TEST_ASSERT_EQUAL(data.data.binaryblob.len, 5);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(
         data.data.binaryblob.buf, test_data_binaryblob, data.data.binaryblob.len);
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_boolean(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_boolean);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_boolean);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_BOOLEAN, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_BOOLEAN, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_BOOLEAN);
     TEST_ASSERT_EQUAL(data.data.boolean, test_data_boolean);
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_datetime(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_datetime);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_datetime);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DATETIME, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DATETIME, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_DATETIME);
     TEST_ASSERT_EQUAL(data.data.datetime, test_data_datetime);
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_double(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_double);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_double);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DOUBLE, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DOUBLE, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_DOUBLE);
     TEST_ASSERT_EQUAL(data.data.dbl, test_data_double);
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_integer(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_integer);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_integer);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_INTEGER, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_INTEGER, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_INTEGER);
     TEST_ASSERT_EQUAL(data.data.integer, test_data_integer);
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_longinteger(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_longinteger);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_longinteger);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_LONGINTEGER, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_LONGINTEGER, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_LONGINTEGER);
     TEST_ASSERT_EQUAL(data.data.longinteger, test_data_longinteger);
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_string(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_string);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_string);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_STRING, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_STRING, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_STRING);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(data.data.string, test_data_string, strlen(test_data_string) + 1);
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_binblob_array(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_binaryblob_array);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document
+        = bson_deserializer_init_doc(test_data_serialized_binaryblob_array);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY);
     TEST_ASSERT_EQUAL(data.data.binaryblob_array.count, ARRAY_SIZE(test_data_binaryblob_array));
@@ -362,37 +351,33 @@ void test_data_deserialize_astarte_data_from_binblob_array(void)
         TEST_ASSERT_EQUAL_HEX8_ARRAY(data.data.binaryblob_array.blobs[i],
             test_data_binaryblob_array[i], test_data_binaryblob_sizes[i]);
     }
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_boolean_array(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_boolean_array);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_boolean_array);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_BOOLEANARRAY, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_BOOLEANARRAY, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_BOOLEANARRAY);
     TEST_ASSERT_EQUAL(data.data.boolean_array.len, ARRAY_SIZE(test_data_boolean_array));
     TEST_ASSERT_EQUAL_HEX8_ARRAY(
         data.data.boolean_array.buf, test_data_boolean_array, ARRAY_SIZE(test_data_boolean_array));
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_double_array(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_double_array);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_double_array);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DOUBLEARRAY, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DOUBLEARRAY, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_DOUBLEARRAY);
@@ -400,95 +385,86 @@ void test_data_deserialize_astarte_data_from_double_array(void)
     for (size_t i = 0; i < ARRAY_SIZE(test_data_double_array); i++) {
         TEST_ASSERT_EQUAL_FLOAT(data.data.double_array.buf[i], test_data_double_array[i]);
     }
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_datetime_array(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_datetime_array);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_datetime_array);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DATETIMEARRAY, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DATETIMEARRAY, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_DATETIMEARRAY);
     TEST_ASSERT_EQUAL(data.data.datetime_array.len, ARRAY_SIZE(test_data_datetime_array));
     for (size_t i = 0; i < ARRAY_SIZE(test_data_datetime_array); i++) {
         TEST_ASSERT_EQUAL(data.data.datetime_array.buf[i], test_data_datetime_array[i]);
     }
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_integer_array(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_integer_array);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_integer_array);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_INTEGERARRAY, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_INTEGERARRAY, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_INTEGERARRAY);
     TEST_ASSERT_EQUAL(data.data.integer_array.len, ARRAY_SIZE(test_data_integer_array));
     for (size_t i = 0; i < ARRAY_SIZE(test_data_integer_array); i++) {
         TEST_ASSERT_EQUAL(data.data.integer_array.buf[i], test_data_integer_array[i]);
     }
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_longinteger_array(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_longinteger_array);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document
+        = bson_deserializer_init_doc(test_data_serialized_longinteger_array);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_LONGINTEGERARRAY, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_LONGINTEGERARRAY, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_LONGINTEGERARRAY);
     TEST_ASSERT_EQUAL(data.data.longinteger_array.len, ARRAY_SIZE(test_data_longinteger_array));
     for (size_t i = 0; i < ARRAY_SIZE(test_data_longinteger_array); i++) {
         TEST_ASSERT_EQUAL(data.data.longinteger_array.buf[i], test_data_longinteger_array[i]);
     }
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_string_array(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_string_array);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_string_array);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_STRINGARRAY, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_STRINGARRAY, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_STRINGARRAY);
     TEST_ASSERT_EQUAL(data.data.string_array.len, ARRAY_SIZE(test_data_string_array));
     for (size_t i = 0; i < ARRAY_SIZE(test_data_string_array); i++) {
         TEST_ASSERT_EQUAL(strcmp(data.data.string_array.buf[i], test_data_string_array[i]), 0);
     }
-    astarte_data_destroy_deserialized(data);
+    data_destroy_deserialized(data);
 }
 
 void test_data_deserialize_astarte_data_from_empty_array(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_empty_array);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_empty_array);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DOUBLEARRAY, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_DOUBLEARRAY, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_OK);
     TEST_ASSERT_EQUAL(data.tag, ASTARTE_MAPPING_TYPE_DOUBLEARRAY);
     TEST_ASSERT_EQUAL(data.data.double_array.len, 0);
@@ -496,26 +472,24 @@ void test_data_deserialize_astarte_data_from_empty_array(void)
 
 void test_data_deserialize_astarte_data_from_mismatched_array_initial(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_mismatched_array_initial);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document
+        = bson_deserializer_init_doc(test_data_serialized_mismatched_array_initial);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_STRINGARRAY, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_STRINGARRAY, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_BSON_DESERIALIZER_TYPES_ERROR);
 }
 
 void test_data_deserialize_astarte_data_from_mismatched_array_final(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_mismatched_array_final);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document
+        = bson_deserializer_init_doc(test_data_serialized_mismatched_array_final);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_data_t data = { 0 };
-    astarte_result_t res
-        = astarte_data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_STRINGARRAY, &data);
+    astarte_result_t res = data_deserialize(v_elem, ASTARTE_MAPPING_TYPE_STRINGARRAY, &data);
     TEST_ASSERT_EQUAL(res, ASTARTE_RESULT_BSON_DESERIALIZER_TYPES_ERROR);
 }

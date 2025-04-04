@@ -44,12 +44,12 @@ astarte_result_t astarte_object_entry_to_path_and_data(
  *     Global private functions definitions     *
  ***********************************************/
 
-astarte_result_t astarte_object_entries_serialize(
-    new_ast_bson_serializer_t *bson, astarte_object_entry_t *entries, size_t entries_length)
+astarte_result_t object_entries_serialize(
+    bson_serializer_t *bson, astarte_object_entry_t *entries, size_t entries_length)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     for (size_t i = 0; i < entries_length; i++) {
-        ares = astarte_data_serialize(bson, entries[i].path, entries[i].data);
+        ares = data_serialize(bson, entries[i].path, entries[i].data);
         if (ares != ASTARTE_RESULT_OK) {
             break;
         }
@@ -58,7 +58,7 @@ astarte_result_t astarte_object_entries_serialize(
     return ares;
 }
 
-astarte_result_t astarte_object_entries_deserialize(new_ast_bson_element_t bson_elem,
+astarte_result_t object_entries_deserialize(bson_element_t bson_elem,
     const astarte_interface_t *interface, const char *path, astarte_object_entry_t **entries,
     size_t *entries_length)
 {
@@ -67,15 +67,15 @@ astarte_result_t astarte_object_entries_deserialize(new_ast_bson_element_t bson_
     astarte_result_t ares = ASTARTE_RESULT_OK;
 
     // Step 1: extract the document from the BSON and calculate its length
-    if (bson_elem.type != ASTARTE_BSON_TYPE_DOCUMENT) {
+    if (bson_elem.type != BSON_TYPE_DOCUMENT) {
         ESP_LOGE(TAG, "Received BSON element that is not a document.");
         ares = ASTARTE_RESULT_BSON_DESERIALIZER_ERROR;
         goto failure;
     }
-    new_ast_bson_document_t bson_doc = new_ast_bson_deserializer_element_to_document(bson_elem);
+    bson_document_t bson_doc = bson_deserializer_element_to_document(bson_elem);
 
     size_t bson_doc_length = 0;
-    ares = new_ast_bson_deserializer_doc_count_elements(bson_doc, &bson_doc_length);
+    ares = bson_deserializer_doc_count_elements(bson_doc, &bson_doc_length);
     if (ares != ASTARTE_RESULT_OK) {
         goto failure;
     }
@@ -94,8 +94,8 @@ astarte_result_t astarte_object_entries_deserialize(new_ast_bson_element_t bson_
     }
 
     // Step 3: Fill the allocated memory
-    new_ast_bson_element_t inner_elem = { 0 };
-    ares = new_ast_bson_deserializer_first_element(bson_doc, &inner_elem);
+    bson_element_t inner_elem = { 0 };
+    ares = bson_deserializer_first_element(bson_doc, &inner_elem);
     if (ares != ASTARTE_RESULT_OK) {
         goto failure;
     }
@@ -103,17 +103,16 @@ astarte_result_t astarte_object_entries_deserialize(new_ast_bson_element_t bson_
     const astarte_mapping_t *mapping = NULL;
     while ((ares != ASTARTE_RESULT_NOT_FOUND) && (deserialize_idx < bson_doc_length)) {
         tmp_entries[deserialize_idx].path = inner_elem.name;
-        ares = astarte_interface_get_mapping_from_paths(interface, path, inner_elem.name, &mapping);
+        ares = interface_get_mapping_from_paths(interface, path, inner_elem.name, &mapping);
         if (ares != ASTARTE_RESULT_OK) {
             goto failure;
         }
-        ares = astarte_data_deserialize(
-            inner_elem, mapping->type, &(tmp_entries[deserialize_idx].data));
+        ares = data_deserialize(inner_elem, mapping->type, &(tmp_entries[deserialize_idx].data));
         if (ares != ASTARTE_RESULT_OK) {
             goto failure;
         }
         deserialize_idx++;
-        ares = new_ast_bson_deserializer_next_element(bson_doc, inner_elem, &inner_elem);
+        ares = bson_deserializer_next_element(bson_doc, inner_elem, &inner_elem);
         if ((ares != ASTARTE_RESULT_OK) && (ares != ASTARTE_RESULT_NOT_FOUND)) {
             goto failure;
         }
@@ -127,18 +126,17 @@ astarte_result_t astarte_object_entries_deserialize(new_ast_bson_element_t bson_
 
 failure:
     for (size_t j = 0; j < deserialize_idx; j++) {
-        astarte_data_destroy_deserialized(tmp_entries[j].data);
+        data_destroy_deserialized(tmp_entries[j].data);
     }
     free(tmp_entries);
 
     return ares;
 }
 
-void astarte_object_entries_destroy_deserialized(
-    astarte_object_entry_t *entries, size_t entries_length)
+void object_entries_destroy_deserialized(astarte_object_entry_t *entries, size_t entries_length)
 {
     for (size_t i = 0; i < entries_length; i++) {
-        astarte_data_destroy_deserialized(entries[i].data);
+        data_destroy_deserialized(entries[i].data);
     }
     free(entries);
 }

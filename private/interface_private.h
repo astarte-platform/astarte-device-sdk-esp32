@@ -24,7 +24,7 @@ extern "C" {
  * @param[in] interface Interface to validate.
  * @return ASTARTE_RESULT_OK on success, otherwise an error code.
  */
-astarte_result_t astarte_interface_validate(const astarte_interface_t *interface);
+astarte_result_t interface_validate(const astarte_interface_t *interface);
 
 /**
  * @brief Get the mapping corresponding to a path, if present in the interface.
@@ -34,7 +34,7 @@ astarte_result_t astarte_interface_validate(const astarte_interface_t *interface
  * @param[out] mapping Set to a pointer to the mapping if found.
  * @return ASTARTE_RESULT_OK on success, otherwise an error code.
  */
-astarte_result_t astarte_interface_get_mapping_from_path(
+astarte_result_t interface_get_mapping_from_path(
     const astarte_interface_t *interface, const char *path, const astarte_mapping_t **mapping);
 
 /**
@@ -50,7 +50,7 @@ astarte_result_t astarte_interface_get_mapping_from_path(
  * @param[out] mapping Set to a pointer to the mapping if found.
  * @return ASTARTE_RESULT_OK on success, otherwise an error code.
  */
-astarte_result_t astarte_interface_get_mapping_from_paths(const astarte_interface_t *interface,
+astarte_result_t interface_get_mapping_from_paths(const astarte_interface_t *interface,
     const char *path1, const char *path2, const astarte_mapping_t **mapping);
 
 /**
@@ -66,7 +66,7 @@ astarte_result_t astarte_interface_get_mapping_from_paths(const astarte_interfac
  * @param[out] qos The extracted QoS.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t astarte_interface_get_qos(
+astarte_result_t interface_get_qos(
     const astarte_interface_t *interface, const char *path, int *qos);
 
 #ifdef __cplusplus

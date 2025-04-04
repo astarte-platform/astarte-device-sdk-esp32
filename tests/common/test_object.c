@@ -68,15 +68,14 @@ void test_object_deserialize_astarte_object_from_aggregate(void)
         .mappings_length = ARRAY_SIZE(mappings),
     };
 
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_object_entry_t *entries = NULL;
     size_t entries_length = 0;
-    astarte_result_t res = astarte_object_entries_deserialize(
-        v_elem, &interface, "/sensor33", &entries, &entries_length);
+    astarte_result_t res
+        = object_entries_deserialize(v_elem, &interface, "/sensor33", &entries, &entries_length);
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_OK, res);
     TEST_ASSERT_EQUAL(3, entries_length); // The bson contains two pairs
 
@@ -101,19 +100,18 @@ void test_object_deserialize_astarte_object_from_aggregate(void)
         TEST_ASSERT_EQUAL_STRING(test_data_stringarray[i], data_string.data.string_array.buf[i]);
     }
 
-    astarte_object_entries_destroy_deserialized(entries, entries_length);
+    object_entries_destroy_deserialized(entries, entries_length);
 }
 
 void test_object_deserialize_astarte_object_from_empty_aggregate(void)
 {
-    new_ast_bson_document_t full_document
-        = new_ast_bson_deserializer_init_doc(test_data_serialized_empty);
-    new_ast_bson_element_t v_elem;
-    new_ast_bson_deserializer_element_lookup(full_document, "v", &v_elem);
+    bson_document_t full_document = bson_deserializer_init_doc(test_data_serialized_empty);
+    bson_element_t v_elem;
+    bson_deserializer_element_lookup(full_document, "v", &v_elem);
 
     astarte_object_entry_t *entries = NULL;
     size_t entries_length = 0;
     astarte_result_t res
-        = astarte_object_entries_deserialize(v_elem, NULL, NULL, &entries, &entries_length);
+        = object_entries_deserialize(v_elem, NULL, NULL, &entries, &entries_length);
     TEST_ASSERT_EQUAL(ASTARTE_RESULT_BSON_EMPTY_DOCUMENT_ERROR, res);
 }

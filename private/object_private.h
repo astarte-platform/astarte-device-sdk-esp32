@@ -31,17 +31,17 @@ extern "C" {
  * @param[in] entries_length Number of elements for the @p entries array.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t astarte_object_entries_serialize(
-    new_ast_bson_serializer_t *bson, astarte_object_entry_t *entries, size_t entries_length);
+astarte_result_t object_entries_serialize(
+    bson_serializer_t *bson, astarte_object_entry_t *entries, size_t entries_length);
 
 /**
  * @brief Deserialize a BSON element to an array of #astarte_object_entry_t.
  *
  * @warning Might perform dynamic allocation, as such any individual deserialized with this
- * with this function should be destroyed calling #astarte_object_entries_destroy_deserialized.
+ * function should be destroyed calling #object_entries_destroy_deserialized.
  *
  * @note The BSON element should respect a predefined structure. It should contain a document
- * with all its element deserializable with #astarte_data_deserialize.
+ * with all its element deserializable with #data_deserialize.
  *
  * @param[in] bson_elem The BSON element containing the data to deserialize.
  * @param[in] interface The interface corresponding the the Astarte entries to deserialize.
@@ -50,23 +50,22 @@ astarte_result_t astarte_object_entries_serialize(
  * @param[out] entries_length The deserialized number of elements for the @p entries array.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t astarte_object_entries_deserialize(new_ast_bson_element_t bson_elem,
+astarte_result_t object_entries_deserialize(bson_element_t bson_elem,
     const astarte_interface_t *interface, const char *path, astarte_object_entry_t **entries,
     size_t *entries_length);
 
 /**
- * @brief Destroy the data serialized with #astarte_object_entries_deserialize.
+ * @brief Destroy the data serialized with #object_entries_deserialize.
  *
  * @warning This function will free all dynamically allocated memory allocated by
- * #astarte_object_entries_deserialize. As so it should only be called on #astarte_object_entry_t
- * that have been created with #astarte_object_entries_deserialize.
+ * #object_entries_deserialize. As so it should only be called on #astarte_object_entry_t
+ * that have been created with #object_entries_deserialize.
  *
  * @param[inout] entries The Astarte object entries array to destroy, must have been deserialized
- * with #astarte_object_entries_deserialize.
+ * with #object_entries_deserialize.
  * @param[inout] entries_length The length of the @p entries array.
  */
-void astarte_object_entries_destroy_deserialized(
-    astarte_object_entry_t *entries, size_t entries_length);
+void object_entries_destroy_deserialized(astarte_object_entry_t *entries, size_t entries_length);
 
 #ifdef __cplusplus
 }
