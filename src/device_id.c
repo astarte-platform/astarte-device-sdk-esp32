@@ -5,11 +5,14 @@
  */
 #include "astarte_device_sdk/device_id.h"
 
+#include "log.h"
 #include "uuid.h"
 
-#include <esp_log.h>
+/************************************************
+ *        Defines, constants and typedef        *
+ ***********************************************/
 
-#define TAG "ASTARTE_DEVICE_ID"
+ASTARTE_LOG_MODULE_REGISTER("Astarte device ID");
 
 /************************************************
  *         Global functions definitions         *
@@ -31,7 +34,7 @@ astarte_result_t astarte_device_id_generate_deterministic(
 
     ares = uuid_generate_v5(namespace, name, name_size, uuid);
     if (ares != ASTARTE_RESULT_OK) {
-        ESP_LOGE(TAG, "UUID V5 generation failed: %s", astarte_result_to_name(ares));
+        ASTARTE_LOG_ERR("UUID V5 generation failed: %s", astarte_result_to_name(ares));
         return ares;
     }
 

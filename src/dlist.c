@@ -9,15 +9,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <esp_log.h>
-
 #include "astarte_device_sdk/result.h"
+
+#include "log.h"
 
 /************************************************
  *        Defines, constants and typedef        *
  ***********************************************/
 
-#define TAG "ASTARTE_DLIST"
+ASTARTE_LOG_MODULE_REGISTER("Astarte dlist");
 
 struct dlist_node
 {
@@ -46,7 +46,7 @@ astarte_result_t dlist_append(dlist_t *handle, void *value)
     // Allocate a new node for the struct
     struct dlist_node *node = calloc(1, sizeof(struct dlist_node));
     if (!node) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
         return ASTARTE_RESULT_OUT_OF_MEMORY;
     }
     node->value = value;

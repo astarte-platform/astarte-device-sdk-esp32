@@ -12,12 +12,11 @@
 
 #include <cJSON.h>
 
-#include <esp_log.h>
-
 #include "astarte_device_sdk/device_id.h"
 #include "http.h"
+#include "log.h"
 
-#define TAG "ASTARTE_PAIRING"
+ASTARTE_LOG_MODULE_REGISTER("Astarte pairing");
 
 /************************************************
  *        Defines, constants and typedef        *
@@ -109,12 +108,13 @@ astarte_result_t new_ast_pairing_register_device(
 
     // Step 1: check the configuration and input parameters
     if (sizeof(CONFIG_ASTARTE_DEVICE_SDK_PAIRING_JWT) <= 1) {
-        ESP_LOGE(TAG, "Registration of a device requires a valid pairing JWT");
+        ASTARTE_LOG_ERR("Registration of a device requires a valid pairing JWT");
         ares = ASTARTE_RESULT_INVALID_CONFIGURATION;
         goto exit;
     }
     if (strlen(device_id) != ASTARTE_DEVICE_ID_LEN) {
-        ESP_LOGE(TAG, "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
+        ASTARTE_LOG_ERR(
+            "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
         ares = ASTARTE_RESULT_INVALID_PARAM;
         goto exit;
     }
@@ -140,7 +140,7 @@ astarte_result_t new_ast_pairing_register_device(
 
     // Step 3: process the result
     ares = parse_register_device_response((const char *) reply, out_cred_secr);
-    ESP_LOGD(TAG, "Received credential secret: %s", out_cred_secr);
+    ASTARTE_LOG_DBG("Received credential secret: %s", out_cred_secr);
 
 exit:
     free(payload);
@@ -153,11 +153,12 @@ astarte_result_t pairing_get_mqtt_broker_url(
     astarte_result_t ares = ASTARTE_RESULT_OK;
     // Step 1: check the input parameters
     if (strlen(device_id) != ASTARTE_DEVICE_ID_LEN) {
-        ESP_LOGE(TAG, "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
+        ASTARTE_LOG_ERR(
+            "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
     if (strlen(cred_secr) != NEW_AST_PAIRING_CRED_SECR_LEN) {
-        ESP_LOGE(TAG, "Credential secret has incorrect length, should be %d chars.",
+        ASTARTE_LOG_ERR("Credential secret has incorrect length, should be %d chars.",
             NEW_AST_PAIRING_CRED_SECR_LEN);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
@@ -168,7 +169,7 @@ astarte_result_t pairing_get_mqtt_broker_url(
     int snprintf_rc = snprintf(path, PAIRING_DEVICE_GET_BROKER_INFO_URL_LEN + 1,
         PAIRING_DEVICE_MGMT_URL_PREFIX "%s", device_id);
     if (snprintf_rc != PAIRING_DEVICE_GET_BROKER_INFO_URL_LEN) {
-        ESP_LOGE(TAG, "Error encoding URL for get client certificate request.");
+        ASTARTE_LOG_ERR("Error encoding URL for get client certificate request.");
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
 
@@ -190,12 +191,13 @@ astarte_result_t pairing_get_client_certificate(
 
     // Step 1: check the configuration and input parameters
     if (strlen(device_id) != ASTARTE_DEVICE_ID_LEN) {
-        ESP_LOGE(TAG, "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
+        ASTARTE_LOG_ERR(
+            "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
         ares = ASTARTE_RESULT_INVALID_PARAM;
         goto exit;
     }
     if (strlen(cred_secr) != NEW_AST_PAIRING_CRED_SECR_LEN) {
-        ESP_LOGE(TAG, "Credential secret has incorrect length, should be %d chars.",
+        ASTARTE_LOG_ERR("Credential secret has incorrect length, should be %d chars.",
             NEW_AST_PAIRING_CRED_SECR_LEN);
         ares = ASTARTE_RESULT_INVALID_PARAM;
         goto exit;
@@ -204,13 +206,13 @@ astarte_result_t pairing_get_client_certificate(
     // Step 2: create a private key and a CSR
     ares = crypto_create_key(client_crt->privkey_pem, ARRAY_SIZE(client_crt->privkey_pem));
     if (ares != ASTARTE_RESULT_OK) {
-        ESP_LOGE(TAG, "Failed in creating a private key.");
+        ASTARTE_LOG_ERR("Failed in creating a private key.");
         goto exit;
     }
     unsigned char csr_buf[CRYPTO_CSR_BUFFER_SIZE];
     ares = crypto_create_csr(client_crt->privkey_pem, csr_buf, sizeof(csr_buf));
     if (ares != ASTARTE_RESULT_OK) {
-        ESP_LOGE(TAG, "Failed in creating a CSR.");
+        ASTARTE_LOG_ERR("Failed in creating a CSR.");
         goto exit;
     }
 
@@ -220,7 +222,7 @@ astarte_result_t pairing_get_client_certificate(
     int snprintf_rc = snprintf(path, PAIRING_DEVICE_GET_DEVICE_CERT_URL_LEN + 1,
         PAIRING_DEVICE_MGMT_URL_PREFIX "%s" PAIRING_DEVICE_CERT_URL_SUFFIX, device_id);
     if (snprintf_rc != PAIRING_DEVICE_GET_DEVICE_CERT_URL_LEN) {
-        ESP_LOGE(TAG, "Error encoding URL for get client certificate request.");
+        ASTARTE_LOG_ERR("Error encoding URL for get client certificate request.");
         ares = ASTARTE_RESULT_INTERNAL_ERROR;
         goto exit;
     }
@@ -244,7 +246,7 @@ astarte_result_t pairing_get_client_certificate(
     if (ares != ASTARTE_RESULT_OK) {
         goto exit;
     }
-    ESP_LOGD(TAG, "Received client certificate: %s", client_crt->crt_pem);
+    ASTARTE_LOG_DBG("Received client certificate: %s", client_crt->crt_pem);
 
 exit:
     free(payload);
@@ -259,17 +261,18 @@ astarte_result_t pairing_verify_client_certificate(
 
     // Step 1: check the configuration and input parameters
     if (strlen(device_id) != ASTARTE_DEVICE_ID_LEN) {
-        ESP_LOGE(TAG, "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
+        ASTARTE_LOG_ERR(
+            "Device ID has incorrect length, should be %d chars.", ASTARTE_DEVICE_ID_LEN);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
     if (strlen(cred_secr) != NEW_AST_PAIRING_CRED_SECR_LEN) {
-        ESP_LOGE(TAG, "Credential secret has incorrect length, should be %d chars.",
+        ASTARTE_LOG_ERR("Credential secret has incorrect length, should be %d chars.",
             NEW_AST_PAIRING_CRED_SECR_LEN);
         ares = ASTARTE_RESULT_INVALID_PARAM;
         goto exit;
     }
     if (!crt_pem) {
-        ESP_LOGE(TAG, "Attempting to validate an undefined client certificate.");
+        ASTARTE_LOG_ERR("Attempting to validate an undefined client certificate.");
         ares = ASTARTE_RESULT_INVALID_PARAM;
         goto exit;
     }
@@ -280,7 +283,7 @@ astarte_result_t pairing_verify_client_certificate(
     int snprintf_rc = snprintf(path, PAIRING_DEVICE_CERT_CHECK_URL_LEN + 1,
         PAIRING_DEVICE_MGMT_URL_PREFIX "%s" PAIRING_DEVICE_CERT_CHECK_URL_SUFFIX, device_id);
     if (snprintf_rc != PAIRING_DEVICE_CERT_CHECK_URL_LEN) {
-        ESP_LOGE(TAG, "Error encoding URL for verify client certificate request.");
+        ASTARTE_LOG_ERR("Error encoding URL for verify client certificate request.");
         ares = ASTARTE_RESULT_INTERNAL_ERROR;
         goto exit;
     }
@@ -320,7 +323,7 @@ static astarte_result_t parse_get_borker_url_response(
     const cJSON *astarte_mqtt_v1 = cJSON_GetObjectItemCaseSensitive(protocols, "astarte_mqtt_v1");
     const cJSON *broker_url = cJSON_GetObjectItemCaseSensitive(astarte_mqtt_v1, "broker_url");
     if (!cJSON_IsString(broker_url)) {
-        ESP_LOGE(TAG, "Parsing the MQTT broker URL failed.");
+        ASTARTE_LOG_ERR("Parsing the MQTT broker URL failed.");
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
     strncpy(out_url, broker_url->valuestring, PAIRING_MAX_BROKER_URL_LEN);
@@ -335,7 +338,7 @@ static astarte_result_t parse_register_device_response(
     const cJSON *data = cJSON_GetObjectItemCaseSensitive(response_json, "data");
     const cJSON *credentials_secret = cJSON_GetObjectItemCaseSensitive(data, "credentials_secret");
     if (!cJSON_IsString(credentials_secret)) {
-        ESP_LOGE(TAG, "Parsing the credentials secret failed.");
+        ASTARTE_LOG_ERR("Parsing the credentials secret failed.");
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
     strncpy(out_cred_secr, credentials_secret->valuestring, NEW_AST_PAIRING_CRED_SECR_LEN);
@@ -351,7 +354,7 @@ static astarte_result_t parse_get_client_certificate_response(
     const cJSON *data = cJSON_GetObjectItemCaseSensitive(response_json, "data");
     const cJSON *client_crt = cJSON_GetObjectItemCaseSensitive(data, "client_crt");
     if (!cJSON_IsString(client_crt)) {
-        ESP_LOGE(TAG, "Parsing the client certificate failed.");
+        ASTARTE_LOG_ERR("Parsing the client certificate failed.");
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
     strncpy(out_crt_pem, client_crt->valuestring,
@@ -372,16 +375,16 @@ static astarte_result_t parse_verify_client_certificate_response(
     const cJSON *data = cJSON_GetObjectItemCaseSensitive(response_json, "data");
     const cJSON *valid = cJSON_GetObjectItemCaseSensitive(data, "valid");
     if (!cJSON_IsBool(valid)) {
-        ESP_LOGE(TAG, "Parsing the client certificate failed.");
+        ASTARTE_LOG_ERR("Parsing the client certificate failed.");
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
     if (cJSON_IsFalse(valid)) {
         const cJSON *cause = cJSON_GetObjectItemCaseSensitive(data, "cause");
         if (!cJSON_IsString(cause)) {
-            ESP_LOGE(TAG, "Parsing the client certificate failed.");
+            ASTARTE_LOG_ERR("Parsing the client certificate failed.");
             return ASTARTE_RESULT_INTERNAL_ERROR;
         }
-        ESP_LOGE(TAG, "Invalid certificate, reason: %s", cause->valuestring);
+        ASTARTE_LOG_ERR("Invalid certificate, reason: %s", cause->valuestring);
         return ASTARTE_RESULT_CLIENT_CERT_INVALID;
     }
     return ASTARTE_RESULT_OK;

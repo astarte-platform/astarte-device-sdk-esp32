@@ -10,9 +10,9 @@
 #include <math.h>
 #include <string.h>
 
-#include <esp_log.h>
+#include "log.h"
 
-#define TAG "ASTARTE_MAPPING"
+ASTARTE_LOG_MODULE_REGISTER("Astarte mapping");
 
 /************************************************
  *         Static functions declaration         *
@@ -63,7 +63,7 @@ astarte_result_t mapping_array_to_scalar_type(
             *scalar_type = ASTARTE_MAPPING_TYPE_STRING;
             break;
         default:
-            ESP_LOGE(TAG, "Attempting to conversion array->scalar on non array type.");
+            ASTARTE_LOG_ERR("Attempting to conversion array->scalar on non array type.");
             ares = ASTARTE_RESULT_INTERNAL_ERROR;
             break;
     }
@@ -135,19 +135,19 @@ astarte_result_t mapping_check_path(astarte_mapping_t mapping, const char *path)
 astarte_result_t mapping_check_data(const astarte_mapping_t *mapping, astarte_data_t data)
 {
     if (mapping->type != data.tag) {
-        ESP_LOGE(TAG, "Astarte data type and mapping type do not match.");
+        ASTARTE_LOG_ERR("Astarte data type and mapping type do not match.");
         return ASTARTE_RESULT_MAPPING_DATA_INCOMPATIBLE;
     }
 
     if ((mapping->type == ASTARTE_MAPPING_TYPE_DOUBLE) && (isfinite(data.data.dbl) == 0)) {
-        ESP_LOGE(TAG, "Astarte data double is not a number.");
+        ASTARTE_LOG_ERR("Astarte data double is not a number.");
         return ASTARTE_RESULT_MAPPING_DATA_INCOMPATIBLE;
     }
 
     if (mapping->type == ASTARTE_MAPPING_TYPE_DOUBLEARRAY) {
         for (size_t i = 0; i < data.data.double_array.len; i++) {
             if (isfinite(data.data.double_array.buf[i]) == 0) {
-                ESP_LOGE(TAG, "Astarte data double is not a number.");
+                ASTARTE_LOG_ERR("Astarte data double is not a number.");
                 return ASTARTE_RESULT_MAPPING_DATA_INCOMPATIBLE;
             }
         }

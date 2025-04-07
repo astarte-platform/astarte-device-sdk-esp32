@@ -29,14 +29,15 @@
 #include <string.h>
 
 #include <esp_err.h>
-#include <esp_log.h>
 #include <nvs.h>
+
+#include "log.h"
 
 /************************************************
  *        Defines, constants and typedef        *
  ***********************************************/
 
-#define TAG "ASTARTE_KV_STORAGE"
+ASTARTE_LOG_MODULE_REGISTER("Astarte kv storage");
 
 /************************************************
  *         Static functions declaration         *
@@ -89,7 +90,7 @@ esp_err_t kv_storage_set(nvs_handle_t handle, const char *key, const void *value
         uint64_t next_store_index = 0;
         esp_err = nvs_get_u64(handle, "next store idx", &next_store_index);
         if ((esp_err != ESP_ERR_NVS_NOT_FOUND) && (esp_err != ESP_OK)) {
-            ESP_LOGE(TAG, "Error getting the next store index.");
+            ASTARTE_LOG_ERR("Error getting the next store index.");
             return esp_err;
         }
         key_store_index = next_store_index;
@@ -107,7 +108,7 @@ esp_err_t kv_storage_set(nvs_handle_t handle, const char *key, const void *value
     // NOLINTNEXTLINE(readability-suspicious-call-argument)
     esp_err = nvs_set_str(handle, key_entry_name, key);
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Error storing the key.");
+        ASTARTE_LOG_ERR("Error storing the key.");
         return esp_err;
     }
 
@@ -120,7 +121,7 @@ esp_err_t kv_storage_set(nvs_handle_t handle, const char *key, const void *value
     }
     esp_err = nvs_set_blob(handle, value_entry_name, value, length);
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Error storing the value.");
+        ASTARTE_LOG_ERR("Error storing the value.");
         nvs_erase_key(handle, key_entry_name);
         return esp_err;
     }
@@ -129,7 +130,7 @@ esp_err_t kv_storage_set(nvs_handle_t handle, const char *key, const void *value
     if (lookup_err == ESP_ERR_NVS_NOT_FOUND) {
         esp_err = nvs_set_u64(handle, "next store idx", key_store_index + 2);
         if (esp_err != ESP_OK) {
-            ESP_LOGE(TAG, "Error updating the next store index.");
+            ASTARTE_LOG_ERR("Error updating the next store index.");
             nvs_erase_key(handle, key_entry_name);
             nvs_erase_key(handle, value_entry_name);
             return esp_err;
@@ -156,7 +157,7 @@ esp_err_t kv_storage_get(nvs_handle_t handle, const char *key, void *out_value, 
     }
     esp_err = nvs_get_blob(handle, value_entry_name, out_value, length);
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Error fetching the value.");
+        ASTARTE_LOG_ERR("Error fetching the value.");
     }
     return esp_err;
 }
@@ -174,7 +175,7 @@ esp_err_t kv_storage_erase_entry(nvs_handle_t handle, const char *key)
     uint64_t next_store_index = 0;
     esp_err = nvs_get_u64(handle, "next store idx", &next_store_index);
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Error getting the next store index.");
+        ASTARTE_LOG_ERR("Error getting the next store index.");
         return esp_err;
     }
 
@@ -189,19 +190,19 @@ esp_err_t kv_storage_erase_entry(nvs_handle_t handle, const char *key)
         size_t tmp_key_len = 0;
         esp_err = nvs_get_str(handle, tmp_key_entry_name, NULL, &tmp_key_len);
         if (esp_err != ESP_OK) {
-            ESP_LOGE(TAG, "Error fetching key from nvs during erase operation.");
+            ASTARTE_LOG_ERR("Error fetching key from nvs during erase operation.");
             return esp_err;
         }
         char *tmp_key = calloc(tmp_key_len, sizeof(char));
         if (!tmp_key) {
-            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
             return ESP_FAIL;
         }
         // Confusing for clang-tidy as second parameter is called 'key'
         // NOLINTNEXTLINE(readability-suspicious-call-argument)
         esp_err = nvs_get_str(handle, tmp_key_entry_name, tmp_key, &tmp_key_len);
         if (esp_err != ESP_OK) {
-            ESP_LOGE(TAG, "Error fetching key from nvs during erase operation.");
+            ASTARTE_LOG_ERR("Error fetching key from nvs during erase operation.");
             free(tmp_key);
             return esp_err;
         }
@@ -215,19 +216,19 @@ esp_err_t kv_storage_erase_entry(nvs_handle_t handle, const char *key)
         size_t tmp_value_len = 0;
         esp_err = nvs_get_blob(handle, tmp_value_entry_name, NULL, &tmp_value_len);
         if (esp_err != ESP_OK) {
-            ESP_LOGE(TAG, "Error fetching value from nvs during erase operation.");
+            ASTARTE_LOG_ERR("Error fetching value from nvs during erase operation.");
             free(tmp_key);
             return esp_err;
         }
         char *tmp_value = calloc(tmp_value_len, sizeof(char));
         if (!tmp_value) {
-            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
             free(tmp_key);
             return ESP_FAIL;
         }
         esp_err = nvs_get_blob(handle, tmp_value_entry_name, tmp_value, &tmp_value_len);
         if (esp_err != ESP_OK) {
-            ESP_LOGE(TAG, "Error fetching value from nvs during erase operation.");
+            ASTARTE_LOG_ERR("Error fetching value from nvs during erase operation.");
             free(tmp_key);
             free(tmp_value);
             return esp_err;
@@ -245,7 +246,7 @@ esp_err_t kv_storage_erase_entry(nvs_handle_t handle, const char *key)
         esp_err = nvs_set_str(handle, new_key_entry_name, tmp_key);
         free(tmp_key);
         if (esp_err != ESP_OK) {
-            ESP_LOGE(TAG, "Error storing the key.");
+            ASTARTE_LOG_ERR("Error storing the key.");
             free(tmp_value);
             return esp_err;
         }
@@ -259,7 +260,7 @@ esp_err_t kv_storage_erase_entry(nvs_handle_t handle, const char *key)
         esp_err = nvs_set_blob(handle, new_value_entry_name, tmp_value, tmp_value_len);
         free(tmp_value);
         if (esp_err != ESP_OK) {
-            ESP_LOGE(TAG, "Error storing the value.");
+            ASTARTE_LOG_ERR("Error storing the value.");
             return esp_err;
         }
     }
@@ -272,7 +273,7 @@ esp_err_t kv_storage_erase_entry(nvs_handle_t handle, const char *key)
     }
     esp_err = nvs_erase_key(handle, key_to_erase_entry_name);
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed erasing a key.");
+        ASTARTE_LOG_ERR("Failed erasing a key.");
         return esp_err;
     }
     char value_to_erase_entry_name[NVS_KEY_NAME_MAX_SIZE] = { 0 };
@@ -282,14 +283,14 @@ esp_err_t kv_storage_erase_entry(nvs_handle_t handle, const char *key)
     }
     esp_err = nvs_erase_key(handle, value_to_erase_entry_name);
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed erasing a key.");
+        ASTARTE_LOG_ERR("Failed erasing a key.");
         return esp_err;
     }
 
     // Step 5: Update the next store index
     esp_err = nvs_set_u64(handle, "next store idx", next_store_index - 2);
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Error updating the next store index.");
+        ASTARTE_LOG_ERR("Error updating the next store index.");
         return esp_err;
     }
 
@@ -300,7 +301,7 @@ esp_err_t kv_storage_iterator_init(
     nvs_handle_t handle, nvs_type_t type, kv_storage_iterator_t *iterator)
 {
     if ((type != NVS_TYPE_BLOB) && (type != NVS_TYPE_I32)) {
-        ESP_LOGE(TAG, "Only blob type and int32 are supported by astarte_nvs_key_value driver.");
+        ASTARTE_LOG_ERR("Only blob type and int32 are supported by astarte_nvs_key_value driver.");
         return ESP_FAIL;
     }
 
@@ -311,7 +312,7 @@ esp_err_t kv_storage_iterator_init(
         return ESP_ERR_NVS_NOT_FOUND;
     }
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Error getting the next store index.");
+        ASTARTE_LOG_ERR("Error getting the next store index.");
         return esp_err;
     }
 
@@ -333,7 +334,7 @@ esp_err_t kv_storage_iterator_peek(kv_storage_iterator_t *iterator, bool *has_ne
         return ESP_OK;
     }
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Error getting the next store index.");
+        ASTARTE_LOG_ERR("Error getting the next store index.");
         return esp_err;
     }
 
@@ -368,7 +369,7 @@ esp_err_t kv_storage_iterator_get_element(kv_storage_iterator_t *iterator, char 
     size_t *out_key_len, void *out_value, size_t *out_value_len)
 {
     if (iterator->type != NVS_TYPE_BLOB) {
-        ESP_LOGE(TAG, "Calling getter function for binary blob over an iterator of other type.");
+        ASTARTE_LOG_ERR("Calling getter function for binary blob over an iterator of other type.");
         return ESP_FAIL;
     }
 
@@ -381,21 +382,21 @@ esp_err_t kv_storage_iterator_get_element(kv_storage_iterator_t *iterator, char 
     size_t key_len = 0;
     esp_err = nvs_get_str(iterator->handle, key_entry_name, NULL, &key_len);
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Error getting the key length for %s", key_entry_name);
+        ASTARTE_LOG_ERR("Error getting the key length for %s", key_entry_name);
         return ESP_FAIL;
     }
     // If out_key is null return only the required size for out_key to be stored
     if (!out_key) {
         *out_key_len = key_len;
     } else if (key_len > *out_key_len) {
-        ESP_LOGE(TAG, "Output buffer out_key is insufficient to store the key.");
+        ASTARTE_LOG_ERR("Output buffer out_key is insufficient to store the key.");
         return ESP_ERR_INVALID_SIZE;
     } else {
         // Confusing for clang-tidy as second parameter is called 'key'
         // NOLINTNEXTLINE(readability-suspicious-call-argument)
         esp_err = nvs_get_str(iterator->handle, key_entry_name, out_key, &key_len);
         if (esp_err != ESP_OK) {
-            ESP_LOGE(TAG, "Error fetching key from nvs during iteration.");
+            ASTARTE_LOG_ERR("Error fetching key from nvs during iteration.");
             return esp_err;
         }
     }
@@ -409,7 +410,7 @@ esp_err_t kv_storage_iterator_get_element(kv_storage_iterator_t *iterator, char 
     size_t value_len = 0;
     esp_err = nvs_get_blob(iterator->handle, value_entry_name, NULL, &value_len);
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Error fetching value from nvs during erase operation.");
+        ASTARTE_LOG_ERR("Error fetching value from nvs during erase operation.");
         return esp_err;
     }
     // If out_value is null return only the required size for out_value to be stored
@@ -418,12 +419,12 @@ esp_err_t kv_storage_iterator_get_element(kv_storage_iterator_t *iterator, char 
         return ESP_OK;
     }
     if (value_len > *out_value_len) {
-        ESP_LOGE(TAG, "Output buffer out_value is insufficient to store the value.");
+        ASTARTE_LOG_ERR("Output buffer out_value is insufficient to store the value.");
         return ESP_ERR_INVALID_SIZE;
     }
     esp_err = nvs_get_blob(iterator->handle, value_entry_name, out_value, &value_len);
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Error fetching key from nvs during iteration.");
+        ASTARTE_LOG_ERR("Error fetching key from nvs during iteration.");
         return esp_err;
     }
 
@@ -438,7 +439,7 @@ static esp_err_t get_entry_name(uint64_t store_index, char *entry_name)
 {
     int ret = snprintf(entry_name, NVS_KEY_NAME_MAX_SIZE, "EntryN%" PRIu64, store_index);
     if ((ret < 0) || (ret >= NVS_KEY_NAME_MAX_SIZE)) {
-        ESP_LOGE(TAG, "Maximum number of entries exceeded.");
+        ASTARTE_LOG_ERR("Maximum number of entries exceeded.");
         return ESP_FAIL;
     }
     return ESP_OK;
@@ -453,7 +454,7 @@ static esp_err_t lookup_key_position(nvs_handle_t handle, const char *key, uint6
         return ESP_ERR_NVS_NOT_FOUND;
     }
     if (esp_err != ESP_OK) {
-        ESP_LOGE(TAG, "Error getting the next store index.");
+        ASTARTE_LOG_ERR("Error getting the next store index.");
         return ESP_FAIL;
     }
 
@@ -467,19 +468,19 @@ static esp_err_t lookup_key_position(nvs_handle_t handle, const char *key, uint6
         size_t tmp_key_len = 0;
         esp_err = nvs_get_str(handle, tmp_key_entry_name, NULL, &tmp_key_len);
         if (esp_err != ESP_OK) {
-            ESP_LOGE(TAG, "Error getting the key length for %s", tmp_key_entry_name);
+            ASTARTE_LOG_ERR("Error getting the key length for %s", tmp_key_entry_name);
             return ESP_FAIL;
         }
         char *tmp_key = calloc(tmp_key_len, sizeof(char));
         if (!tmp_key) {
-            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
             return ESP_FAIL;
         }
         // Confusing for clang-tidy as second parameter is called 'key'
         // NOLINTNEXTLINE(readability-suspicious-call-argument)
         esp_err = nvs_get_str(handle, tmp_key_entry_name, tmp_key, &tmp_key_len);
         if (esp_err != ESP_OK) {
-            ESP_LOGE(TAG, "Error getting the key for %s", tmp_key_entry_name);
+            ASTARTE_LOG_ERR("Error getting the key for %s", tmp_key_entry_name);
             free(tmp_key);
             return ESP_FAIL;
         }
