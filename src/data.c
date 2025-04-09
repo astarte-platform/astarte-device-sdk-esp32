@@ -12,11 +12,10 @@
 
 #include "bson_types.h"
 #include "interface_private.h"
+#include "log.h"
 #include "mapping_private.h"
 
-#include <esp_log.h>
-
-#define TAG "ASTARTE DATA"
+ASTARTE_LOG_MODULE_REGISTER("Astarte data");
 
 /************************************************
  *         Static functions declaration         *
@@ -241,7 +240,7 @@ astarte_mapping_type_t astarte_data_get_type(astarte_data_t data)
     astarte_result_t astarte_data_to_##NAME(astarte_data_t data, TYPE *PARAM)                      \
     {                                                                                              \
         if (!(PARAM) || (data.tag != (ENUM))) {                                                    \
-            ESP_LOGE(TAG, "Conversion from Astarte data to %s error.", #NAME);                     \
+            ASTARTE_LOG_ERR("Conversion from Astarte data to %s error.", #NAME);                   \
             return ASTARTE_RESULT_INVALID_PARAM;                                                   \
         }                                                                                          \
         *PARAM = data.data.PARAM;                                                                  \
@@ -253,7 +252,7 @@ astarte_mapping_type_t astarte_data_get_type(astarte_data_t data)
         astarte_data_t data, TYPE *PARAM, size_t *len)                                             \
     {                                                                                              \
         if (!(PARAM) || !len || (data.tag != (ENUM))) {                                            \
-            ESP_LOGE(TAG, "Conversion from Astarte data to %s error.", #NAME);                     \
+            ASTARTE_LOG_ERR("Conversion from Astarte data to %s error.", #NAME);                   \
             return ASTARTE_RESULT_INVALID_PARAM;                                                   \
         }                                                                                          \
         *PARAM = data.data.PARAM.buf;                                                              \
@@ -275,7 +274,7 @@ astarte_result_t astarte_data_to_binaryblob_array(
     astarte_data_t data, const void ***blobs, size_t **sizes, size_t *count)
 {
     if (!blobs || !sizes || !count || (data.tag != ASTARTE_MAPPING_TYPE_BINARYBLOBARRAY)) {
-        ESP_LOGE(TAG, "Conversion from Astarte data to binaryblob_array error.");
+        ASTARTE_LOG_ERR("Conversion from Astarte data to binaryblob_array error.");
         return ASTARTE_RESULT_INVALID_PARAM;
     }
     *blobs = data.data.binaryblob_array.blobs;
@@ -402,7 +401,7 @@ astarte_result_t data_deserialize(
             ares = deserialize_array(bson_elem, type, data);
             break;
         default:
-            ESP_LOGE(TAG, "Unsupported mapping type.");
+            ASTARTE_LOG_ERR("Unsupported mapping type.");
             ares = ASTARTE_RESULT_INTERNAL_ERROR;
             break;
     }
@@ -496,7 +495,7 @@ static astarte_result_t initialize_empty_array(astarte_mapping_type_t type, asta
             data->data.string_array.buf = NULL;
             break;
         default:
-            ESP_LOGE(TAG, "Creating empty array Astarte data for scalar mapping type.");
+            ASTARTE_LOG_ERR("Creating empty array Astarte data for scalar mapping type.");
             ares = ASTARTE_RESULT_INTERNAL_ERROR;
             break;
     }
@@ -509,37 +508,37 @@ static astarte_result_t deserialize_scalar(
     astarte_result_t ares = ASTARTE_RESULT_OK;
 
     if (!check_if_bson_type_is_mapping_type(type, bson_elem.type)) {
-        ESP_LOGE(TAG, "BSON element is not of the expected type.");
+        ASTARTE_LOG_ERR("BSON element is not of the expected type.");
         return ASTARTE_RESULT_BSON_DESERIALIZER_TYPES_ERROR;
     }
 
     switch (type) {
         case ASTARTE_MAPPING_TYPE_BINARYBLOB:
-            ESP_LOGD(TAG, "Deserializing binary blob data.");
+            ASTARTE_LOG_DBG("Deserializing binary blob data.");
             ares = deserialize_binaryblob(bson_elem, data);
             break;
         case ASTARTE_MAPPING_TYPE_BOOLEAN:
-            ESP_LOGD(TAG, "Deserializing boolean data.");
+            ASTARTE_LOG_DBG("Deserializing boolean data.");
             bool bool_tmp = bson_deserializer_element_to_bool(bson_elem);
             *data = astarte_data_from_boolean(bool_tmp);
             break;
         case ASTARTE_MAPPING_TYPE_DATETIME:
-            ESP_LOGD(TAG, "Deserializing datetime data.");
+            ASTARTE_LOG_DBG("Deserializing datetime data.");
             int64_t datetime_tmp = bson_deserializer_element_to_datetime(bson_elem);
             *data = astarte_data_from_datetime(datetime_tmp);
             break;
         case ASTARTE_MAPPING_TYPE_DOUBLE:
-            ESP_LOGD(TAG, "Deserializing double data.");
+            ASTARTE_LOG_DBG("Deserializing double data.");
             double double_tmp = bson_deserializer_element_to_double(bson_elem);
             *data = astarte_data_from_double(double_tmp);
             break;
         case ASTARTE_MAPPING_TYPE_INTEGER:
-            ESP_LOGD(TAG, "Deserializing integer data.");
+            ASTARTE_LOG_DBG("Deserializing integer data.");
             int32_t int32_tmp = bson_deserializer_element_to_int32(bson_elem);
             *data = astarte_data_from_integer(int32_tmp);
             break;
         case ASTARTE_MAPPING_TYPE_LONGINTEGER:
-            ESP_LOGD(TAG, "Deserializing long integer data.");
+            ASTARTE_LOG_DBG("Deserializing long integer data.");
             int64_t int64_tmp = 0U;
             if (bson_elem.type == BSON_TYPE_INT32) {
                 int64_tmp = (int64_t) bson_deserializer_element_to_int32(bson_elem);
@@ -549,11 +548,11 @@ static astarte_result_t deserialize_scalar(
             *data = astarte_data_from_longinteger(int64_tmp);
             break;
         case ASTARTE_MAPPING_TYPE_STRING:
-            ESP_LOGD(TAG, "Deserializing string data.");
+            ASTARTE_LOG_DBG("Deserializing string data.");
             ares = deserialize_string(bson_elem, data);
             break;
         default:
-            ESP_LOGE(TAG, "Unsupported mapping type.");
+            ASTARTE_LOG_ERR("Unsupported mapping type.");
             ares = ASTARTE_RESULT_INTERNAL_ERROR;
             break;
     }
@@ -569,7 +568,7 @@ static astarte_result_t deserialize_binaryblob(bson_element_t bson_elem, astarte
 
     dyn_deserialized = calloc(deserialized_len, sizeof(uint8_t));
     if (!dyn_deserialized) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
         return ASTARTE_RESULT_OUT_OF_MEMORY;
     }
 
@@ -587,7 +586,7 @@ static astarte_result_t deserialize_string(bson_element_t bson_elem, astarte_dat
 
     dyn_deserialized = calloc(deserialized_len + 1, sizeof(char));
     if (!dyn_deserialized) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
         return ASTARTE_RESULT_OUT_OF_MEMORY;
     }
 
@@ -602,7 +601,7 @@ static astarte_result_t deserialize_array(
     astarte_result_t ares = ASTARTE_RESULT_OK;
 
     if (bson_elem.type != BSON_TYPE_ARRAY) {
-        ESP_LOGE(TAG, "Expected an array but BSON element type is %d.", bson_elem.type);
+        ASTARTE_LOG_ERR("Expected an array but BSON element type is %d.", bson_elem.type);
         return ASTARTE_RESULT_BSON_DESERIALIZER_TYPES_ERROR;
     }
 
@@ -619,14 +618,14 @@ static astarte_result_t deserialize_array(
     astarte_mapping_type_t scalar_type = ASTARTE_MAPPING_TYPE_BINARYBLOB;
     ares = mapping_array_to_scalar_type(type, &scalar_type);
     if (ares != ASTARTE_RESULT_OK) {
-        ESP_LOGE(TAG, "Non array type passed to deserialize_array.");
+        ASTARTE_LOG_ERR("Non array type passed to deserialize_array.");
         return ares;
     }
 
     do {
         array_length++;
         if (!check_if_bson_type_is_mapping_type(scalar_type, inner_elem.type)) {
-            ESP_LOGE(TAG, "BSON array element is not of the expected type.");
+            ASTARTE_LOG_ERR("BSON array element is not of the expected type.");
             return ASTARTE_RESULT_BSON_DESERIALIZER_TYPES_ERROR;
         }
         ares = bson_deserializer_next_element(bson_doc, inner_elem, &inner_elem);
@@ -639,35 +638,35 @@ static astarte_result_t deserialize_array(
     // Step 2: depending on the array type call the appropriate function
     switch (scalar_type) {
         case ASTARTE_MAPPING_TYPE_BINARYBLOB:
-            ESP_LOGD(TAG, "Deserializing array of binary blobs.");
+            ASTARTE_LOG_DBG("Deserializing array of binary blobs.");
             ares = deserialize_array_binblob(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_BOOLEAN:
-            ESP_LOGD(TAG, "Deserializing array of booleans.");
+            ASTARTE_LOG_DBG("Deserializing array of booleans.");
             ares = deserialize_array_bool(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_DATETIME:
-            ESP_LOGD(TAG, "Deserializing array of datetimes.");
+            ASTARTE_LOG_DBG("Deserializing array of datetimes.");
             ares = deserialize_array_datetime(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_DOUBLE:
-            ESP_LOGD(TAG, "Deserializing array of doubles.");
+            ASTARTE_LOG_DBG("Deserializing array of doubles.");
             ares = deserialize_array_double(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_INTEGER:
-            ESP_LOGD(TAG, "Deserializing array of integers.");
+            ASTARTE_LOG_DBG("Deserializing array of integers.");
             ares = deserialize_array_int32(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_LONGINTEGER:
-            ESP_LOGD(TAG, "Deserializing array of long integers.");
+            ASTARTE_LOG_DBG("Deserializing array of long integers.");
             ares = deserialize_array_int64(bson_doc, data, array_length);
             break;
         case ASTARTE_MAPPING_TYPE_STRING:
-            ESP_LOGD(TAG, "Deserializing array of strings.");
+            ASTARTE_LOG_DBG("Deserializing array of strings.");
             ares = deserialize_array_string(bson_doc, data, array_length);
             break;
         default:
-            ESP_LOGE(TAG, "Unsupported mapping type.");
+            ASTARTE_LOG_ERR("Unsupported mapping type.");
             ares = ASTARTE_RESULT_INTERNAL_ERROR;
             break;
     }
@@ -684,7 +683,7 @@ static astarte_result_t deserialize_array_##NAME(                               
     astarte_result_t ares = ASTARTE_RESULT_OK;                                                     \
     TYPE *array = calloc(array_length, sizeof(TYPE));                                              \
     if (!array) {                                                                                  \
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);                                 \
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);                               \
         ares = ASTARTE_RESULT_OUT_OF_MEMORY;                                                       \
         goto failure;                                                                              \
     }                                                                                              \
@@ -728,7 +727,7 @@ static astarte_result_t deserialize_array_int64(
     astarte_result_t ares = ASTARTE_RESULT_OK;
     int64_t *array = calloc(array_length, sizeof(int64_t));
     if (!array) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
         ares = ASTARTE_RESULT_OUT_OF_MEMORY;
         goto failure;
     }
@@ -775,7 +774,7 @@ static astarte_result_t deserialize_array_string(
     // Step 1: allocate enough memory to contain the array from the BSON file
     char **array = (char **) calloc(array_length, sizeof(char *));
     if (!array) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
         ares = ASTARTE_RESULT_OUT_OF_MEMORY;
         goto failure;
     }
@@ -791,7 +790,7 @@ static astarte_result_t deserialize_array_string(
     const char *deser = bson_deserializer_element_to_string(inner_elem, &deser_len);
     array[0] = calloc(deser_len + 1, sizeof(char));
     if (!array[0]) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
         ares = ASTARTE_RESULT_OUT_OF_MEMORY;
         goto failure;
     }
@@ -807,7 +806,7 @@ static astarte_result_t deserialize_array_string(
         const char *deser = bson_deserializer_element_to_string(inner_elem, &deser_len);
         array[i] = calloc(deser_len + 1, sizeof(char));
         if (!array[i]) {
-            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
             ares = ASTARTE_RESULT_OUT_OF_MEMORY;
             goto failure;
         }
@@ -840,13 +839,13 @@ static astarte_result_t deserialize_array_binblob(
     // Step 1: allocate enough memory to contain the array from the BSON file
     array = (uint8_t **) calloc(array_length, sizeof(uint8_t *));
     if (!array) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
         ares = ASTARTE_RESULT_OUT_OF_MEMORY;
         goto failure;
     }
     array_sizes = calloc(array_length, sizeof(size_t));
     if (!array_sizes) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
         ares = ASTARTE_RESULT_OUT_OF_MEMORY;
         goto failure;
     }
@@ -861,7 +860,7 @@ static astarte_result_t deserialize_array_binblob(
     const uint8_t *deser = bson_deserializer_element_to_binary(inner_elem, &deser_size);
     array[0] = calloc(deser_size, sizeof(uint8_t));
     if (!array[0]) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
         ares = ASTARTE_RESULT_OUT_OF_MEMORY;
         goto failure;
     }
@@ -878,7 +877,7 @@ static astarte_result_t deserialize_array_binblob(
         const uint8_t *deser = bson_deserializer_element_to_binary(inner_elem, &deser_size);
         array[i] = calloc(deser_size, sizeof(uint8_t));
         if (!array[i]) {
-            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
             ares = ASTARTE_RESULT_OUT_OF_MEMORY;
             goto failure;
         }
@@ -941,7 +940,7 @@ static bool check_if_bson_type_is_mapping_type(
             expected_bson_type = BSON_TYPE_ARRAY;
             break;
         default:
-            ESP_LOGE(TAG, "Invalid mapping type (%d).", mapping_type);
+            ASTARTE_LOG_ERR("Invalid mapping type (%d).", mapping_type);
             return false;
     }
 
@@ -950,8 +949,8 @@ static bool check_if_bson_type_is_mapping_type(
     }
 
     if (bson_type != expected_bson_type) {
-        ESP_LOGE(
-            TAG, "Mapping type (%d) and BSON type (0x%x) do not match.", mapping_type, bson_type);
+        ASTARTE_LOG_ERR(
+            "Mapping type (%d) and BSON type (0x%x) do not match.", mapping_type, bson_type);
         return false;
     }
 

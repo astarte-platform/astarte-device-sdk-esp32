@@ -7,14 +7,14 @@
 #include "astarte_device_sdk/object.h"
 #include "object_private.h"
 
-#include <esp_log.h>
 #include <stdlib.h>
 
 #include "bson_types.h"
 #include "data_private.h"
 #include "interface_private.h"
+#include "log.h"
 
-#define TAG "ASTARTE_OBJECT"
+ASTARTE_LOG_MODULE_REGISTER("Astarte object");
 
 /************************************************
  *     Global public functions definitions      *
@@ -32,7 +32,7 @@ astarte_result_t astarte_object_entry_to_path_and_data(
     astarte_object_entry_t object_entry, const char **path, astarte_data_t *data)
 {
     if (!path || !data) {
-        ESP_LOGE(TAG, "Conversion from Astarte object entry to path and data error.");
+        ASTARTE_LOG_ERR("Conversion from Astarte object entry to path and data error.");
         return ASTARTE_RESULT_INVALID_PARAM;
     }
     *path = object_entry.path;
@@ -68,7 +68,7 @@ astarte_result_t object_entries_deserialize(bson_element_t bson_elem,
 
     // Step 1: extract the document from the BSON and calculate its length
     if (bson_elem.type != BSON_TYPE_DOCUMENT) {
-        ESP_LOGE(TAG, "Received BSON element that is not a document.");
+        ASTARTE_LOG_ERR("Received BSON element that is not a document.");
         ares = ASTARTE_RESULT_BSON_DESERIALIZER_ERROR;
         goto failure;
     }
@@ -80,7 +80,7 @@ astarte_result_t object_entries_deserialize(bson_element_t bson_elem,
         goto failure;
     }
     if (bson_doc_length == 0) {
-        ESP_LOGE(TAG, "BSON document can't be empty.");
+        ASTARTE_LOG_ERR("BSON document can't be empty.");
         ares = ASTARTE_RESULT_BSON_EMPTY_DOCUMENT_ERROR;
         goto failure;
     }
@@ -88,7 +88,7 @@ astarte_result_t object_entries_deserialize(bson_element_t bson_elem,
     // Step 2: Allocate sufficient memory for all the astarte object entries
     tmp_entries = calloc(bson_doc_length, sizeof(astarte_object_entry_t));
     if (!tmp_entries) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
         ares = ASTARTE_RESULT_OUT_OF_MEMORY;
         goto failure;
     }

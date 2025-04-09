@@ -11,20 +11,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "log.h"
 #include "mapping_private.h"
 
-#include <esp_log.h>
-
-#define TAG "ASTARTE_INTERFACE"
+ASTARTE_LOG_MODULE_REGISTER("Astarte interface");
 
 astarte_result_t interface_validate(const astarte_interface_t *interface)
 {
     if (!interface) {
-        ESP_LOGE(TAG, "Received NULL interface reference");
+        ASTARTE_LOG_ERR("Received NULL interface reference");
         return ASTARTE_RESULT_INVALID_PARAM;
     }
     if ((interface->major_version == 0) && (interface->minor_version == 0)) {
-        ESP_LOGE(TAG, "Trying to add an interface with both major and minor version equal to 0");
+        ASTARTE_LOG_ERR("Trying to add an interface with both major and minor version equal to 0");
         return ASTARTE_RESULT_INTERFACE_INVALID_VERSION;
     }
 
@@ -45,7 +44,7 @@ astarte_result_t interface_get_mapping_from_path(
         }
     }
 
-    ESP_LOGD(TAG, "Mapping not found in interface. Search path: %s.", path);
+    ASTARTE_LOG_DBG("Mapping not found in interface. Search path: %s.", path);
     return ASTARTE_RESULT_MAPPING_NOT_IN_INTERFACE;
 }
 
@@ -56,18 +55,18 @@ astarte_result_t interface_get_mapping_from_paths(const astarte_interface_t *int
     const size_t fullpath_size = strlen(path1) + 1 + strlen(path2) + 1;
     char *fullpath = calloc(fullpath_size, sizeof(char));
     if (!fullpath) {
-        ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
         return ASTARTE_RESULT_OUT_OF_MEMORY;
     }
     if (snprintf(fullpath, fullpath_size, "%s/%s", path1, path2) != fullpath_size - 1) {
-        ESP_LOGE(TAG, "Failure in formatting the full path.");
+        ASTARTE_LOG_ERR("Failure in formatting the full path.");
         ares = ASTARTE_RESULT_INTERNAL_ERROR;
         goto exit;
     }
     ares = interface_get_mapping_from_path(interface, fullpath, mapping);
     if (ares != ASTARTE_RESULT_OK) {
-        ESP_LOGE(TAG, "For path '%s' could not find mapping in interface '%s'.", fullpath,
-            interface->name);
+        ASTARTE_LOG_ERR(
+            "For path '%s' could not find mapping in interface '%s'.", fullpath, interface->name);
         ares = ASTARTE_RESULT_MAPPING_NOT_IN_INTERFACE;
         goto exit;
     }
@@ -81,7 +80,7 @@ astarte_result_t interface_get_qos(const astarte_interface_t *interface, const c
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     if (!qos) {
-        ESP_LOGE(TAG, "Missing QoS parameter in introspection_get_qos.");
+        ASTARTE_LOG_ERR("Missing QoS parameter in introspection_get_qos.");
         return ASTARTE_RESULT_INVALID_PARAM;
     }
 
@@ -89,8 +88,8 @@ astarte_result_t interface_get_qos(const astarte_interface_t *interface, const c
     if (interface->aggregation == ASTARTE_INTERFACE_AGGREGATION_INDIVIDUAL) {
         ares = interface_get_mapping_from_path(interface, path, &mapping);
         if (ares != ASTARTE_RESULT_OK) {
-            ESP_LOGE(
-                TAG, "Couldn't find mapping in interface %s for path %s.", interface->name, path);
+            ASTARTE_LOG_ERR(
+                "Couldn't find mapping in interface %s for path %s.", interface->name, path);
             return ares;
         }
     } else {

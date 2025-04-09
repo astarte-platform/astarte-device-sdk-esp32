@@ -16,9 +16,9 @@
 #include <mbedtls/base64.h>
 #include <mbedtls/md.h>
 
-#include <esp_log.h>
+#include "log.h"
 
-#define TAG "ASTARTE_UUID"
+ASTARTE_LOG_MODULE_REGISTER("Astarte UUID");
 
 // All the macros below follow the standard for the Universally Unique Identifier as defined
 // by the IETF in the RFC9562.
@@ -86,7 +86,7 @@ astarte_result_t uuid_generate_v5(
     // NOLINTEND(hicpp-signed-bitwise)
     mbedtls_md_free(&ctx);
     if (mbedtls_err != 0) {
-        ESP_LOGE(TAG, "UUID V5 generation failed.");
+        ASTARTE_LOG_ERR("UUID V5 generation failed.");
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
 
@@ -108,7 +108,7 @@ astarte_result_t uuid_generate_v5_to_base64url(
 
     ares = uuid_generate_v5(namespace, data, data_size, uuid);
     if (ares != ASTARTE_RESULT_OK) {
-        ESP_LOGE(TAG, "UUID V5 generation failed: %s", astarte_result_to_name(ares));
+        ASTARTE_LOG_ERR("UUID V5 generation failed: %s", astarte_result_to_name(ares));
         return ares;
     }
 
@@ -130,14 +130,14 @@ astarte_result_t uuid_from_string(const char *input, uuid_t out)
         // Check that hyphens are in the right place
         if (should_be_hyphen(i)) {
             if (char_i != '-') {
-                ESP_LOGW(TAG, "Found invalid character %c in hyphen position %d", char_i, i);
+                ASTARTE_LOG_WRN("Found invalid character %c in hyphen position %d", char_i, i);
                 return ASTARTE_RESULT_INVALID_PARAM;
             }
             continue;
         }
         // checking if the given input is not hexadecimal
         if (!isxdigit(char_i)) {
-            ESP_LOGW(TAG, "Found invalid character %c in position %d", char_i, i);
+            ASTARTE_LOG_WRN("Found invalid character %c in position %d", char_i, i);
             return ASTARTE_RESULT_INVALID_PARAM;
         }
     }
@@ -164,7 +164,7 @@ astarte_result_t uuid_to_string(const uuid_t uuid, char *out, size_t out_size)
 {
     size_t min_out_size = UUID_STR_LEN + 1;
     if (out_size < min_out_size) {
-        ESP_LOGE(TAG, "Output buffer should be at least %zu bytes long", min_out_size);
+        ASTARTE_LOG_ERR("Output buffer should be at least %zu bytes long", min_out_size);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
 
@@ -175,7 +175,7 @@ astarte_result_t uuid_to_string(const uuid_t uuid, char *out, size_t out_size)
         uuid[12], uuid[13], uuid[14], uuid[15]);
     // NOLINTEND(readability-magic-numbers, cppcoreguidelines-avoid-magic-numbers)
     if ((res < 0) || (res >= min_out_size)) {
-        ESP_LOGE(TAG, "Error converting UUID to string.");
+        ASTARTE_LOG_ERR("Error converting UUID to string.");
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
 
@@ -186,14 +186,14 @@ astarte_result_t uuid_to_base64(const uuid_t uuid, char *out, size_t out_size)
 {
     size_t min_out_size = UUID_BASE64_LEN + 1;
     if (out_size < min_out_size) {
-        ESP_LOGE(TAG, "Output buffer should be at least %zu bytes long", min_out_size);
+        ASTARTE_LOG_ERR("Output buffer should be at least %zu bytes long", min_out_size);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
 
     size_t olen = 0;
     int res = mbedtls_base64_encode((unsigned char *) out, out_size, &olen, uuid, UUID_SIZE);
     if (res != 0) {
-        ESP_LOGE(TAG, "Error converting UUID to base 64 string, rc: %d.", res);
+        ASTARTE_LOG_ERR("Error converting UUID to base 64 string, rc: %d.", res);
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
 
@@ -204,7 +204,7 @@ astarte_result_t uuid_to_base64url(const uuid_t uuid, char *out, size_t out_size
 {
     size_t min_out_size = UUID_BASE64URL_LEN + 1;
     if (out_size < min_out_size) {
-        ESP_LOGE(TAG, "Output buffer should be at least %zu bytes long", min_out_size);
+        ASTARTE_LOG_ERR("Output buffer should be at least %zu bytes long", min_out_size);
         return ASTARTE_RESULT_INVALID_PARAM;
     }
 
@@ -214,7 +214,7 @@ astarte_result_t uuid_to_base64url(const uuid_t uuid, char *out, size_t out_size
     int res = mbedtls_base64_encode(
         (unsigned char *) uuid_base64, UUID_BASE64_LEN + 1, &olen, uuid, UUID_SIZE);
     if (res != 0) {
-        ESP_LOGE(TAG, "Error converting UUID to base 64 string, rc: %d.", res);
+        ASTARTE_LOG_ERR("Error converting UUID to base 64 string, rc: %d.", res);
         return ASTARTE_RESULT_INTERNAL_ERROR;
     }
 

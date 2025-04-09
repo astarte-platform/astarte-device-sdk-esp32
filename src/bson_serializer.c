@@ -6,17 +6,15 @@
 
 #include "bson_serializer.h"
 
+#include <endian.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <endian.h>
 #include <string.h>
 
-#include <esp_log.h>
-
 #include "bson_types.h"
+#include "log.h"
 
-#define TAG "ASTARTE_BSON_SERIALIZER"
+ASTARTE_LOG_MODULE_REGISTER("Astarte serializer");
 
 // When serializing a C array into a BSON array, this is the maximum allowed size of the string
 // field array length. 12 chars corresponding to 999999999999 elements.
@@ -69,7 +67,7 @@ static astarte_result_t byte_array_init(bson_serializer_t *bson, void *bytes, si
     bson->buf = malloc(size);
 
     if (!bson->buf) {
-        ESP_LOGE(TAG, "Cannot allocate memory for BSON payload (size: %zu)!", size);
+        ASTARTE_LOG_ERR("Cannot allocate memory for BSON payload (size: %zu)!", size);
         return ASTARTE_RESULT_OUT_OF_MEMORY;
     }
 
@@ -95,7 +93,7 @@ static void byte_array_grow(bson_serializer_t *bson, size_t needed_size)
         bson->capacity = new_capacity;
         void *new_buf = malloc(new_capacity);
         if (!new_buf) {
-            ESP_LOGE(TAG, "Out of memory %s: %d", __FILE__, __LINE__);
+            ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
             abort();
         }
         memcpy(new_buf, bson->buf, bson->size);
@@ -129,7 +127,7 @@ astarte_result_t bson_serializer_init(bson_serializer_t *bson)
 {
     astarte_result_t ares = byte_array_init(bson, "\0\0\0\0", 4);
     if (ares != ASTARTE_RESULT_OK) {
-        ESP_LOGE(TAG, "Unable to initialize byte_array");
+        ASTARTE_LOG_ERR("Unable to initialize byte_array");
     }
     return ares;
 }

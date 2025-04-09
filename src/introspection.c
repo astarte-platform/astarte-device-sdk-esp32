@@ -19,12 +19,13 @@
 #include "interface_private.h"
 
 #include "dlist.h"
+#include "log.h"
 
 /************************************************
  *        Defines, constants and typedef        *
  ***********************************************/
 
-#define TAG "ASTARTE_INTROSPECTION"
+ASTARTE_LOG_MODULE_REGISTER("Astarte introspection");
 
 /************************************************
  *         Static functions declaration         *
@@ -153,7 +154,7 @@ size_t introspection_get_string_size(introspection_t *introspection)
     // If introspection size is > 4KiB print a warning
     const size_t introspection_size_warn_level = 4096;
     if (len > introspection_size_warn_level) {
-        ESP_LOGW(TAG, "The introspection size is > 4KiB");
+        ASTARTE_LOG_WRN("The introspection size is > 4KiB");
     }
 
     return len;
@@ -220,31 +221,30 @@ static bool check_interface_upgradability(
 {
     // Check if interface names are the same
     if ((strlen(new->name) != strlen(old->name)) || (strcmp(new->name, old->name) != 0)) {
-        ESP_LOGD(TAG, "Interface names do not match");
+        ASTARTE_LOG_DBG("Interface names do not match");
         return false;
     }
 
     // Check if ownership and type are the same
     if ((new->ownership != old->ownership) || (new->type != old->type)) {
-        ESP_LOGD(TAG, "Interface ownership/type conflicts with the one in introspection");
+        ASTARTE_LOG_DBG("Interface ownership/type conflicts with the one in introspection");
         return false;
     }
 
     // Check if major versions align correctly
     if (new->major_version < old->major_version) {
-        ESP_LOGD(TAG, "Interface with smaller major version than one in introspection");
+        ASTARTE_LOG_DBG("Interface with smaller major version than one in introspection");
         return false;
     }
 
     // Check if minor versions aligns correctly
     if ((new->major_version == old->major_version) && (new->minor_version <= old->minor_version)) {
-        ESP_LOGD(TAG,
-            "Interface with same major version and smaller or equal minor version than the one in "
-            "introspection");
+        ASTARTE_LOG_DBG("Interface with same major version and smaller or equal minor version than "
+                        "the one in introspection");
         return false;
     }
 
-    ESP_LOGD(TAG, "Interface '%s' can be overwritten with new version '%" PRIu32 ".%" PRIu32 "'",
+    ASTARTE_LOG_DBG("Interface '%s' can be overwritten with new version '%" PRIu32 ".%" PRIu32 "'",
         old->name, new->major_version, new->minor_version);
     return true;
 }
