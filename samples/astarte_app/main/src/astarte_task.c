@@ -49,14 +49,14 @@ void astarte_task_entry(void *ctx)
     }
 
     // Fetch credential secret from NVS
-    char cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1] = { 0 };
+    char cred_secr[ASTARTE_PAIRING_CRED_SECR_LEN + 1] = { 0 };
     size_t cred_secr_len = sizeof(cred_secr);
     esp_err = nvs_get_str(nvs_handle, "cred secret", cred_secr, &cred_secr_len);
     if (esp_err == ESP_ERR_NVS_NOT_FOUND) {
 
         // If NVS does not contain a credential secret, register the device using the JWT
         ESP_LOGI(TAG, "Performing a new device registration with Astarte");
-        astarte_result_t ares = new_ast_pairing_register_device(device_id, cred_secr);
+        astarte_result_t ares = astarte_pairing_register_device(device_id, cred_secr);
         if (ares != ASTARTE_RESULT_OK) {
             ESP_LOGE(TAG, "Device registration failure, err: %s", astarte_result_to_name(ares));
             goto exit;
@@ -74,7 +74,7 @@ void astarte_task_entry(void *ctx)
         goto exit;
     }
 #else
-    char cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1] = CONFIG_CREDENTIAL_SECRET;
+    char cred_secr[ASTARTE_PAIRING_CRED_SECR_LEN + 1] = CONFIG_CREDENTIAL_SECRET;
 #endif
 
     // Initialize the NVS partition dedicated to Astarte

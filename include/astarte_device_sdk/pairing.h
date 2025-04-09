@@ -23,7 +23,7 @@
 #include "astarte_device_sdk/result.h"
 
 /** Number of characters in the string representation of a Base64 encoded credential secret. */
-#define NEW_AST_PAIRING_CRED_SECR_LEN 44
+#define ASTARTE_PAIRING_CRED_SECR_LEN 44
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,8 +39,8 @@ extern "C" {
  * @param[out] out_cred_secr Returned credential secret.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t new_ast_pairing_register_device(
-    const char *device_id, char out_cred_secr[NEW_AST_PAIRING_CRED_SECR_LEN + 1]);
+astarte_result_t astarte_pairing_register_device(
+    const char *device_id, char out_cred_secr[ASTARTE_PAIRING_CRED_SECR_LEN + 1]);
 
 #ifdef __cplusplus
 }
