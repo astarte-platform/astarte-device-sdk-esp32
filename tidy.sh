@@ -19,7 +19,7 @@ display_help() {
 # Set defaults for the command line arguments
 fresh_mode=false
 esp_path=$HOME/esp
-sample=datastreams
+sample=astarte_app
 file=""
 
 # Check for flags
@@ -36,11 +36,11 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Check if the sample exists
-if [ ! -d "./examples/$sample" ]; then
+if [ ! -d "./samples/$sample" ]; then
     echo "Incorrect sample name: '$sample'"
     exit 1
 fi
-cd ./examples/"$sample" || exit 1
+cd ./samples/"$sample" || exit 1
 
 export IDF_TOOLCHAIN="clang"
 
