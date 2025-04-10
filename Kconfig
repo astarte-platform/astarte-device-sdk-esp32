@@ -36,53 +36,6 @@ config ASTARTE_DEVICE_SDK_PAIRING_JWT
 	  This option should be set to a valid value when using the pairing API to register a new
 	  device.
 
-config ASTARTE_REALM
-    string "Astarte realm"
-    default "test"
-    help
-        The realm to be used use in Astarte requests.
-
-config ASTARTE_PAIRING_BASE_URL
-    string "Astarte pairing base URL"
-    default "http://localhost:4003"
-    help
-        The base URL to reach Astarte Pairing API. This should be the URL up to (and excluding) /v1.
-
-config ASTARTE_PAIRING_JWT
-    string "Pairing JWT token"
-    default ""
-    help
-        JWT token to authorize device registration.
-
-        Can be obtained with ./generate-astarte-credentials -t pairing -p yourrealmkey.key
-
-config ASTARTE_PAIRING_JWT_MAX_LEN
-    int "Pairing JWT maximum length"
-    default 1024
-    help
-        JWT maximum allowed size.
-
-config ASTARTE_CONNECTIVITY_TEST_URL
-    string "Astarte connectivity test URL"
-    default "http://www.example.com"
-    help
-        The URL used by the SDK to perform a GET request to verify connectivity. It must return an HTTP code < 400 to succeed.
-
-config ASTARTE_HWID_ENABLE_UUID
-    bool "Use UUIDv5 to derive the hardware ID"
-    default y
-    help
-        This option controls how the hardware id is derived.
-        If it's enabled, device-specific data will be feed to UUIDv5 to generate an hardware id.
-        If it's disabled, a SHA256 hash will be used, to maintain compatibility with pre-1.0 behaviour.
-        It is recommended to use UUIDv5 unless there's the need to maintain backwards compatibility (note that changing the setting will change the device-id, invalidating its credentials secret and requiring a new registration).
-
-config ASTARTE_HWID_UUID_NAMESPACE
-    string "The UUIDv5 namespace to use when generating the hardware ID"
-    default "30349dbb-85b6-489e-a8ed-532e65c55c38"
-    help
-        This option controls the UUID namespace that will be fed to the UUIDv5 algorithm when generating the hardware ID (if the "Use UUIDv5 to derive the hardware ID" is enabled).
-
 config ASTARTE_DEVICE_SDK_NVS
 	bool "Permanent storage for Astarte device"
 	default y
@@ -94,20 +47,6 @@ config ASTARTE_DEVICE_SDK_NVS_PARTITION_LABEL
     string "NVS partition label to use for caching properties"
     default "nvs"
     depends on ASTARTE_DEVICE_SDK_NVS
-    help
-        Use this option to specify a custom NVS partition for caching the received properties.
-
-config ASTARTE_USE_PROPERTY_PERSISTENCY
-    bool "Enable NVS caching of properties"
-    default n
-    help
-        This option enables caching for the status of both server and device owned properties.
-        It uses the ESP NVS as storage.
-
-config ASTARTE_PROPERTY_PERSISTENCY_NVS_PARTITION_LABEL
-    string "NVS partition label to use for caching properties"
-    default "nvs"
-    depends on ASTARTE_USE_PROPERTY_PERSISTENCY
     help
         Use this option to specify a custom NVS partition for caching the received properties.
 
