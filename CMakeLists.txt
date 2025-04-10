@@ -21,6 +21,7 @@
 idf_component_register(
     SRCS
         "./src/astarte_zlib.c"
+        "./src/backoff.c"
         "./src/bson_deserializer.c"
         "./src/bson_serializer.c"
         "./src/crypto.c"
