@@ -177,7 +177,7 @@ void introspection_fill_string(introspection_t *introspection, char *buffer, siz
     }
 
     // Erase the last ';' char or null terminate the string when introspection is empty
-    buffer[result_len] = '\0';
+    buffer[result_len - 1U] = '\0';
 }
 
 astarte_result_t introspection_iterator_init(
