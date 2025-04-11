@@ -21,6 +21,7 @@
 idf_component_register(
     SRCS
         "interfaces.c"
+        "test_backoff.c"
         "test_bson_deserializer.c"
         "test_bson_serializer.c"
         "test_data_validation.c"
@@ -30,6 +31,7 @@ idf_component_register(
         "test_introspection.c"
         "test_mapping.c"
         "test_object.c"
+        "../../src/backoff.c"
         "../../src/bson_serializer.c"
         "../../src/bson_deserializer.c"
         "../../src/data_validation.c"
