@@ -30,7 +30,7 @@ jobs:
     concurrency:
       group: unit-tests-on_host-${{ github.ref }}
       cancel-in-progress: true
-    container: espressif/idf:release-v5.1
+    container: espressif/idf:release-v5.4
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies

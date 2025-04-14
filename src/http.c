@@ -150,7 +150,7 @@ astarte_result_t http_post(const char *host, const char *path, const char *auth_
         int status_code = esp_http_client_get_status_code(client);
         ASTARTE_LOG_DBG("HTTP POST Status = %d, content_length = %" PRIi64, status_code,
             esp_http_client_get_content_length(client));
-        if ((status_code < 200) || (status_code >= 300)) {
+        if ((status_code < HttpStatus_Ok) || (status_code >= HttpStatus_MultipleChoices)) {
             ASTARTE_LOG_ERR("HTTP POST Status = %d, content_length = %" PRIi64, status_code,
                 esp_http_client_get_content_length(client));
             ares = ASTARTE_RESULT_HTTP_REQUEST_ERROR;
@@ -217,7 +217,7 @@ astarte_result_t http_get(const char *host, const char *path, const char *auth_b
         int status_code = esp_http_client_get_status_code(client);
         ASTARTE_LOG_DBG("HTTP GET Status = %d, content_length = %" PRIi64, status_code,
             esp_http_client_get_content_length(client));
-        if ((status_code < 200) || (status_code >= 300)) {
+        if ((status_code < HttpStatus_Ok) || (status_code >= HttpStatus_MultipleChoices)) {
             ASTARTE_LOG_ERR("HTTP GET Status = %d, content_length = %" PRIi64, status_code,
                 esp_http_client_get_content_length(client));
             ares = ASTARTE_RESULT_HTTP_REQUEST_ERROR;

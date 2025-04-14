@@ -72,6 +72,17 @@ static esp_err_t lookup_key_position(nvs_handle_t handle, const char *key, uint6
  */
 static esp_err_t get_entry_name(uint64_t store_index, char *entry_name);
 
+/**
+ * @brief Shift back a single entry, overwriting the previous entry.
+ *
+ * @details The previous entry is lost and the entry moved back is effectively duplicated.
+ *
+ * @param[in] handle Handle obtained from nvs_open function.
+ * @param[in] store_index The store index of the entry to shift back.
+ * @return An ESP_OK when operation has been successful, an error code otherwise.
+ */
+static esp_err_t shift_single_entry(nvs_handle_t handle, uint64_t store_index);
+
 /************************************************
  *         Global functions definitions         *
  ***********************************************/
@@ -180,89 +191,8 @@ esp_err_t kv_storage_erase_entry(nvs_handle_t handle, const char *key)
     }
 
     // Step 3: Shift back all the keys of one position (erasing the entry in the process)
-    for (uint64_t i = key_store_index + 2; i < next_store_index; i += 2) {
-        // Get the key to shift using the store index
-        char tmp_key_entry_name[NVS_KEY_NAME_MAX_SIZE] = { 0 };
-        esp_err = get_entry_name(i, tmp_key_entry_name);
-        if (esp_err != ESP_OK) {
-            return ESP_FAIL;
-        }
-        size_t tmp_key_len = 0;
-        esp_err = nvs_get_str(handle, tmp_key_entry_name, NULL, &tmp_key_len);
-        if (esp_err != ESP_OK) {
-            ASTARTE_LOG_ERR("Error fetching key from nvs during erase operation.");
-            return esp_err;
-        }
-        char *tmp_key = calloc(tmp_key_len, sizeof(char));
-        if (!tmp_key) {
-            ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
-            return ESP_FAIL;
-        }
-        // Confusing for clang-tidy as second parameter is called 'key'
-        // NOLINTNEXTLINE(readability-suspicious-call-argument)
-        esp_err = nvs_get_str(handle, tmp_key_entry_name, tmp_key, &tmp_key_len);
-        if (esp_err != ESP_OK) {
-            ASTARTE_LOG_ERR("Error fetching key from nvs during erase operation.");
-            free(tmp_key);
-            return esp_err;
-        }
-        // Get the value to shift using the store index
-        char tmp_value_entry_name[NVS_KEY_NAME_MAX_SIZE] = { 0 };
-        esp_err = get_entry_name(i + 1, tmp_value_entry_name);
-        if (esp_err != ESP_OK) {
-            free(tmp_key);
-            return ESP_FAIL;
-        }
-        size_t tmp_value_len = 0;
-        esp_err = nvs_get_blob(handle, tmp_value_entry_name, NULL, &tmp_value_len);
-        if (esp_err != ESP_OK) {
-            ASTARTE_LOG_ERR("Error fetching value from nvs during erase operation.");
-            free(tmp_key);
-            return esp_err;
-        }
-        char *tmp_value = calloc(tmp_value_len, sizeof(char));
-        if (!tmp_value) {
-            ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
-            free(tmp_key);
-            return ESP_FAIL;
-        }
-        esp_err = nvs_get_blob(handle, tmp_value_entry_name, tmp_value, &tmp_value_len);
-        if (esp_err != ESP_OK) {
-            ASTARTE_LOG_ERR("Error fetching value from nvs during erase operation.");
-            free(tmp_key);
-            free(tmp_value);
-            return esp_err;
-        }
-        // Store the key in the new position
-        char new_key_entry_name[NVS_KEY_NAME_MAX_SIZE] = { 0 };
-        esp_err = get_entry_name(i - 2, new_key_entry_name);
-        if (esp_err != ESP_OK) {
-            free(tmp_key);
-            free(tmp_value);
-            return ESP_FAIL;
-        }
-        // Confusing for clang-tidy as second parameter is called 'key'
-        // NOLINTNEXTLINE(readability-suspicious-call-argument)
-        esp_err = nvs_set_str(handle, new_key_entry_name, tmp_key);
-        free(tmp_key);
-        if (esp_err != ESP_OK) {
-            ASTARTE_LOG_ERR("Error storing the key.");
-            free(tmp_value);
-            return esp_err;
-        }
-        // Store the value in the new position
-        char new_value_entry_name[NVS_KEY_NAME_MAX_SIZE] = { 0 };
-        esp_err = get_entry_name(i - 1, new_value_entry_name);
-        if (esp_err != ESP_OK) {
-            free(tmp_value);
-            return ESP_FAIL;
-        }
-        esp_err = nvs_set_blob(handle, new_value_entry_name, tmp_value, tmp_value_len);
-        free(tmp_value);
-        if (esp_err != ESP_OK) {
-            ASTARTE_LOG_ERR("Error storing the value.");
-            return esp_err;
-        }
+    for (uint64_t store_idx = key_store_index + 2; store_idx < next_store_index; store_idx += 2) {
+        shift_single_entry(handle, store_idx);
     }
 
     // Step 4: Erase the last two entries that are dangling at this point
@@ -492,4 +422,89 @@ static esp_err_t lookup_key_position(nvs_handle_t handle, const char *key, uint6
         free(tmp_key);
     }
     return ESP_ERR_NVS_NOT_FOUND;
+}
+
+static esp_err_t shift_single_entry(nvs_handle_t handle, uint64_t store_index)
+{
+    esp_err_t esp_err = ESP_OK;
+    char *tmp_key = NULL;
+    char *tmp_value = NULL;
+
+    // Get the key to shift using the store index
+    char tmp_key_entry_name[NVS_KEY_NAME_MAX_SIZE] = { 0 };
+    esp_err = get_entry_name(store_index, tmp_key_entry_name);
+    if (esp_err != ESP_OK) {
+        goto exit;
+    }
+    size_t tmp_key_len = 0;
+    esp_err = nvs_get_str(handle, tmp_key_entry_name, NULL, &tmp_key_len);
+    if (esp_err != ESP_OK) {
+        ASTARTE_LOG_ERR("Error fetching key from nvs during erase operation.");
+        goto exit;
+    }
+    tmp_key = calloc(tmp_key_len, sizeof(char));
+    if (!tmp_key) {
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
+        esp_err = ESP_FAIL;
+        goto exit;
+    }
+    // Confusing for clang-tidy as second parameter is called 'key'
+    // NOLINTNEXTLINE(readability-suspicious-call-argument)
+    esp_err = nvs_get_str(handle, tmp_key_entry_name, tmp_key, &tmp_key_len);
+    if (esp_err != ESP_OK) {
+        ASTARTE_LOG_ERR("Error fetching key from nvs during erase operation.");
+        goto exit;
+    }
+    // Get the value to shift using the store index
+    char tmp_value_entry_name[NVS_KEY_NAME_MAX_SIZE] = { 0 };
+    esp_err = get_entry_name(store_index + 1, tmp_value_entry_name);
+    if (esp_err != ESP_OK) {
+        goto exit;
+    }
+    size_t tmp_value_len = 0;
+    esp_err = nvs_get_blob(handle, tmp_value_entry_name, NULL, &tmp_value_len);
+    if (esp_err != ESP_OK) {
+        ASTARTE_LOG_ERR("Error fetching value from nvs during erase operation.");
+        goto exit;
+    }
+    tmp_value = calloc(tmp_value_len, sizeof(char));
+    if (!tmp_value) {
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
+        esp_err = ESP_FAIL;
+        goto exit;
+    }
+    esp_err = nvs_get_blob(handle, tmp_value_entry_name, tmp_value, &tmp_value_len);
+    if (esp_err != ESP_OK) {
+        ASTARTE_LOG_ERR("Error fetching value from nvs during erase operation.");
+        goto exit;
+    }
+    // Store the key in the new position
+    char new_key_entry_name[NVS_KEY_NAME_MAX_SIZE] = { 0 };
+    esp_err = get_entry_name(store_index - 2, new_key_entry_name);
+    if (esp_err != ESP_OK) {
+        goto exit;
+    }
+    // Confusing for clang-tidy as second parameter is called 'key'
+    // NOLINTNEXTLINE(readability-suspicious-call-argument)
+    esp_err = nvs_set_str(handle, new_key_entry_name, tmp_key);
+    if (esp_err != ESP_OK) {
+        ASTARTE_LOG_ERR("Error storing the key.");
+        goto exit;
+    }
+    // Store the value in the new position
+    char new_value_entry_name[NVS_KEY_NAME_MAX_SIZE] = { 0 };
+    esp_err = get_entry_name(store_index - 1, new_value_entry_name);
+    if (esp_err != ESP_OK) {
+        goto exit;
+    }
+    esp_err = nvs_set_blob(handle, new_value_entry_name, tmp_value, tmp_value_len);
+    if (esp_err != ESP_OK) {
+        ASTARTE_LOG_ERR("Error storing the value.");
+        goto exit;
+    }
+
+exit:
+    free(tmp_key);
+    free(tmp_value);
+    return esp_err;
 }

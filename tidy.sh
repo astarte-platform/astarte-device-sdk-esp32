@@ -18,7 +18,7 @@ display_help() {
 
 # Set defaults for the command line arguments
 fresh_mode=false
-esp_path=$HOME/esp
+esp_path=$HOME/esp/esp-idf
 sample=astarte_app
 file=""
 
@@ -45,21 +45,21 @@ cd ./samples/"$sample" || exit 1
 export IDF_TOOLCHAIN="clang"
 
 # Export idf.py
-if [ ! -f "$esp_path/esp-idf/export.sh" ]; then
-    echo "Could not find the ESP IDF export script: '$esp_path/esp-idf/export.sh'"
+if [ ! -f "$esp_path/export.sh" ]; then
+    echo "Could not find the ESP IDF export script: '$esp_path/export.sh'"
     exit 1
 fi
-. "$esp_path"/esp-idf/export.sh || exit 1
+. "$esp_path"/export.sh || exit 1
 
 # Install dependencies if required
 idf_tools.py install esp-clang
 
 # Re-export idf.py
-if [ ! -f "$esp_path/esp-idf/export.sh" ]; then
-    echo "Could not find the ESP IDF export script: '$esp_path/esp-idf/export.sh'"
+if [ ! -f "$esp_path/export.sh" ]; then
+    echo "Could not find the ESP IDF export script: '$esp_path/export.sh'"
     exit 1
 fi
-. "$esp_path"/esp-idf/export.sh
+. "$esp_path"/export.sh
 
 # Re-generate the compilation database if fresh is selected
 if $fresh_mode; then

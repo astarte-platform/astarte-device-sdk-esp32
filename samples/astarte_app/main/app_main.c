@@ -8,7 +8,7 @@
 #include <inttypes.h>
 #include <nvs_flash.h>
 
-#include <freertos/FreeRTOS.h>
+#include <freertos/FreeRTOS.h> // NOLINT Circular header file dependencies is an idf problem
 #include <freertos/event_groups.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
