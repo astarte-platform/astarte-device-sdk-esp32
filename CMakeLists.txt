@@ -18,27 +18,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later OR Apache-2.0
 #
 
+file(GLOB srcs "./src/*.c")
 idf_component_register(
-    SRCS
-        "./src/astarte_zlib.c"
-        "./src/backoff.c"
-        "./src/bson_deserializer.c"
-        "./src/bson_serializer.c"
-        "./src/crypto.c"
-        "./src/data_validation.c"
-        "./src/data.c"
-        "./src/device_caching.c"
-        "./src/device_id.c"
-        "./src/dlist.c"
-        "./src/http.c"
-        "./src/interface.c"
-        "./src/introspection.c"
-        "./src/kv_storage.c"
-        "./src/mapping.c"
-        "./src/object.c"
-        "./src/pairing.c"
-        "./src/result.c"
-        "./src/uuid.c"
+    SRCS "${srcs}"
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "private"
     PRIV_REQUIRES vfs mbedtls fatfs mqtt nvs_flash esp_http_client json wpa_supplicant)
