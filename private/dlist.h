@@ -130,4 +130,14 @@ void *dlist_iterator_get_item(dlist_iterator_t *iterator);
  */
 void *dlist_iterator_replace_item(dlist_iterator_t *iterator, void *value);
 
+/**
+ * @brief Remove the item pointed by the iterator
+ *
+ * @note Does not de-allocate the old item content.
+ *
+ * @param[inout] iterator Iterator to use for the operation
+ * @return The item that has been removed
+ */
+void *dlist_iterator_remove_item(dlist_iterator_t *iterator);
+
 #endif // DLIST_H

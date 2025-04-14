@@ -23,86 +23,56 @@
 
 typedef struct
 {
-    nvs_handle_t nvs_handle;
-} device_caching_t;
-
-typedef struct
-{
     kv_storage_iterator_t nvs_key_value_iterator;
-} device_caching_iterator_t;
-
-/**
- * @brief Open the underlying NVS partition for the specified namespace.
- *
- * @param[out] handle Device caching instance handle.
- * @param[in] namespace Namespace to open.
- * @return The appropriate return value.
- * @retval ASTARTE_RESULT_INTERNAL_ERROR if NVS opening has failed
- * @retval ASTARTE_RESULT_OK if operation has been successful
- */
-astarte_result_t device_caching_open_namespace(device_caching_t *handle, const char *namespace);
-
-/**
- * @brief Close the underlying NVS partition.
- *
- * @param[in] handle Device caching instance to close.
- */
-void device_caching_close_namespace(device_caching_t handle);
+} device_caching_property_iterator_t;
 
 /**
  * @brief Set the synchronization state.
  *
- * @param[in] handle Device caching instance handle.
  * @param[in] sync Synchronization state to be stored. Should be set to true if a proper
  * synchronization has been achieved with Astarte.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t device_caching_synchronization_set(device_caching_t handle, bool sync);
+astarte_result_t device_caching_synchronization_set(bool sync);
 
 /**
  * @brief Get the synchronization state.
  *
- * @param[in] handle Device caching instance handle.
  * @param[out] sync Synchronization state retrieved. Will be set to true if a proper synchronization
  * has been previously achieved with Astarte.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t device_caching_synchronization_get(device_caching_t handle, bool *sync);
+astarte_result_t device_caching_synchronization_get(bool *sync);
 
 /**
  * @brief Cache the introspection for this device.
  *
- * @param[in] handle Device caching instance handle.
  * @param[in] intr Buffer containing the stringified version of the device introspection
  * @param[in] intr_size Size in chars of the @p buffer parameter.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t device_caching_introspection_set(
-    device_caching_t handle, const char *intr, size_t intr_size);
+astarte_result_t device_caching_introspection_set(const char *intr, size_t intr_size);
 
 /**
  * @brief Check if the cached introspection exists and it's identical to the input one.
  *
- * @param[in] handle Device caching instance handle.
  * @param[in] intr Buffer containing the stringified version of the device introspection
  * @param[in] intr_size Size in chars of the @p buffer parameter.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t device_caching_introspection_check(
-    device_caching_t handle, const char *intr, size_t intr_size);
+astarte_result_t device_caching_introspection_check(const char *intr, size_t intr_size);
 
 /**
  * @brief Store a property
  *
- * @param[in] handle Device caching instance handle.
  * @param[in] interface_name Interface name
  * @param[in] path Property endpoint
  * @param[in] major Major version name
  * @param[in] data Data to store as a generic binary buffer
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t device_caching_property_store(device_caching_t handle, const char *interface_name,
-    const char *path, uint32_t major, astarte_data_t data);
+astarte_result_t device_caching_property_store(
+    const char *interface_name, const char *path, uint32_t major, astarte_data_t data);
 
 /**
  * @brief Load a stored property
@@ -110,7 +80,6 @@ astarte_result_t device_caching_property_store(device_caching_t handle, const ch
  * @warning The @p data parameter should be destroyed using
  * #device_caching_property_destroy_loaded after its usage has ended.
  *
- * @param[in] handle Device caching instance handle.
  * @param[in] interface_name Interface name
  * @param[in] path Property endpoint
  * @param[out] out_major Pointer to output major version. Might be NULL, in this case the parameter
@@ -118,8 +87,8 @@ astarte_result_t device_caching_property_store(device_caching_t handle, const ch
  * @param[out] data Loaded property value
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t device_caching_property_load(device_caching_t handle, const char *interface_name,
-    const char *path, uint32_t *out_major, astarte_data_t *data);
+astarte_result_t device_caching_property_load(
+    const char *interface_name, const char *path, uint32_t *out_major, astarte_data_t *data);
 
 /**
  * @brief Destroy data for a previously loaded property.
@@ -136,7 +105,6 @@ void device_caching_property_destroy_loaded(astarte_data_t data);
  * @details The properties string is a comma separated list of device owned properties full paths.
  * Each property full path is composed by the interface name and path of that property.
  *
- * @param[in] handle Device caching instance handle.
  * @param[in] introspection Device introspection used to verify ownership of each property.
  * @param[out] output Buffer where to strore the computed properties string, can be NULL.
  * @param[inout] output_size Size of the @p output buffer. If the @p output parameter is NULL the
@@ -146,28 +114,32 @@ void device_caching_property_destroy_loaded(astarte_data_t data);
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 astarte_result_t device_caching_property_get_device_properties_string(
-    device_caching_t handle, introspection_t *introspection, char *output, size_t *output_size);
+    introspection_t *introspection, char *output, size_t *output_size);
 
 /**
  * @brief Delete a stored property
  *
- * @param[in] handle Device caching instance handle.
  * @param[in] interface_name Interface name
  * @param[in] path Property endpoint
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t device_caching_property_delete(
-    device_caching_t handle, const char *interface_name, const char *path);
+astarte_result_t device_caching_property_delete(const char *interface_name, const char *path);
 
 /**
  * @brief Initialize an iterator to enumerate all stored properties.
  *
- * @param[in] handle Device caching instance handle.
  * @param[out] iterator Pointer to the iterator to initialize.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
 astarte_result_t device_caching_property_iterator_init(
-    device_caching_t handle, device_caching_iterator_t *iterator);
+    device_caching_property_iterator_t *iterator);
+
+/**
+ * @brief Destroy an iterator, the iterator won't be usable after this call.
+ *
+ * @param[out] iterator Pointer to the iterator to terminate.
+ */
+void device_caching_property_iterator_terminate(device_caching_property_iterator_t *iterator);
 
 /**
  * @brief Advance the iterator to the next element.
@@ -175,7 +147,8 @@ astarte_result_t device_caching_property_iterator_init(
  * @param[in] iterator Iterator to advance.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t device_caching_property_iterator_next(device_caching_iterator_t *iterator);
+astarte_result_t device_caching_property_iterator_next(
+    device_caching_property_iterator_t *iterator);
 
 /**
  * @brief Retrieve the property pointed to by the iterator.
@@ -194,7 +167,7 @@ astarte_result_t device_caching_property_iterator_next(device_caching_iterator_t
  * In case out_path is not NULL, will be set to the actual length of the property endpoint written.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
  */
-astarte_result_t device_caching_property_iterator_get(device_caching_iterator_t *iterator,
+astarte_result_t device_caching_property_iterator_get(device_caching_property_iterator_t *iterator,
     char *out_interface_name, size_t *out_interface_name_size, void *out_path,
     size_t *out_path_size);
 

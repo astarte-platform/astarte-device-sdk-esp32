@@ -150,3 +150,34 @@ void *dlist_iterator_replace_item(dlist_iterator_t *iterator, void *value)
     iterator->node->value = value;
     return old;
 }
+
+void *dlist_iterator_remove_item(dlist_iterator_t *iterator)
+{
+    struct dlist_node *current = iterator->node;
+    struct dlist_node *prev = current->prev;
+    struct dlist_node *next = current->next;
+    void *value = current->value;
+
+    // Update the links of the surrounding nodes
+    if (prev) {
+        prev->next = next;
+    } else {
+        // If there is no previous node, we're at the head
+        iterator->handle->head = next;
+    }
+
+    if (next) {
+        next->prev = prev;
+    } else {
+        // If there is no next node, we're at the tail
+        iterator->handle->tail = prev;
+    }
+
+    // Free the current node
+    free(current);
+
+    // Advance iterator to next node
+    iterator->node = next;
+
+    return value;
+}
