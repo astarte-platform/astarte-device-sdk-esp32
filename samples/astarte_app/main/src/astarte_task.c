@@ -6,7 +6,7 @@
 
 #include "astarte_task.h"
 
-#include <freertos/FreeRTOS.h>
+#include <freertos/FreeRTOS.h> // NOLINT Circular header file dependencies is an idf problem
 #include <freertos/task.h>
 
 #include <esp_log.h>

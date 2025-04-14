@@ -9,7 +9,7 @@
 
 /**
  * @file log.h
- * @brief Wrapper for the log module. Helps in keeping the code cleaner with less NOLINT comments.
+ * @brief Wrapper for the log module.
  */
 
 #include <esp_log.h>
