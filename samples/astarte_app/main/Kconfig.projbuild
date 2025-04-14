@@ -29,6 +29,12 @@ config CREDENTIAL_SECRET
     help
         The credential secret to be used to connect to Astarte.
 
+config DEVICE_POLL_PERIOD_MS
+    int "Device thread polling period (ms)"
+    default 100
+    help
+        Use this setting to change the polling period for the Astarte device.
+
 config DEVICE_OPERATIONAL_TIMEOUT
     int "Operational time in sedonds for which the device will stay connected to astarte"
     default 60

@@ -20,4 +20,4 @@ if(EXISTS "${SDKCONFIG_PRIV_PATH}")
 endif()
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(datastreams)
+project(astarte_app)
