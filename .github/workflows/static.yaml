@@ -58,15 +58,13 @@ jobs:
     concurrency:
       group: clang-tidy-check-${{ github.ref }}-${{ matrix.example }}
       cancel-in-progress: true
-    container: espressif/idf:release-v5.1
+    container: espressif/idf:release-v5.4
     steps:
     - uses: actions/checkout@v4
     - name: Setup
       run: |
         . $IDF_PATH/export.sh
-        python3 -m pip install -r python_scripts/requirements.txt
-        python3 python_scripts/setup_clang_tidy.py -p ./samples/${{ matrix.example }} -v
+        idf_tools.py install esp-clang
     - name: Run and parse the results
       run: |
-        . $IDF_PATH/export.sh
-        python3 python_scripts/run_clang_tidy.py -p ./samples/${{ matrix.example }} -r
+        ./tidy.sh --esp_path $IDF_PATH
