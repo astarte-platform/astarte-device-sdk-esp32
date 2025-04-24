@@ -17,12 +17,12 @@
 
 // Interface names should resemble as closely as possible their respective .json file names.
 // NOLINTBEGIN(readability-identifier-naming)
-extern const astarte_interface_t org_astarteplatform_esp32_examples_DeviceAggregate;
-extern const astarte_interface_t org_astarteplatform_esp32_examples_DeviceDatastream;
-extern const astarte_interface_t org_astarteplatform_esp32_examples_DeviceProperty;
-extern const astarte_interface_t org_astarteplatform_esp32_examples_ServerAggregate;
-extern const astarte_interface_t org_astarteplatform_esp32_examples_ServerDatastream;
-extern const astarte_interface_t org_astarteplatform_esp32_examples_ServerProperty;
+extern const astarte_interface_t org_astarteplatform_samples_DeviceAggregate;
+extern const astarte_interface_t org_astarteplatform_samples_DeviceDatastream;
+extern const astarte_interface_t org_astarteplatform_samples_DeviceProperty;
+extern const astarte_interface_t org_astarteplatform_samples_ServerAggregate;
+extern const astarte_interface_t org_astarteplatform_samples_ServerDatastream;
+extern const astarte_interface_t org_astarteplatform_samples_ServerProperty;
 // NOLINTEND(readability-identifier-naming)
 
 #endif /* GENERATED_INTERFACES_H */

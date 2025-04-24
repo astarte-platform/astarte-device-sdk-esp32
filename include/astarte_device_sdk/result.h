@@ -57,7 +57,7 @@ typedef enum
     ASTARTE_RESULT_INTERFACE_INVALID_VERSION = 12,
     /** @brief Trying to add an interface that conflicts with the previous one */
     ASTARTE_RESULT_INTERFACE_CONFLICTING = 13,
-    /** @brief Error from the TLS credential zephyr module. */
+    /** @brief Error from the TLS credential ESP module. */
     ASTARTE_RESULT_TLS_ERROR = 14,
     /** @brief Internal error from the MQTT library. */
     ASTARTE_RESULT_MQTT_ERROR = 15,

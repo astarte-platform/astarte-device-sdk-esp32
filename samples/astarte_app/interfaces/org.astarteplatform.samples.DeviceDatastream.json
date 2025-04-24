@@ -1,9 +1,9 @@
 {
-    "interface_name": "org.astarteplatform.esp32.examples.ServerDatastream",
+    "interface_name": "org.astarteplatform.samples.DeviceDatastream",
     "version_major": 0,
     "version_minor": 1,
     "type": "datastream",
-    "ownership": "server",
+    "ownership": "device",
     "mappings": [
         {
             "endpoint": "/binaryblob_endpoint",
@@ -47,27 +47,33 @@
         },
         {
             "endpoint": "/integer_endpoint",
-            "type": "integer"
+            "type": "integer",
+            "explicit_timestamp": true
         },
         {
             "endpoint": "/integerarray_endpoint",
-            "type": "integerarray"
+            "type": "integerarray",
+            "explicit_timestamp": true
         },
         {
             "endpoint": "/longinteger_endpoint",
-            "type": "longinteger"
+            "type": "longinteger",
+            "explicit_timestamp": true
         },
         {
             "endpoint": "/longintegerarray_endpoint",
-            "type": "longintegerarray"
+            "type": "longintegerarray",
+            "explicit_timestamp": true
         },
         {
             "endpoint": "/string_endpoint",
-            "type": "string"
+            "type": "string",
+            "explicit_timestamp": true
         },
         {
             "endpoint": "/stringarray_endpoint",
-            "type": "stringarray"
+            "type": "stringarray",
+            "explicit_timestamp": true
         }
     ]
 }

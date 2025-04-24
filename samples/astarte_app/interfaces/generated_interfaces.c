@@ -10,7 +10,7 @@
 // Interface names should resemble as closely as possible their respective .json file names.
 // NOLINTBEGIN(readability-identifier-naming)
 
-static const astarte_mapping_t org_astarteplatform_esp32_examples_DeviceAggregate_mappings[14] = {
+static const astarte_mapping_t org_astarteplatform_samples_DeviceAggregate_mappings[14] = {
 
     {
         .endpoint = "/%{sensor_id}/double_endpoint",
@@ -112,18 +112,18 @@ static const astarte_mapping_t org_astarteplatform_esp32_examples_DeviceAggregat
     },
 };
 
-const astarte_interface_t org_astarteplatform_esp32_examples_DeviceAggregate = {
-    .name = "org.astarteplatform.esp32.examples.DeviceAggregate",
+const astarte_interface_t org_astarteplatform_samples_DeviceAggregate = {
+    .name = "org.astarteplatform.samples.DeviceAggregate",
     .major_version = 0,
     .minor_version = 1,
     .type = ASTARTE_INTERFACE_TYPE_DATASTREAM,
     .ownership = ASTARTE_INTERFACE_OWNERSHIP_DEVICE,
     .aggregation = ASTARTE_INTERFACE_AGGREGATION_OBJECT,
-    .mappings = org_astarteplatform_esp32_examples_DeviceAggregate_mappings,
+    .mappings = org_astarteplatform_samples_DeviceAggregate_mappings,
     .mappings_length = 14U,
 };
 
-static const astarte_mapping_t org_astarteplatform_esp32_examples_DeviceDatastream_mappings[14] = {
+static const astarte_mapping_t org_astarteplatform_samples_DeviceDatastream_mappings[14] = {
 
     {
         .endpoint = "/binaryblob_endpoint",
@@ -225,18 +225,18 @@ static const astarte_mapping_t org_astarteplatform_esp32_examples_DeviceDatastre
     },
 };
 
-const astarte_interface_t org_astarteplatform_esp32_examples_DeviceDatastream = {
-    .name = "org.astarteplatform.esp32.examples.DeviceDatastream",
+const astarte_interface_t org_astarteplatform_samples_DeviceDatastream = {
+    .name = "org.astarteplatform.samples.DeviceDatastream",
     .major_version = 0,
     .minor_version = 1,
     .type = ASTARTE_INTERFACE_TYPE_DATASTREAM,
     .ownership = ASTARTE_INTERFACE_OWNERSHIP_DEVICE,
     .aggregation = ASTARTE_INTERFACE_AGGREGATION_INDIVIDUAL,
-    .mappings = org_astarteplatform_esp32_examples_DeviceDatastream_mappings,
+    .mappings = org_astarteplatform_samples_DeviceDatastream_mappings,
     .mappings_length = 14U,
 };
 
-static const astarte_mapping_t org_astarteplatform_esp32_examples_DeviceProperty_mappings[14] = {
+static const astarte_mapping_t org_astarteplatform_samples_DeviceProperty_mappings[14] = {
 
     {
         .endpoint = "/%{sensor_id}/double_endpoint",
@@ -338,18 +338,18 @@ static const astarte_mapping_t org_astarteplatform_esp32_examples_DeviceProperty
     },
 };
 
-const astarte_interface_t org_astarteplatform_esp32_examples_DeviceProperty = {
-    .name = "org.astarteplatform.esp32.examples.DeviceProperty",
+const astarte_interface_t org_astarteplatform_samples_DeviceProperty = {
+    .name = "org.astarteplatform.samples.DeviceProperty",
     .major_version = 0,
     .minor_version = 1,
     .type = ASTARTE_INTERFACE_TYPE_PROPERTIES,
     .ownership = ASTARTE_INTERFACE_OWNERSHIP_DEVICE,
     .aggregation = ASTARTE_INTERFACE_AGGREGATION_INDIVIDUAL,
-    .mappings = org_astarteplatform_esp32_examples_DeviceProperty_mappings,
+    .mappings = org_astarteplatform_samples_DeviceProperty_mappings,
     .mappings_length = 14U,
 };
 
-static const astarte_mapping_t org_astarteplatform_esp32_examples_ServerAggregate_mappings[14] = {
+static const astarte_mapping_t org_astarteplatform_samples_ServerAggregate_mappings[14] = {
 
     {
         .endpoint = "/%{sensor_id}/double_endpoint",
@@ -451,18 +451,18 @@ static const astarte_mapping_t org_astarteplatform_esp32_examples_ServerAggregat
     },
 };
 
-const astarte_interface_t org_astarteplatform_esp32_examples_ServerAggregate = {
-    .name = "org.astarteplatform.esp32.examples.ServerAggregate",
+const astarte_interface_t org_astarteplatform_samples_ServerAggregate = {
+    .name = "org.astarteplatform.samples.ServerAggregate",
     .major_version = 0,
     .minor_version = 1,
     .type = ASTARTE_INTERFACE_TYPE_DATASTREAM,
     .ownership = ASTARTE_INTERFACE_OWNERSHIP_SERVER,
     .aggregation = ASTARTE_INTERFACE_AGGREGATION_OBJECT,
-    .mappings = org_astarteplatform_esp32_examples_ServerAggregate_mappings,
+    .mappings = org_astarteplatform_samples_ServerAggregate_mappings,
     .mappings_length = 14U,
 };
 
-static const astarte_mapping_t org_astarteplatform_esp32_examples_ServerDatastream_mappings[14] = {
+static const astarte_mapping_t org_astarteplatform_samples_ServerDatastream_mappings[14] = {
 
     {
         .endpoint = "/binaryblob_endpoint",
@@ -564,18 +564,18 @@ static const astarte_mapping_t org_astarteplatform_esp32_examples_ServerDatastre
     },
 };
 
-const astarte_interface_t org_astarteplatform_esp32_examples_ServerDatastream = {
-    .name = "org.astarteplatform.esp32.examples.ServerDatastream",
+const astarte_interface_t org_astarteplatform_samples_ServerDatastream = {
+    .name = "org.astarteplatform.samples.ServerDatastream",
     .major_version = 0,
     .minor_version = 1,
     .type = ASTARTE_INTERFACE_TYPE_DATASTREAM,
     .ownership = ASTARTE_INTERFACE_OWNERSHIP_SERVER,
     .aggregation = ASTARTE_INTERFACE_AGGREGATION_INDIVIDUAL,
-    .mappings = org_astarteplatform_esp32_examples_ServerDatastream_mappings,
+    .mappings = org_astarteplatform_samples_ServerDatastream_mappings,
     .mappings_length = 14U,
 };
 
-static const astarte_mapping_t org_astarteplatform_esp32_examples_ServerProperty_mappings[14] = {
+static const astarte_mapping_t org_astarteplatform_samples_ServerProperty_mappings[14] = {
 
     {
         .endpoint = "/%{sensor_id}/double_endpoint",
@@ -677,14 +677,14 @@ static const astarte_mapping_t org_astarteplatform_esp32_examples_ServerProperty
     },
 };
 
-const astarte_interface_t org_astarteplatform_esp32_examples_ServerProperty = {
-    .name = "org.astarteplatform.esp32.examples.ServerProperty",
+const astarte_interface_t org_astarteplatform_samples_ServerProperty = {
+    .name = "org.astarteplatform.samples.ServerProperty",
     .major_version = 0,
     .minor_version = 1,
     .type = ASTARTE_INTERFACE_TYPE_PROPERTIES,
     .ownership = ASTARTE_INTERFACE_OWNERSHIP_SERVER,
     .aggregation = ASTARTE_INTERFACE_AGGREGATION_INDIVIDUAL,
-    .mappings = org_astarteplatform_esp32_examples_ServerProperty_mappings,
+    .mappings = org_astarteplatform_samples_ServerProperty_mappings,
     .mappings_length = 14U,
 };
 

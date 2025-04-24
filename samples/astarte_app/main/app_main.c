@@ -22,7 +22,7 @@
 
 #define TAG "ASTARTE SAMPLE APP MAIN"
 
-#define ASTARTE_SAMPLE_TASK_STACK_SIZE 32768
+#define ASTARTE_SAMPLE_TASK_STACK_SIZE 65536
 
 /************************************************
  * Main function definition
@@ -34,8 +34,6 @@ void app_main()
     ESP_LOGI(TAG, "Startup..");
     ESP_LOGI(TAG, "Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
     ESP_LOGI(TAG, "IDF version: %s", esp_get_idf_version());
-
-    esp_log_level_set("*", ESP_LOG_INFO);
 
     esp_err = nvs_flash_init();
     if (esp_err != ESP_OK) {

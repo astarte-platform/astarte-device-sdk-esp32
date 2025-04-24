@@ -50,6 +50,22 @@ config ASTARTE_DEVICE_SDK_NVS_PARTITION_LABEL
     help
         Use this option to specify a custom NVS partition for caching the received properties.
 
+config ASTARTE_DEVICE_SDK_RECONNECTION_ASTARTE_BACKOFF_INITIAL_MS
+	int "Astarte reconnection backoff initial delay (ms)"
+	default 1000
+	help
+	  This configuration setting will define an initial delay for the reconnection backoff strategy
+	  to Astarte. This backoff strategy will be used when there is no MQTT error but the handshake
+	  with Astarte has failed.
+
+config ASTARTE_DEVICE_SDK_RECONNECTION_ASTARTE_BACKOFF_MAX_MS
+	int "Astarte reconnection backoff maximum delay (ms)"
+	default 60000
+	help
+	  This configuration setting will define the maximum delay for the reconnection backoff
+	  strategy to Astarte. This backoff strategy will be used when there is no MQTT error but the
+	  handshake with Astarte has failed.
+
 menu "Advanced options"
 
 config ASTARTE_DEVICE_SDK_ADVANCED_CLIENT_CRT_BUFFER_SIZE

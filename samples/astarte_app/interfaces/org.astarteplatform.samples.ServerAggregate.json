@@ -1,5 +1,5 @@
 {
-    "interface_name": "org.astarteplatform.esp32.examples.ServerAggregate",
+    "interface_name": "org.astarteplatform.samples.ServerAggregate",
     "version_major": 0,
     "version_minor": 1,
     "type": "datastream",
