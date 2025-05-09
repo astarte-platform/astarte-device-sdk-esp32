@@ -19,6 +19,9 @@
 
 ASTARTE_LOG_MODULE_REGISTER("Astarte device connection");
 
+/** @brief Wake period for the disconnection timeout in milliseconds. */
+#define DISCONNECT_WAKE_PERIOD_MS 100
+
 /************************************************
  *         Static functions declaration         *
  ***********************************************/
@@ -129,32 +132,52 @@ astarte_result_t device_connection_connect(astarte_device_handle_t device)
         ASTARTE_LOG_ERR("Failed to start MQTT client: %s", esp_err_to_name(err));
         return ASTARTE_RESULT_MQTT_ERROR;
     }
+    device->mqtt_client_running = true;
 
     ASTARTE_LOG_DBG("Device connection state -> MQTT_CONNECTING.");
     device->connection_state = DEVICE_MQTT_CONNECTING;
     return ASTARTE_RESULT_OK;
 }
 
-astarte_result_t device_connection_disconnect(astarte_device_handle_t device)
+astarte_result_t device_connection_disconnect(astarte_device_handle_t device, size_t timeout)
 {
-    esp_err_t err = ESP_OK;
+    astarte_result_t ares = ASTARTE_RESULT_OK;
+    esp_err_t esp_err = ESP_OK;
+
     if (device->connection_state == DEVICE_DISCONNECTED) {
-        ASTARTE_LOG_ERR("Disconnection request for a disconnected client will be ignored.");
-        return ASTARTE_RESULT_DEVICE_NOT_READY;
+        goto stop;
     }
 
-    err = esp_mqtt_client_disconnect(device->mqtt_client);
-    if (err != ESP_OK) {
-        ASTARTE_LOG_ERR("Failed to disconnect the MQTT client: %s", esp_err_to_name(err));
-        return ASTARTE_RESULT_MQTT_ERROR;
+    esp_err = esp_mqtt_client_disconnect(device->mqtt_client);
+    if (esp_err != ESP_OK) {
+        ASTARTE_LOG_ERR("Failed to disconnect the MQTT client: %s", esp_err_to_name(esp_err));
+        ares = ASTARTE_RESULT_MQTT_ERROR;
+        goto stop;
     }
 
-    err = esp_mqtt_client_stop(device->mqtt_client);
-    if (err != ESP_OK) {
-        ASTARTE_LOG_ERR("Failed to stop the MQTT client: %s", esp_err_to_name(err));
-        return ASTARTE_RESULT_MQTT_ERROR;
+    const TickType_t disconnect_timeout = timeout / portTICK_PERIOD_MS;
+    const TickType_t start_time = xTaskGetTickCount();
+    const TickType_t wake_frequency = DISCONNECT_WAKE_PERIOD_MS / portTICK_PERIOD_MS;
+    TickType_t last_wake_time = start_time;
+    while (device->connection_state != DEVICE_DISCONNECTED) {
+        if (xTaskGetTickCount() - start_time > disconnect_timeout) {
+            ares = ASTARTE_RESULT_TIMEOUT;
+            goto stop;
+        }
+        vTaskDelayUntil(&last_wake_time, wake_frequency);
     }
-    return ASTARTE_RESULT_OK;
+
+stop:
+    if (device->mqtt_client_running) {
+        esp_err = esp_mqtt_client_stop(device->mqtt_client);
+        if (esp_err != ESP_OK) {
+            ASTARTE_LOG_ERR("Failed to stop the MQTT client: %s", esp_err_to_name(esp_err));
+            ares = ASTARTE_RESULT_MQTT_ERROR;
+        }
+        device->mqtt_client_running = false;
+        device->connection_state = DEVICE_DISCONNECTED;
+    }
+    return ares;
 }
 
 void device_connection_on_connected_handler(

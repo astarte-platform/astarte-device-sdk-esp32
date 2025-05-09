@@ -110,6 +110,8 @@ struct astarte_device
     void *cbk_user_data;
     /** @brief MQTT client data. */
     esp_mqtt_client_handle_t mqtt_client;
+    /** @brief MQTT client service status. */
+    bool mqtt_client_running;
     /** @brief Connection state of the Astarte device. */
     enum connection_states connection_state;
     /** @brief Set if, since instance creation, a sync with Astarte has ever been performed. */

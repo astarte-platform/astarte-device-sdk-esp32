@@ -35,6 +35,7 @@
 #define ASTARTE_TRANSMIT_TASK_STACK_SIZE 16384
 
 #define MS_IN_SEC 1000
+#define ASTARTE_DISCONNECT_TIMEOUT_MS 2000
 
 static TaskHandle_t device_task_handle = NULL;
 static TaskHandle_t transmit_task_handle = NULL;
@@ -205,18 +206,20 @@ void astarte_task_entry(void *ctx)
     }
 
     ESP_LOGI(TAG, "Disconnecting the device.");
-    ares = astarte_device_disconnect(device);
+    ares = astarte_device_disconnect(device, ASTARTE_DISCONNECT_TIMEOUT_MS);
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(TAG, "Failed in device disconnection, err: %s", astarte_result_to_name(ares));
         goto exit;
     }
 
     ESP_LOGI(TAG, "Destroying the device.");
-    ares = astarte_device_destroy(device);
+    ares = astarte_device_destroy(device, ASTARTE_DISCONNECT_TIMEOUT_MS);
     if (ares != ASTARTE_RESULT_OK) {
         ESP_LOGE(TAG, "Failed in device destruction, err: %s", astarte_result_to_name(ares));
         goto exit;
     }
+
+    ESP_LOGI(TAG, "Sample completed.");
 
 exit:
     vTaskDelete(NULL);

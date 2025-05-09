@@ -217,6 +217,7 @@ astarte_result_t astarte_device_new(astarte_device_config_t *cfg, astarte_device
 
     esp_mqtt_client_register_event(mqtt_client, ESP_EVENT_ANY_ID, mqtt_event_handler, handle);
     handle->mqtt_client = mqtt_client;
+    handle->mqtt_client_running = false;
 
     // Initialize the handle data to be used during the handshake with Astarte
     handle->mqtt_session_present_flag = 0;
@@ -238,16 +239,16 @@ failure:
     return ares;
 }
 
-astarte_result_t astarte_device_destroy(astarte_device_handle_t device)
+astarte_result_t astarte_device_destroy(astarte_device_handle_t device, size_t timeout)
 {
     astarte_result_t ares = ASTARTE_RESULT_OK;
     if (!device) {
         return ASTARTE_RESULT_OK;
     }
 
-    if (device->connection_state != DEVICE_DISCONNECTED) {
-        ares = device_connection_disconnect(device);
-        if (ares != ASTARTE_RESULT_OK) {
+    if (device->mqtt_client_running) {
+        ares = device_connection_disconnect(device, timeout);
+        if ((ares != ASTARTE_RESULT_OK) && (ares != ASTARTE_RESULT_TIMEOUT)) {
             return ares;
         }
     }
@@ -256,7 +257,7 @@ astarte_result_t astarte_device_destroy(astarte_device_handle_t device)
 
     introspection_free(device->introspection);
     free(device);
-    return ASTARTE_RESULT_OK;
+    return ares;
 }
 
 astarte_result_t astarte_device_add_interface(
@@ -278,13 +279,13 @@ astarte_result_t astarte_device_connect(astarte_device_handle_t device)
     return device_connection_connect(device);
 }
 
-astarte_result_t astarte_device_disconnect(astarte_device_handle_t device)
+astarte_result_t astarte_device_disconnect(astarte_device_handle_t device, size_t timeout)
 {
     if (!device) {
         ASTARTE_LOG_ERR("Received NULL reference for device handle");
         return ASTARTE_RESULT_INVALID_PARAM;
     }
-    return device_connection_disconnect(device);
+    return device_connection_disconnect(device, timeout);
 }
 
 astarte_result_t astarte_device_poll(astarte_device_handle_t device)
