@@ -64,6 +64,17 @@ astarte_result_t dlist_append(dlist_t *handle, void *value)
     return ASTARTE_RESULT_OK;
 }
 
+astarte_result_t dlist_append_int(dlist_t *handle, int value)
+{
+    int *value_alloc = calloc(1, sizeof(int));
+    if (!value_alloc) {
+        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
+        return ASTARTE_RESULT_OUT_OF_MEMORY;
+    }
+    *value_alloc = value;
+    return dlist_append(handle, value_alloc); // NOLINT(clang-analyzer-unix.Malloc)
+}
+
 void *dlist_remove_tail(dlist_t *handle)
 {
     if (dlist_is_empty(handle)) {
