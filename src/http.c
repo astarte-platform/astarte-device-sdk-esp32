@@ -115,12 +115,12 @@ astarte_result_t http_post(const char *host, const char *path, const char *auth_
         .event_handler = http_event_handler,
 #if !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY)
         .transport_type = HTTP_TRANSPORT_OVER_SSL,
-#else /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
-        .transport_type = HTTP_TRANSPORT_OVER_TCP,
-#endif /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
 #if defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
         .crt_bundle_attach = esp_crt_bundle_attach,
 #endif /* defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE) */
+#else /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
+        .transport_type = HTTP_TRANSPORT_OVER_TCP,
+#endif /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
         .user_data = out,
     };
     client = esp_http_client_init(&config);
@@ -183,12 +183,12 @@ astarte_result_t http_get(const char *host, const char *path, const char *auth_b
         .event_handler = http_event_handler,
 #if !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY)
         .transport_type = HTTP_TRANSPORT_OVER_SSL,
-#else /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
-        .transport_type = HTTP_TRANSPORT_OVER_TCP,
-#endif /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
 #if defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
         .crt_bundle_attach = esp_crt_bundle_attach,
 #endif /* defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE) */
+#else /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
+        .transport_type = HTTP_TRANSPORT_OVER_TCP,
+#endif /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
         .user_data = out,
     };
     client = esp_http_client_init(&config);
