@@ -25,7 +25,7 @@ on:
   push:
 
 jobs:
-  clang-format-check:
+  format-check:
     runs-on: ubuntu-latest
     concurrency:
       group: clang-format-check-${{ github.ref }}

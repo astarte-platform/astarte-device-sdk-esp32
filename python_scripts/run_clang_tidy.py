@@ -32,14 +32,14 @@ python3 -m black --line-length 100 ./python_scripts/*.py
 
 """
 
-import sys
-import os
 import argparse
+import os
 import subprocess
-from termcolor import cprint
+import sys
 
+from parse_clang_tidy_res import ERROR, INFO, warn_txt_parse
 from setup_clang_tidy import setup_clang_tidy
-from parse_clang_tidy_res import warn_txt_parse, INFO, ERROR
+from termcolor import cprint
 
 
 def run_clang_tidy(prj_dir: str, verbose: bool, clang_tidy_cfg_dir: str):

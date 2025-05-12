@@ -217,6 +217,7 @@ def generate_interfaces(interfaces_dir: Path, output_dir: Path, output_fn: str, 
         with open(generated_source, "w", encoding="utf-8") as generated_fp:
             generated_fp.write(interfaces_source)
 
+
 # When running as a standalone script
 if __name__ == "__main__":
     # Command line arguments are often duplicated.

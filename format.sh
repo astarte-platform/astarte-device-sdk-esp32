@@ -48,6 +48,24 @@ if [ "$installed_version" != "$package_version" ]; then
         exit 1
     fi
 fi
+package_name="black"
+package_version="25.1.0"
+installed_version=$( (pip show $package_name | grep Version | awk '{print $2}') || true)
+if [ "$installed_version" != "$package_version" ]; then
+    if ! pip install $package_name==$package_version; then
+        echo "Failed to install $package_name version $package_version."
+        exit 1
+    fi
+fi
+package_name="isort"
+package_version="6.0.1"
+installed_version=$( (pip show $package_name | grep Version | awk '{print $2}') || true)
+if [ "$installed_version" != "$package_version" ]; then
+    if ! pip install $package_name==$package_version; then
+        echo "Failed to install $package_name version $package_version."
+        exit 1
+    fi
+fi
 
 # Run clang-format
 format_files=("src/*.c" "include/astarte_device_sdk/*.h" "private/*.h" "samples/**/main/*.c"
@@ -61,6 +79,32 @@ else
 fi
 for file_pattern in "${format_files[@]}"; do
     if ! clang-format --style=file $command $file_pattern; then
+        exit 1
+    fi
+done
+
+# Run python formatter
+format_files=("./python_scripts/*.py")
+if [ "$check_only" = true ]; then
+    command="--diff --check"
+else
+    command=""
+fi
+for file_pattern in "${format_files[@]}"; do
+    if ! black --line-length 100 $command $file_pattern; then
+        exit 1
+    fi
+done
+
+# Run isort formatter
+format_files=("./python_scripts/*.py")
+if [ "$check_only" = true ]; then
+    command="--check-only"
+else
+    command=""
+fi
+for file_pattern in "${format_files[@]}"; do
+    if ! isort --profile black $command $file_pattern; then
         exit 1
     fi
 done
