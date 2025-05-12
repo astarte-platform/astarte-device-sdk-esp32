@@ -60,6 +60,21 @@ bool dlist_is_empty(dlist_t *handle);
 astarte_result_t dlist_append(dlist_t *handle, void *value);
 
 /**
+ * @brief Append an integer item to the end of a linked list
+ *
+ * @note This function will allocate dynamically the space for the integer in addition to the usual
+ * space required for a new item. This additional space will not be deallocated by #dlist_destroy.
+ * The function #dlist_destroy_and_release should be used instead.
+ *
+ * @param[inout] handle Linked list handle
+ * @param[in] value Item to append to the linked list
+ * @return One of the follwing error codes:
+ * @retval ASTARTE_ERR_OUT_OF_MEMORY if memory allocation failed
+ * @retval ASTARTE_RESULT_OK if operation has been successful
+ */
+astarte_result_t dlist_append_int(dlist_t *handle, int value);
+
+/**
  * @brief Remove and return the last item from a linked list
  *
  * @param[inout] handle Linked list handle

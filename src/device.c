@@ -70,12 +70,12 @@ static void mqtt_event_handler(
             break;
 
         case MQTT_EVENT_DATA:
-            ASTARTE_LOG_DBG("MQTT_EVENT_DATA");
+            ASTARTE_LOG_DBG("MQTT_EVENT_DATA, msg_id=%d", event->msg_id);
             device_rx_on_incoming_handler(device, event);
             break;
 
         case MQTT_EVENT_DELETED:
-            ASTARTE_LOG_DBG("MQTT_EVENT_DELETED");
+            ASTARTE_LOG_DBG("MQTT_EVENT_DELETED, msg_id=%d", event->msg_id);
             break;
 
         case MQTT_EVENT_DISCONNECTED:
@@ -93,19 +93,7 @@ static void mqtt_event_handler(
 
         case MQTT_EVENT_PUBLISHED:
             ASTARTE_LOG_DBG("MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
-            // TODO: move this to the device_connection module
-            astarte_result_t ares = ASTARTE_RESULT_OK;
-            dlist_iterator_t iterator = { 0 };
-            ares = dlist_iterator_init(&device->synchronization_message_ids, &iterator);
-            while (ares == ASTARTE_RESULT_OK) {
-                int *device_id = dlist_iterator_get_item(&iterator);
-                if (*device_id == event->msg_id) {
-                    ASTARTE_LOG_DBG("Removing publish message from list, ID: %d.", event->msg_id);
-                    dlist_iterator_remove_item(&iterator);
-                    break;
-                }
-                ares = dlist_iterator_advance(&iterator);
-            }
+            device_connection_on_publish_handler(device, event);
             break;
 
         case MQTT_EVENT_SUBSCRIBED:
@@ -159,7 +147,8 @@ astarte_result_t astarte_device_new(astarte_device_config_t *cfg, astarte_device
     handle->property_unset_cbk = cfg->property_unset_cbk;
     handle->cbk_user_data = cfg->cbk_user_data;
     handle->synchronization_completed = false;
-    handle->synchronization_message_ids = dlist_init();
+    handle->synchronization_out_msg_ids = dlist_init();
+    handle->synchronization_in_msg_ids = dlist_init();
 #if defined(CONFIG_ASTARTE_DEVICE_SDK_NVS)
     ASTARTE_LOG_DBG("Getting stored synchronization");
     ares = device_caching_synchronization_get(&handle->synchronization_completed);
@@ -253,7 +242,8 @@ astarte_result_t astarte_device_destroy(astarte_device_handle_t device, size_t t
         }
     }
 
-    dlist_destroy_and_release(&device->synchronization_message_ids);
+    dlist_destroy_and_release(&device->synchronization_out_msg_ids);
+    dlist_destroy_and_release(&device->synchronization_in_msg_ids);
 
     introspection_free(device->introspection);
     free(device);

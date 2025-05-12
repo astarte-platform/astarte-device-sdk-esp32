@@ -68,6 +68,17 @@ void device_connection_on_connected_handler(
 void device_connection_on_disconnected_handler(astarte_device_handle_t device);
 
 /**
+ * @brief Handler for a PUBLISH event.
+ *
+ * @details This function can be used as a PUBLISH event handler for the Astarte MQTT client.
+ *
+ * @param[in] device Astarte device context.
+ * @param[in] mqtt_event MQTT event from the MQTT driver.
+ */
+void device_connection_on_publish_handler(
+    astarte_device_handle_t device, esp_mqtt_event_handle_t mqtt_event);
+
+/**
  * @brief Handler for a SUBACK event.
  *
  * @details This function can be used as a SUBACK event handler for the Astarte MQTT client.

@@ -101,8 +101,28 @@ static astarte_result_t send_device_owned_properties(astarte_device_handle_t dev
 static void send_device_owned_property(astarte_device_handle_t device, const char *interface_name,
     const char *path, uint32_t major, astarte_data_t data);
 #endif
-
+/**
+ * @brief Subscribe the device to a generic MQTT topic.
+ *
+ * @param[in] device Handle to the device instance.
+ * @param[in] topic Topic to use for the MQTT subscription.
+ * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
+ */
 static astarte_result_t subscribe_to_topic(astarte_device_handle_t device, const char *topic);
+/**
+ * @brief Verify if all the expected synchronization messages have been delivered to Astarte.
+ *
+ * @param[in] device Handle to the device instance.
+ * @return true if all synchronization messages have been delivered to Astarte, false otherwise.
+ */
+static bool synchronization_messages_all_delivered(astarte_device_handle_t device);
+/**
+ * @brief Remove and deallocate an integer from a list if it matches the input integer.
+ *
+ * @param[in] list Pointer to the list to modify.
+ * @return true if a value ha been removed, false if the value has not been found in the list.
+ */
+static bool remove_if_matching(dlist_t *list, int cmp_value);
 
 /************************************************
  *       Callbacks declaration/definition       *
@@ -193,6 +213,9 @@ void device_connection_on_disconnected_handler(astarte_device_handle_t device)
     ASTARTE_LOG_DBG("Device connection state -> DISCONNECTED.");
     device->connection_state = DEVICE_DISCONNECTED;
 
+    dlist_destroy_and_release(&device->synchronization_in_msg_ids);
+    dlist_destroy_and_release(&device->synchronization_out_msg_ids);
+
     if (device->disconnection_cbk) {
         astarte_device_disconnection_event_t event = {
             .device = device,
@@ -202,26 +225,25 @@ void device_connection_on_disconnected_handler(astarte_device_handle_t device)
     }
 }
 
+void device_connection_on_publish_handler(
+    astarte_device_handle_t device, esp_mqtt_event_handle_t mqtt_event)
+{
+    if (device->connection_state != DEVICE_CONNECTED) {
+        ASTARTE_LOG_DBG("Add published message to incoming list, ID: %d.", mqtt_event->msg_id);
+        dlist_append_int(&device->synchronization_in_msg_ids, mqtt_event->msg_id);
+    }
+}
+
 void device_connection_on_subscribed_handler(
     astarte_device_handle_t device, esp_mqtt_event_handle_t mqtt_event)
 {
-    astarte_result_t ares = ASTARTE_RESULT_OK;
-    dlist_iterator_t iterator = { 0 };
-    ares = dlist_iterator_init(&device->synchronization_message_ids, &iterator);
-    while (ares == ASTARTE_RESULT_OK) {
-        int *device_id = dlist_iterator_get_item(&iterator);
-        if (*device_id == mqtt_event->msg_id) {
-            ASTARTE_LOG_DBG("Removing subscription message from list, ID: %d.", mqtt_event->msg_id);
-            dlist_iterator_remove_item(&iterator);
-            break;
-        }
-        ares = dlist_iterator_advance(&iterator);
-    }
-
     if (mqtt_event->error_handle->error_type != MQTT_ERROR_TYPE_NONE) {
         device->subscription_failure = true;
         ASTARTE_LOG_ERR("Failed subscription, error: %d.", mqtt_event->error_handle->error_type);
     }
+
+    ASTARTE_LOG_DBG("Add subscribed message to incoming list, ID: %d.", mqtt_event->msg_id);
+    dlist_append_int(&device->synchronization_in_msg_ids, mqtt_event->msg_id);
 }
 
 void device_connection_poll(astarte_device_handle_t device)
@@ -324,7 +346,7 @@ static void state_machine_end_handshake_run(astarte_device_handle_t device)
         device->connection_state = DEVICE_HANDSHAKE_ERROR;
         goto exit;
     }
-    if (dlist_is_empty(&device->synchronization_message_ids)) {
+    if (synchronization_messages_all_delivered(device)) {
         ASTARTE_LOG_DBG("Device synchronization completed.");
         device->synchronization_completed = true;
         ASTARTE_LOG_DBG("Device connection state -> CONNECTED.");
@@ -379,6 +401,9 @@ static void state_machine_handshake_error_run(astarte_device_handle_t device)
             ASTARTE_LOG_ERR("Synchronization state set failure %s.", astarte_result_to_name(ares));
         }
 #endif
+    } else {
+        dlist_destroy_and_release(&device->synchronization_in_msg_ids);
+        dlist_destroy_and_release(&device->synchronization_out_msg_ids);
     }
     if (xTaskGetTickCount() > device->reconnection_timepoint) {
         // Repeat the handshake procedure
@@ -461,7 +486,7 @@ static void send_introspection(astarte_device_handle_t device, char *intr_str)
     ASTARTE_LOG_DBG("Publishing introspection: %s", intr_str);
     size_t intr_str_len = strlen(intr_str);
     if (intr_str_len > INT_MAX) {
-        ASTARTE_LOG_ERR("Introspection is too long, can't be pubblished with MQTT.");
+        ASTARTE_LOG_ERR("Introspection is too long, can't be published with MQTT.");
         return;
     }
     int msg_id
@@ -469,14 +494,8 @@ static void send_introspection(astarte_device_handle_t device, char *intr_str)
     if (msg_id < 0) {
         return;
     }
-    int *msg_id_alloc = calloc(1, sizeof(int));
-    if (!msg_id_alloc) {
-        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
-        return;
-    }
-    *msg_id_alloc = msg_id;
-    ASTARTE_LOG_DBG("Adding introspection message to list, ID: %d.", *msg_id_alloc);
-    dlist_append(&device->synchronization_message_ids, msg_id_alloc);
+    ASTARTE_LOG_DBG("Add introspection message to list, ID: %d.", msg_id);
+    dlist_append_int(&device->synchronization_out_msg_ids, msg_id);
 }
 
 static void send_emptycache(astarte_device_handle_t device)
@@ -487,14 +506,8 @@ static void send_emptycache(astarte_device_handle_t device)
     if (msg_id < 0) {
         return;
     }
-    int *msg_id_alloc = calloc(1, sizeof(int));
-    if (!msg_id_alloc) {
-        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
-        return;
-    }
-    *msg_id_alloc = msg_id;
-    ASTARTE_LOG_DBG("Adding empty cache message to list, ID: %d.", *msg_id_alloc);
-    dlist_append(&device->synchronization_message_ids, msg_id_alloc);
+    ASTARTE_LOG_DBG("Add empty cache message to list, ID: %d.", msg_id);
+    dlist_append_int(&device->synchronization_out_msg_ids, msg_id);
 }
 
 #if defined(CONFIG_ASTARTE_DEVICE_SDK_NVS)
@@ -680,12 +693,51 @@ static astarte_result_t subscribe_to_topic(astarte_device_handle_t device, const
     if (msg_id < 0) {
         return ASTARTE_RESULT_MQTT_ERROR;
     }
-    int *msg_id_alloc = calloc(1, sizeof(int));
-    if (!msg_id_alloc) {
-        ASTARTE_LOG_ERR("Out of memory %s: %d", __FILE__, __LINE__);
-        return ASTARTE_RESULT_OUT_OF_MEMORY;
+    ASTARTE_LOG_DBG("Add subscription message to list, ID: %d.", msg_id);
+    return dlist_append_int(&device->synchronization_out_msg_ids, msg_id);
+}
+
+static bool synchronization_messages_all_delivered(astarte_device_handle_t device)
+{
+    astarte_result_t ares = ASTARTE_RESULT_OK;
+    int *msg_id = NULL;
+    dlist_iterator_t iterator = { 0 };
+
+    ares = dlist_iterator_init(&device->synchronization_out_msg_ids, &iterator);
+    while (ares == ASTARTE_RESULT_OK) {
+        msg_id = dlist_iterator_get_item(&iterator);
+        if (remove_if_matching(&device->synchronization_in_msg_ids, *msg_id)) {
+            dlist_iterator_remove_item(&iterator);
+            free(msg_id);
+            if (dlist_is_empty(&device->synchronization_out_msg_ids)) {
+                break;
+            }
+        } else {
+            ares = dlist_iterator_advance(&iterator);
+        }
     }
-    *msg_id_alloc = msg_id;
-    ASTARTE_LOG_DBG("Adding subscription message to list, ID: %d.", *msg_id_alloc);
-    return dlist_append(&device->synchronization_message_ids, msg_id_alloc);
+
+    if (dlist_is_empty(&device->synchronization_out_msg_ids)) {
+        return true;
+    }
+    return false;
+}
+
+static bool remove_if_matching(dlist_t *list, int cmp_value)
+{
+    astarte_result_t ares = ASTARTE_RESULT_OK;
+    dlist_iterator_t iterator = { 0 };
+    int *list_value = NULL;
+    ares = dlist_iterator_init(list, &iterator);
+    while (ares == ASTARTE_RESULT_OK) {
+        list_value = dlist_iterator_get_item(&iterator);
+        if (*list_value == cmp_value) {
+            ASTARTE_LOG_DBG("Removing and freeing integer from list, value: %d.", cmp_value);
+            dlist_iterator_remove_item(&iterator);
+            free(list_value);
+            return true;
+        }
+        ares = dlist_iterator_advance(&iterator);
+    }
+    return false;
 }

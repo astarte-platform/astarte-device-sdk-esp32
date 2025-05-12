@@ -116,8 +116,10 @@ struct astarte_device
     enum connection_states connection_state;
     /** @brief Set if, since instance creation, a sync with Astarte has ever been performed. */
     bool synchronization_completed;
-    /** @brief List containing all the device ids from the synchronization procedure. */
-    dlist_t synchronization_message_ids;
+    /** @brief List containing all the device ids sent in the synchronization procedure. */
+    dlist_t synchronization_out_msg_ids;
+    /** @brief List containing all the device ids received in the synchronization procedure. */
+    dlist_t synchronization_in_msg_ids;
     /** @brief Flag signaling a subscription request has failed. */
     bool subscription_failure;
     /** @brief Backoff context to be used in case of an handshake error with Astarte. */
