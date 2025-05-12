@@ -13,7 +13,7 @@
 
 #include <esp_log.h>
 
-#define TAG "INTROSPECTION TEST"
+#define TAG "utest-introspection"
 
 void test_introspection_creation(void)
 {

@@ -14,7 +14,7 @@
 #include "log.h"
 #include "mapping_private.h"
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte interface");
+ASTARTE_LOG_MODULE_REGISTER("astarte-interface");
 
 astarte_result_t interface_validate(const astarte_interface_t *interface)
 {

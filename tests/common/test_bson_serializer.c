@@ -13,7 +13,7 @@
 
 #include <esp_log.h>
 
-#define TAG "BSON SERIALZIER TEST"
+#define TAG "utest-bson-serializer"
 
 void test_bson_serializer_empty_document(void)
 {

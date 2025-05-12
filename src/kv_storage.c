@@ -37,7 +37,7 @@
  *        Defines, constants and typedef        *
  ***********************************************/
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte kv storage");
+ASTARTE_LOG_MODULE_REGISTER("astarte-kv-storage");
 
 /************************************************
  *         Static functions declaration         *

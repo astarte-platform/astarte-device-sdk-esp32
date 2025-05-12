@@ -13,7 +13,7 @@
 
 #include <string.h>
 
-#define TAG "UUID TEST"
+#define TAG "utest-uuid"
 
 #include "Mockesp_random.h"
 #include "Mockmd.h"

@@ -17,7 +17,7 @@
  * Constants, static variables and defines
  ***********************************************/
 
-#define TAG "Astarte sample"
+#define TAG "astarte-sample-properties"
 
 /************************************************
  * Global functions definition

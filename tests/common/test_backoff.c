@@ -11,7 +11,7 @@
 
 #include <esp_log.h>
 
-#define TAG "BACKOFF TEST"
+#define TAG "utest-backoff"
 
 void test_backoff_no_jitter(void)
 {

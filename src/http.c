@@ -16,7 +16,7 @@
 
 #include "log.h"
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte HTTP");
+ASTARTE_LOG_MODULE_REGISTER("astarte-http");
 
 /************************************************
  *       Checks over configuration values       *

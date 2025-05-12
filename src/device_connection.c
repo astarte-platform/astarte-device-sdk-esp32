@@ -17,7 +17,7 @@
  *        Defines, constants and typedef        *
  ***********************************************/
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte device connection");
+ASTARTE_LOG_MODULE_REGISTER("astarte-device-connection");
 
 /** @brief Wake period for the disconnection timeout in milliseconds. */
 #define DISCONNECT_WAKE_PERIOD_MS 100

@@ -20,7 +20,7 @@
  * Constants/Defines
  ***********************************************/
 
-#define TAG "ASTARTE SAMPLE APP MAIN"
+#define TAG "astarte-sample-app-main"
 
 #define ASTARTE_SAMPLE_TASK_STACK_SIZE 65536
 

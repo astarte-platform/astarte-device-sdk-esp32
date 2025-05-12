@@ -12,7 +12,7 @@
  *        Defines, constants and typedef        *
  ***********************************************/
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte device ID");
+ASTARTE_LOG_MODULE_REGISTER("astarte-device-id");
 
 /************************************************
  *         Global functions definitions         *

@@ -17,7 +17,7 @@
  *        Defines, constants and typedef        *
  ***********************************************/
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte dlist");
+ASTARTE_LOG_MODULE_REGISTER("astarte-dlist");
 
 struct dlist_node
 {

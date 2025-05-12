@@ -15,7 +15,7 @@
 #include "log.h"
 #include "mapping_private.h"
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte data");
+ASTARTE_LOG_MODULE_REGISTER("astarte-data");
 
 /************************************************
  *         Static functions declaration         *

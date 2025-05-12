@@ -13,7 +13,7 @@
 
 #include <esp_log.h>
 
-#define TAG "DLIST TEST"
+#define TAG "utest-dlist"
 
 void test_dlist_is_empty(void)
 {

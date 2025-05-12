@@ -31,7 +31,7 @@
  * Constants and defines
  ***********************************************/
 
-#define TAG "ASTARTE SAMPLE ASTARTE TASK"
+#define TAG "astarte-sample-astarte-task"
 #define ASTARTE_TRANSMIT_TASK_STACK_SIZE 16384
 
 #define MS_IN_SEC 1000

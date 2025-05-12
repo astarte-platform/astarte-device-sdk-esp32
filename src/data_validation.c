@@ -5,13 +5,11 @@
  */
 #include "data_validation.h"
 
-#include <esp_log.h>
-
 #include "interface_private.h"
 #include "log.h"
 #include "mapping_private.h"
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte data validation");
+ASTARTE_LOG_MODULE_REGISTER("astarte-data-validation");
 
 /************************************************
  *         Global functions definitions         *

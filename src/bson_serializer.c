@@ -14,7 +14,7 @@
 #include "bson_types.h"
 #include "log.h"
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte serializer");
+ASTARTE_LOG_MODULE_REGISTER("astarte-bson-serializer");
 
 // When serializing a C array into a BSON array, this is the maximum allowed size of the string
 // field array length. 12 chars corresponding to 999999999999 elements.

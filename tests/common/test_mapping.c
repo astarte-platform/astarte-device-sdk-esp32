@@ -12,7 +12,7 @@
 
 #include <esp_log.h>
 
-#define TAG "MAPPING TEST"
+#define TAG "utest-mapping"
 
 void test_mapping_check_path_one_segment_no_pattern(void)
 {
