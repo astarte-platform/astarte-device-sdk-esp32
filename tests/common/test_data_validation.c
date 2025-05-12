@@ -11,7 +11,7 @@
 
 #include <esp_log.h>
 
-#define TAG "DATA VALIDATION TEST"
+#define TAG "utest-data-validation"
 
 void test_data_validation_individual_datastream_ok(void)
 {

@@ -12,7 +12,7 @@
 
 #include "log.h"
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte mapping");
+ASTARTE_LOG_MODULE_REGISTER("astarte-mapping");
 
 /************************************************
  *         Static functions declaration         *

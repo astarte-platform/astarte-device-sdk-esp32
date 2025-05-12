@@ -12,7 +12,7 @@
 
 #include <esp_log.h>
 
-#define TAG "OBJECT TEST"
+#define TAG "utest-object"
 
 static const char test_data_double_path[] = "double_endpoint";
 static const double test_data_double = 32.1;

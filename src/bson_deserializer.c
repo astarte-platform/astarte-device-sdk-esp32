@@ -12,7 +12,7 @@
 #include "bson_types.h"
 #include "log.h"
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte deserializer");
+ASTARTE_LOG_MODULE_REGISTER("astarte-bson-deserializer");
 
 /************************************************
  *        Defines, constants and typedef        *

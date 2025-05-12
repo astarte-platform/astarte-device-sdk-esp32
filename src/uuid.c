@@ -18,7 +18,7 @@
 
 #include "log.h"
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte UUID");
+ASTARTE_LOG_MODULE_REGISTER("astarte-uuid");
 
 // All the macros below follow the standard for the Universally Unique Identifier as defined
 // by the IETF in the RFC9562.

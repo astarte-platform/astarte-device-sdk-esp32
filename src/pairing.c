@@ -16,7 +16,7 @@
 #include "http.h"
 #include "log.h"
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte pairing");
+ASTARTE_LOG_MODULE_REGISTER("astarte-pairing");
 
 /************************************************
  *        Defines, constants and typedef        *

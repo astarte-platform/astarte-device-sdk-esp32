@@ -12,7 +12,7 @@
 #include <nvs_flash.h>
 #include <string.h>
 
-#define TAG "DEVICE CACHING TEST"
+#define TAG "utest-device-caching"
 
 #define SYNCHRONIZATION_NAMESPACE "sync_namespace"
 #define INTROSPECTION_NAMESPACE "intr_namespace"

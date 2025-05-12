@@ -14,7 +14,7 @@
 #include "interface_private.h"
 #include "log.h"
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte object");
+ASTARTE_LOG_MODULE_REGISTER("astarte-object");
 
 /************************************************
  *     Global public functions definitions      *

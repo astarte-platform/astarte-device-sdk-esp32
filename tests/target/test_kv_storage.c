@@ -12,7 +12,7 @@
 #include <esp_log.h>
 #include <nvs_flash.h>
 
-#define TAG "KEY VALUE STORAGE TEST"
+#define TAG "utest-kv-storage"
 
 void test_kv_storage_set_get_cycle(void)
 {

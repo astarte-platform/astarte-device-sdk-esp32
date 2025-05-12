@@ -18,7 +18,7 @@
  *        Defines, constants and typedef        *
  ***********************************************/
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte device transmission");
+ASTARTE_LOG_MODULE_REGISTER("astarte-device-tx");
 
 /************************************************
  *         Static functions declaration         *

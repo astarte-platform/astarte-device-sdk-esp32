@@ -19,7 +19,7 @@
 
 #include "log.h"
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte crypto");
+ASTARTE_LOG_MODULE_REGISTER("astarte-crypto");
 
 /************************************************
  *         Global functions definitions         *

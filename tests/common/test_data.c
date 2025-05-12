@@ -17,7 +17,7 @@
 
 #include <esp_log.h>
 
-#define TAG "DATA TEST"
+#define TAG "utest-data"
 
 static const uint8_t test_data_binaryblob[] = { 0x68, 0x65, 0x6c, 0x6c, 0x6f };
 static const uint8_t test_data_serialized_binaryblob[] = { 0x12, 0x00, 0x00, 0x00, 0x05, 0x76, 0x00,

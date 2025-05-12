@@ -12,7 +12,7 @@
 
 #include <esp_log.h>
 
-#define TAG "INTERFACE TEST"
+#define TAG "utest-interface"
 
 void test_interface_get_mapping(void)
 {

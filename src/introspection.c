@@ -6,7 +6,6 @@
 
 #include "introspection.h"
 
-#include <esp_log.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -25,7 +24,7 @@
  *        Defines, constants and typedef        *
  ***********************************************/
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte introspection");
+ASTARTE_LOG_MODULE_REGISTER("astarte-introspection");
 
 /************************************************
  *         Static functions declaration         *

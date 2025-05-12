@@ -29,7 +29,7 @@
  *        Defines, constants and typedef        *
  ***********************************************/
 
-ASTARTE_LOG_MODULE_REGISTER("Astarte caching");
+ASTARTE_LOG_MODULE_REGISTER("astarte-device-caching");
 
 #define SYNCHRONIZATION_NAMESPACE_NAME "astarte_synch"
 #define INTROSPECTION_NAMESPACE_NAME "astarte_intro"

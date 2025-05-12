@@ -15,7 +15,7 @@
  * Constants, static variables and defines
  ***********************************************/
 
-#define TAG "Astarte sample"
+#define TAG "astarte-sample-utils"
 
 // Maximum size for the datetime string
 #define DATETIME_MAX_BUF_SIZE 30

@@ -19,7 +19,7 @@
 #include "object_private.h"
 
 #include "log.h"
-ASTARTE_LOG_MODULE_REGISTER("Astarte device reception");
+ASTARTE_LOG_MODULE_REGISTER("astarte-device-rx");
 
 /************************************************
  *         Static functions declaration         *

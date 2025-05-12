@@ -10,7 +10,7 @@
 
 #include <esp_log.h>
 
-#define TAG "DEVICE ID TEST"
+#define TAG "utest-device-id"
 
 void test_device_id_generate_deterministic(void)
 {

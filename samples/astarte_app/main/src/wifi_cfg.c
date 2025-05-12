@@ -17,7 +17,7 @@
  * Constants/Defines
  ***********************************************/
 
-#define TAG "ASTARTE SAMPLE WIFI"
+#define TAG "astarte-sample-wifi"
 
 static EventGroupHandle_t wifi_event_group;
 const static int connected_bit = BIT0;
