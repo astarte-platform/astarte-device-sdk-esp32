@@ -31,13 +31,13 @@ python3 -m black --line-length 100 ./python_scripts/*.py
 
 """
 
-import sys
-import os
 import argparse
+import os
 import subprocess
-from termcolor import cprint
+import sys
 
-from parse_clang_tidy_res import INFO, ERROR
+from parse_clang_tidy_res import ERROR, INFO
+from termcolor import cprint
 
 
 def setup_clang_tidy(prj_dir: str, verbose: bool):

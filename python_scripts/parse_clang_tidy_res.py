@@ -33,13 +33,13 @@ python3 -m black --line-length 100 ./python_scripts/*.py
 """
 from __future__ import annotations
 
-import sys
-import os
 import argparse
-
-import textwrap
+import os
 import re
+import sys
+import textwrap
 from collections import namedtuple
+
 import colored
 from colored import stylize
 
