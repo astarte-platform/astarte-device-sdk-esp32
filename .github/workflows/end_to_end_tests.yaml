@@ -1,0 +1,107 @@
+# (C) Copyright 2025, SECO Mind Srl
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: End to End tests
+
+on: [pull_request]
+env:
+  ASTARTE_API_HOSTNAME: api.autotest.astarte-platform.org
+  ASTARTE_BROKER_HOSTNAME: broker.autotest.astarte-platform.org
+  ASTARTE_ACTION_CERT: /usr/local/share/ca-certificates/astarte-autotest.crt
+  QEMU_GATEWAY_ADDR: 10.0.2.2
+
+jobs:
+  end-to-end-test:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: end-to-end-test-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: astarte-device-sdk-esp32
+    - name: Install ESP IDF
+      run: |
+        sudo apt-get update
+        sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
+        mkdir -p esp
+        cd esp
+        git clone -b release/v5.4 --recursive https://github.com/espressif/esp-idf.git
+        mkdir esp-tools
+        export IDF_TOOLS_PATH="$PWD/esp-tools"
+        cd esp-idf
+        ./install.sh all
+        echo "IDF_TOOLS_PATH=$IDF_TOOLS_PATH" >> "$GITHUB_ENV"
+        echo "IDF_PATH=$PWD" >> "$GITHUB_ENV"
+    - name: Create Astarte cluster
+      uses: astarte-platform/astarte-cluster-action@v1
+      with:
+        astarte_version: "1.2.1-alpha.0"
+    - name: Install interface
+      working-directory: ./astarte-device-sdk-esp32
+      run: |
+        astartectl realm-management interfaces sync --non-interactive ./end_to_end_tests/app/interfaces/*.json
+        astartectl realm-management interfaces ls
+    - name: Copy the Astarte certificate
+      working-directory: ./astarte-device-sdk-esp32/end_to_end_tests/app
+      run: |
+        mkdir -p ./certificate
+        cat "$ASTARTE_ACTION_CERT" > ./certificate/api.autotest.astarte-platform.pem
+    - name: Generate configuration values
+      working-directory: ./astarte-device-sdk-esp32/end_to_end_tests/app
+      run: |
+        DEVICE_ID=$(astartectl utils device-id generate-random)
+        CREDENTIAL_SECRET=$(astartectl pairing agent register --compact-output -- "$DEVICE_ID")
+        PAIRING_TOKEN=$(astartectl utils gen-jwt pairing)
+        APPENGINE_TOKEN=$(astartectl utils gen-jwt appengine)
+        echo "TEST_DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
+        echo "TEST_CREDENTIAL_SECRET=$CREDENTIAL_SECRET" >> "$GITHUB_ENV"
+        echo "TEST_PAIRING_TOKEN=$PAIRING_TOKEN" >> "$GITHUB_ENV"
+        echo "TEST_APPENGINE_TOKEN=$APPENGINE_TOKEN" >> "$GITHUB_ENV"
+    - name: Setup qemu application configuration values
+      working-directory: ./astarte-device-sdk-esp32/end_to_end_tests/app
+      run: |
+        tee sdkconfig.priv << END
+        CONFIG_ASTARTE_DEVICE_SDK_HOSTNAME="$ASTARTE_API_HOSTNAME"
+        CONFIG_ASTARTE_DEVICE_SDK_REALM_NAME="test"
+        CONFIG_DEVICE_ID="$TEST_DEVICE_ID"
+        CONFIG_CREDENTIAL_SECRET="$TEST_CREDENTIAL_SECRET"
+        CONFIG_ASTARTE_DEVICE_SDK_PAIRING_JWT="$TEST_PAIRING_TOKEN"
+        CONFIG_LOG_MAXIMUM_LEVEL_VERBOSE=y
+        CONFIG_MBEDTLS_CUSTOM_CERTIFICATE_BUNDLE=y
+        CONFIG_MBEDTLS_CUSTOM_CERTIFICATE_BUNDLE_PATH="./certificate/api.autotest.astarte-platform.pem"
+        END
+    - name: Setup unit test configuration values
+      working-directory: ./astarte-device-sdk-esp32/end_to_end_tests
+      run: |
+        tee config.priv << END
+        REALM = "test"
+        DEVICE_ID = "$TEST_DEVICE_ID"
+        API_HOSTNAME = "$ASTARTE_API_HOSTNAME"
+        APPENGINE_TOKEN = "$TEST_APPENGINE_TOKEN"
+        END
+    - name: Install ESP qemu dependencies
+      working-directory: ./astarte-device-sdk-esp32
+      run: |
+        sudo apt-get install -y libgcrypt20 libglib2.0-0 libpixman-1-0 libsdl2-2.0-0 libslirp0
+        python $IDF_PATH/tools/idf_tools.py install qemu-xtensa qemu-riscv32
+    - name: Update DNS configuration
+      run: |
+        # echo "$QEMU_GATEWAY_ADDR $ASTARTE_API_HOSTNAME" | sudo tee -a /etc/hosts
+        sudo sed -i -e "s/127.0.0.1 ${ASTARTE_API_HOSTNAME}/${QEMU_GATEWAY_ADDR} ${ASTARTE_API_HOSTNAME}/" /etc/hosts
+        sudo sed -i -e "s/127.0.0.1 ${ASTARTE_BROKER_HOSTNAME}/${QEMU_GATEWAY_ADDR} ${ASTARTE_BROKER_HOSTNAME}/" /etc/hosts
+        cat /etc/hosts
+    - name: Build and run the end to end application
+      working-directory: ./astarte-device-sdk-esp32
+      run: |
+        echo $IDF_TOOLS_PATH
+        echo $IDF_PATH
+        ./build_end_to_end.sh --astarte-local --esp_path $IDF_PATH
+    - name: Upload end to end tests log files
+      uses: actions/upload-artifact@v4
+      with:
+        name: end-to-end-logs
+        path: astarte-device-sdk-esp32/end_to_end_tests/app/.tmp
+        if-no-files-found: error
+        include-hidden-files: true

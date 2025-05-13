@@ -68,7 +68,9 @@ if [ "$installed_version" != "$package_version" ]; then
 fi
 
 # Run clang-format
-format_files=("src/*.c" "include/astarte_device_sdk/*.h" "private/*.h" "samples/**/main/*.c"
+format_files=("src/*.c" "include/astarte_device_sdk/*.h" "private/*.h"
+              "end_to_end_tests/app/main/*.c" "end_to_end_tests/app/main/src/*.c"
+              "end_to_end_tests/app/main/include/*.h" "samples/**/main/*.c"
               "samples/**/main/src/*.c" "samples/**/main/include/*.h" "tests/host/*.c"
               "tests/host/*.h" "tests/common/*.h" "tests/common/*.c" "tests/target/*.c"
               "tests/target/*.h" "tests/host_app/main/*.c" "tests/target_app/main/*.c")
@@ -84,7 +86,7 @@ for file_pattern in "${format_files[@]}"; do
 done
 
 # Run python formatter
-format_files=("./python_scripts/*.py")
+format_files=("./python_scripts/*.py" "./end_to_end_tests/*.py")
 if [ "$check_only" = true ]; then
     command="--diff --check"
 else
@@ -97,7 +99,7 @@ for file_pattern in "${format_files[@]}"; do
 done
 
 # Run isort formatter
-format_files=("./python_scripts/*.py")
+format_files=("./python_scripts/*.py" "./end_to_end_tests/*.py")
 if [ "$check_only" = true ]; then
     command="--check-only"
 else

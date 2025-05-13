@@ -1,0 +1,122 @@
+# (C) Copyright 2025, SECO Mind Srl
+#
+# SPDX-License-Identifier: Apache-2.0
+
+menu "Astarte application sample"
+
+config DEVICE_ID
+    string "Device hardware ID"
+    default ""
+    help
+        Device ID to be used to connect to Astarte.
+
+config CREDENTIAL_SECRET
+    string "Credential secret"
+    default ""
+    depends on !DEVICE_REGISTRATION
+    help
+        The credential secret to be used to connect to Astarte.
+
+config DEVICE_POLL_PERIOD_MS
+    int "Device thread polling period (ms)"
+    default 100
+    help
+        Use this setting to change the polling period for the Astarte device.
+
+config DEVICE_OPERATIONAL_TIMEOUT
+    int "Operational time in sedonds for which the device will stay connected to astarte"
+    default 60
+    depends on !DEVICE_INDIVIDUAL_TRANSMISSION
+    depends on !DEVICE_OBJECT_TRANSMISSION
+    depends on !DEVICE_PROPERTY_SET_TRANSMISSION
+    depends on !DEVICE_PROPERTY_UNSET_TRANSMISSION
+    help
+        The device will stay connected to astarte for the specified number of seconds,
+        after this time the device will be disconnected and the sample will end.
+        This option gets automatically enabled when no transmission is configured to
+        allow the device to wait for messages from the server.
+
+menu "Registration"
+
+config DEVICE_REGISTRATION
+    bool "Enable device registration in the sample"
+    default n
+    help
+        Use this setting to enable the registration of the device given a pairing jwt.
+        The registration will use the defined jwt in ASTARTE_DEVICE_SDK_PAIRING_JWT.
+
+endmenu
+
+menu "Individual transmission"
+
+config DEVICE_INDIVIDUAL_TRANSMISSION
+    bool "Enable sample transmission of astarte individuals"
+    default y
+    help
+        Use this setting to enable the transmission of astarte inviduals in the sample.
+
+config DEVICE_INDIVIDUAL_TRANSMISSION_DELAY_SECONDS
+    int "Device transmission delay (s)"
+    default 10
+    depends on DEVICE_INDIVIDUAL_TRANSMISSION
+    help
+        Use this setting to change how long to wait before sending individuals.
+        This delay starts after the device connects to astarte: a delay of 0 means that all
+        individuals will be sent just after a connection event.
+
+endmenu
+
+menu "Object transmission"
+
+config DEVICE_OBJECT_TRANSMISSION
+    bool "Enable sample transmission of astarte objects"
+    default y
+    help
+        Use this setting to enable the transmission of astarte objects in the sample.
+
+config DEVICE_OBJECT_TRANSMISSION_DELAY_SECONDS
+    int "Device transmission delay (s)"
+    default 10
+    depends on DEVICE_OBJECT_TRANSMISSION
+    help
+        Use this setting to change how long to wait before sending objects.
+        This delay starts after all individuals got sent: a delay of 0 means that all objects
+        will be sent just after the individual got sent.
+
+endmenu
+
+menu "Property transmission"
+
+config DEVICE_PROPERTY_SET_TRANSMISSION
+    bool "Enable sample transmission of astarte properties set"
+    default y
+    help
+        Use this setting to enable the transmission of astarte properties set in the sample.
+
+config DEVICE_PROPERTY_SET_TRANSMISSION_DELAY_SECONDS
+    int "Device transmission delay (s)"
+    default 10
+    depends on DEVICE_PROPERTY_SET_TRANSMISSION
+    help
+        Use this setting to change how long to wait before setting properties.
+        This delay starts after all objects got sent: a delay of 0 means that all properties
+        will be set just after the object got sent.
+
+config DEVICE_PROPERTY_UNSET_TRANSMISSION
+    bool "Enable sample transmission of astarte properties unset"
+    default y
+    help
+        Use this setting to enable the transmission of astarte properties unset in the sample.
+
+config DEVICE_PROPERTY_UNSET_TRANSMISSION_DELAY_SECONDS
+    int "Send property unset transmission delay (s)"
+    default 10
+    depends on DEVICE_PROPERTY_UNSET_TRANSMISSION
+    help
+        Use this setting to change how long to wait before sending properties unsets.
+        This delay starts after all properties got set: a delay of 0 means that all properties
+        will be unset just after they got set.
+
+endmenu
+
+endmenu
