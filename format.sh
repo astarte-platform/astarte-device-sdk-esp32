@@ -86,7 +86,7 @@ for file_pattern in "${format_files[@]}"; do
 done
 
 # Run python formatter
-format_files=("./python_scripts/*.py" "./end_to_end_tests/*.py")
+format_files=("./python_scripts/*.py" "./end_to_end_tests/*.py" "./end_to_end_tests/cases/*.py")
 if [ "$check_only" = true ]; then
     command="--diff --check"
 else
@@ -99,7 +99,7 @@ for file_pattern in "${format_files[@]}"; do
 done
 
 # Run isort formatter
-format_files=("./python_scripts/*.py" "./end_to_end_tests/*.py")
+format_files=("./python_scripts/*.py" "./end_to_end_tests/*.py" "./end_to_end_tests/cases/*.py")
 if [ "$check_only" = true ]; then
     command="--check-only"
 else

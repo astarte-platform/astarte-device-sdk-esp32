@@ -11,12 +11,14 @@ from qemu_commands import qemu_cmd_start, qemu_cmd_stop
 
 
 class TestCase:
-    def __init__(self, name: str, actions: List[TestAction], log_dir: Path):
+    def __init__(self, name: str, actions: List[TestAction]):
         self._name: str = name
         self._actions: List[TestAction] = actions
         self._pty_master_fd, self._pty_slave_fd = pty.openpty()
-        self._log_file: Path = log_dir / f"{name}_qemu_build_stdout.log"
-        self._err_file: Path = log_dir / f"{name}_qemu_build_stderr.log"
+
+    def configure_log_dir(self, log_dir: Path):
+        self._log_file: Path = log_dir / f"{self._name}_qemu_build_stdout.log"
+        self._err_file: Path = log_dir / f"{self._name}_qemu_build_stderr.log"
 
     def configure_qemu(self, is_host: bool):
         self._is_host: bool = is_host

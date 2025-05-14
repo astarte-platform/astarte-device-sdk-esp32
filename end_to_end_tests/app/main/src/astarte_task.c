@@ -232,6 +232,7 @@ static int cmd_send_data_handler(int argc, char **argv)
         ESP_LOGI(TAG, "Interface: %s.", interface);
         ESP_LOGI(TAG, "Path: %s.", path);
         ESP_LOGI(TAG, "Data: %s.", data);
+        // TODO: Complete the end to end tests adding support for objects
     }
 
     ESP_LOGI(TAG, "Transmission to Astarte completed '%s' - '%s' - '%s'", interface, path, data);
@@ -408,16 +409,17 @@ void astarte_task_entry(void *ctx)
         &org_astarteplatform_end_to_end_ServerProperty,
     };
 
-    astarte_device_config_t device_config = { 0 };
-    device_config.connection_cbk = connection_callback;
-    device_config.disconnection_cbk = disconnection_callback;
-    device_config.datastream_individual_cbk = datastream_individual_callback;
-    device_config.datastream_object_cbk = datastream_object_callback;
-    device_config.property_set_cbk = set_property_callback;
-    device_config.property_unset_cbk = unset_property_callback;
-    device_config.cbk_user_data = NULL;
-    device_config.interfaces = interfaces;
-    device_config.interfaces_size = ARRAY_SIZE(interfaces);
+    astarte_device_config_t device_config = {
+        .connection_cbk = connection_callback,
+        .disconnection_cbk = disconnection_callback,
+        .datastream_individual_cbk = datastream_individual_callback,
+        .datastream_object_cbk = datastream_object_callback,
+        .property_set_cbk = set_property_callback,
+        .property_unset_cbk = unset_property_callback,
+        .cbk_user_data = NULL,
+        .interfaces = interfaces,
+        .interfaces_size = ARRAY_SIZE(interfaces),
+    };
     memcpy(device_config.device_id, device_id, sizeof(device_id));
     memcpy(device_config.cred_secr, cred_secr, sizeof(cred_secr));
 
@@ -436,13 +438,6 @@ void astarte_task_entry(void *ctx)
             goto exit;
         }
         vTaskDelayUntil(&last_wake_time, CONFIG_DEVICE_POLL_PERIOD_MS / portTICK_PERIOD_MS);
-    }
-
-    ESP_LOGI(TAG, "Destroying the device.");
-    ares = astarte_device_destroy(device, 2000);
-    if (ares != ASTARTE_RESULT_OK) {
-        ESP_LOGE(TAG, "Failed in device destruction, err: %s", astarte_result_to_name(ares));
-        goto exit;
     }
 
 exit:

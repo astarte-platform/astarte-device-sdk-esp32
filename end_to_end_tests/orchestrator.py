@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from pathlib import Path
 from typing import List
 
 from case import TestCase
@@ -29,7 +30,8 @@ class TestOrchestrator:
         self._test_cases: List[TestCase] = []
         self._is_host = is_host
 
-    def add_test_case(self, test_case: TestCase):
+    def add_test_case(self, test_case: TestCase, log_dir: Path):
+        test_case.configure_log_dir(log_dir)
         test_case.configure_qemu(self._is_host)
         test_case.configure_curl(
             self._curl_config.astarte_local,
