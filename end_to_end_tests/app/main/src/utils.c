@@ -9,42 +9,18 @@
 #include <esp_log.h>
 #include <time.h>
 
+#include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
 /************************************************
  * Constants, static variables and defines
  ***********************************************/
 
-#define TAG "astarte-sample-utils"
+#define TAG "astarte-end-to-end-test"
 
 // Maximum size for the datetime string
-#define DATETIME_MAX_BUF_SIZE 30
-
-// NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-avoid-magic-numbers)
-const uint8_t utils_binary_blob_data[8] = { 0x53, 0x47, 0x56, 0x73, 0x62, 0x47, 0x38, 0x3d };
-static const uint8_t binblob_1[8] = { 0x53, 0x47, 0x56, 0x73, 0x62, 0x47, 0x38, 0x3d };
-static const uint8_t binblob_2[5] = { 0x64, 0x32, 0x39, 0x79, 0x62 };
-const uint8_t *const utils_binary_blobs_data[2] = { binblob_1, binblob_2 };
-const size_t utils_binary_blobs_sizes_data[2] = { ARRAY_SIZE(binblob_1), ARRAY_SIZE(binblob_2) };
-const bool utils_boolean_data = true;
-const bool utils_boolean_array_data[3] = { true, false, true };
-const int64_t utils_unix_time_data = 1710940988984;
-const int64_t utils_unix_time_array_data[1] = { 1710940988984 };
-const double utils_double_data = 15.42;
-const double utils_double_array_data[2] = { 1542.25, 88852.6 };
-const int32_t utils_integer_data = 42;
-const int32_t utils_integer_array_data[3] = { 4525, 0, 11 };
-const int64_t utils_longinteger_data = 8589934592;
-const int64_t utils_longinteger_array_data[3] = { 8589930067, 42, 8589934592 };
-const char utils_string_data[] = "Hello world!";
-const char *const utils_string_array_data[2] = { "Hello ", "world!" };
-// NOLINTEND(readability-magic-numbers, cppcoreguidelines-avoid-magic-numbers)
-
-/************************************************
- * Static functions declaration
- ***********************************************/
-
-static size_t datetime_to_string(int64_t datetime, char out[const DATETIME_MAX_BUF_SIZE]);
+#define DATETIME_MAX_STR_LEN 30
 
 /************************************************
  * Global functions definition
@@ -53,7 +29,8 @@ static size_t datetime_to_string(int64_t datetime, char out[const DATETIME_MAX_B
 // NOLINTNEXTLINE(hicpp-function-size)
 void utils_log_astarte_data(astarte_data_t data)
 {
-    char tm_str[DATETIME_MAX_BUF_SIZE] = { 0 };
+    struct tm *tm_obj = NULL;
+    char tm_str[DATETIME_MAX_STR_LEN] = { 0 };
 
     switch (astarte_data_get_type(data)) {
         case ASTARTE_MAPPING_TYPE_BINARYBLOB:
@@ -90,7 +67,8 @@ void utils_log_astarte_data(astarte_data_t data)
         case ASTARTE_MAPPING_TYPE_DATETIME:
             int64_t datetime = 0;
             (void) astarte_data_to_datetime(data, &datetime);
-            (void) datetime_to_string(datetime, tm_str);
+            tm_obj = gmtime(&datetime);
+            (void) strftime(tm_str, DATETIME_MAX_STR_LEN, "%Y-%m-%dT%H:%M:%S%z", tm_obj);
             ESP_LOGI(TAG, "Astarte datetime: %s", tm_str);
             break;
         case ASTARTE_MAPPING_TYPE_DATETIMEARRAY:
@@ -99,7 +77,8 @@ void utils_log_astarte_data(astarte_data_t data)
             size_t datetimes_len = 0;
             (void) astarte_data_to_datetime_array(data, &datetimes, &datetimes_len);
             for (size_t i = 0; i < datetimes_len; i++) {
-                (void) datetime_to_string(datetimes[i], tm_str);
+                tm_obj = gmtime(&datetimes[i]);
+                (void) strftime(tm_str, DATETIME_MAX_STR_LEN, "%Y-%m-%dT%H:%M:%S%z", tm_obj);
                 ESP_LOGI(TAG, "    %zi: %s", i, tm_str);
             }
             break;
@@ -181,12 +160,50 @@ void utils_log_astarte_object(astarte_object_entry_t *entries, size_t entries_le
     }
 }
 
-/************************************************
- * Static functions definitions
- ***********************************************/
-
-static size_t datetime_to_string(int64_t datetime, char out[const DATETIME_MAX_BUF_SIZE])
+/**
+ * @brief Convert a hex string to a dynamically allocated array of bytes
+ * @param hexstr The string to convert. Should always be in the form "01-ab-8f".
+ * @param num_bytes The resulting size of the returned array, only valid if the return is non NULL.
+ * @return The dynamically allocated and filled bytes array, or NULL upon error.
+ */
+uint8_t *utils_hexstr_to_bytes(const char *hexstr, size_t *num_bytes)
 {
-    struct tm *tm_obj = gmtime(&datetime);
-    return strftime(out, DATETIME_MAX_BUF_SIZE, "%Y-%m-%dT%H:%M:%S%z", tm_obj);
+    if (!hexstr) {
+        return NULL;
+    }
+
+    size_t len = strlen(hexstr);
+    if (len < 2) {
+        return NULL;
+    }
+
+    // Calculate the number of bytes, equal to the number of '-' + 1
+    size_t count = 1;
+    for (size_t i = 0; i < len; i++) {
+        if (hexstr[i] == '-') {
+            count++;
+        }
+    }
+
+    uint8_t *buf = calloc(count, sizeof(uint8_t));
+    if (!buf) {
+        return NULL;
+    }
+
+    size_t j = 0;
+    for (size_t i = 0; i < len;) {
+        if (!isxdigit((unsigned char) hexstr[i]) || !isxdigit((unsigned char) hexstr[i + 1])) {
+            free(buf);
+            return NULL;
+        }
+        const char byte_str[3] = { hexstr[i], hexstr[i + 1], '\0' };
+        buf[j++] = (uint8_t) strtol(byte_str, NULL, 16);
+        i += 2;
+        if (hexstr[i] == '-') {
+            i++;
+        }
+    }
+
+    *num_bytes = j;
+    return buf;
 }
