@@ -65,7 +65,7 @@ void utils_log_astarte_data(astarte_data_t data)
             }
             break;
         case ASTARTE_MAPPING_TYPE_DATETIME:
-            int64_t datetime = false;
+            int64_t datetime = 0;
             (void) astarte_data_to_datetime(data, &datetime);
             tm_obj = gmtime(&datetime);
             (void) strftime(tm_str, DATETIME_MAX_STR_LEN, "%Y-%m-%dT%H:%M:%S%z", tm_obj);
@@ -83,7 +83,7 @@ void utils_log_astarte_data(astarte_data_t data)
             }
             break;
         case ASTARTE_MAPPING_TYPE_DOUBLE:
-            double dbl = false;
+            double dbl = 0.0;
             (void) astarte_data_to_double(data, &dbl);
             ESP_LOGI(TAG, "Astarte double: %f", dbl);
             break;
@@ -97,7 +97,7 @@ void utils_log_astarte_data(astarte_data_t data)
             }
             break;
         case ASTARTE_MAPPING_TYPE_INTEGER:
-            int32_t integer = false;
+            int32_t integer = 0;
             (void) astarte_data_to_integer(data, &integer);
             ESP_LOGI(TAG, "Astarte integer: %" PRIi32, integer);
             break;
@@ -111,7 +111,7 @@ void utils_log_astarte_data(astarte_data_t data)
             }
             break;
         case ASTARTE_MAPPING_TYPE_LONGINTEGER:
-            int64_t longinteger = false;
+            int64_t longinteger = 0;
             (void) astarte_data_to_longinteger(data, &longinteger);
             ESP_LOGI(TAG, "Astarte longinteger: %lli", longinteger);
             break;
@@ -125,7 +125,7 @@ void utils_log_astarte_data(astarte_data_t data)
             }
             break;
         case ASTARTE_MAPPING_TYPE_STRING:
-            const char *string = false;
+            const char *string = NULL;
             (void) astarte_data_to_string(data, &string);
             ESP_LOGI(TAG, "Astarte string: %s", string);
             break;

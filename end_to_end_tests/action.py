@@ -162,8 +162,8 @@ class TestActionFetchRESTData(TestAction):
         http_timeout=1,
     ):
         self._interface: str = interface
-        self._path: str = path
-        self._exp_data: str = exp_data
+        self._path: str = path[1:] if path and path.startswith("/") else path
+        self._exp_data: Any = exp_data
         self._exp_dtype: DType = exp_dtype
         self._exp_datetime: datetime | None = exp_datetime
         self._http_timeout = http_timeout

@@ -397,9 +397,6 @@ void astarte_task_entry(void *ctx)
     }
 #endif
 
-    // You shouldn't log a credential secret in a production device
-    ESP_LOGI(TAG, "Credential secret: '%s'", cred_secr);
-
     const astarte_interface_t *interfaces[] = {
         &org_astarteplatform_end_to_end_DeviceAggregate,
         &org_astarteplatform_end_to_end_DeviceDatastream,
