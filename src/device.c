@@ -52,6 +52,32 @@ static astarte_result_t initialize_mqtt_topics(astarte_device_handle_t device);
  *       Callbacks declaration/definition       *
  ***********************************************/
 
+static void on_mqtt_error(astarte_device_handle_t device, esp_mqtt_event_handle_t mqtt_event)
+{
+    if (mqtt_event->error_handle->error_type == MQTT_ERROR_TYPE_ESP_TLS) {
+        tls_credentials_client_crt_t *client_crt = &device->client_crt;
+
+        astarte_result_t ares = pairing_verify_client_certificate(
+            device->device_id, device->cred_secr, client_crt->crt_pem);
+        if (ares == ASTARTE_RESULT_CLIENT_CERT_INVALID) {
+            memset(client_crt->privkey_pem, 0, ARRAY_SIZE(client_crt->privkey_pem));
+            memset(client_crt->crt_pem, 0, ARRAY_SIZE(client_crt->crt_pem));
+            ares = pairing_get_client_certificate(device->device_id, device->cred_secr, client_crt);
+            if (ares != ASTARTE_RESULT_OK) {
+                ASTARTE_LOG_ERR(
+                    "Failed getting the new client TLS cert: %s.", astarte_result_to_name(ares));
+                return;
+            }
+            ASTARTE_LOG_INF("Refreshed client certificate.");
+        } else if (ares != ASTARTE_RESULT_OK) {
+            ASTARTE_LOG_ERR("Verify client certificate failed: %s.", astarte_result_to_name(ares));
+            return;
+        } else {
+            ASTARTE_LOG_ERR("MQTT TLS error, but client certificate is valid.");
+        }
+    }
+}
+
 static void mqtt_event_handler(
     void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
@@ -85,10 +111,7 @@ static void mqtt_event_handler(
 
         case MQTT_EVENT_ERROR:
             ASTARTE_LOG_WRN("MQTT_EVENT_ERROR");
-            // TODO: handle certificate error
-            // if (event->error_handle->error_type == MQTT_ERROR_TYPE_ESP_TLS) {
-            //     on_certificate_error(device);
-            // }
+            on_mqtt_error(device, event);
             break;
 
         case MQTT_EVENT_PUBLISHED:
