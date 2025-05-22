@@ -21,6 +21,15 @@
 #include "pairing_private.h"
 
 /************************************************
+ *       Checks over configuration values       *
+ ***********************************************/
+
+#if !defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_MQTT)                                   \
+    && !defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
+#error "TLS selected, but certificate bundle disabled!"
+#endif /* defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_MQTT) */
+
+/************************************************
  *        Defines, constants and typedef        *
  ***********************************************/
 
@@ -189,7 +198,7 @@ astarte_result_t astarte_device_new(astarte_device_config_t *cfg, astarte_device
 
     const esp_mqtt_client_config_t mqtt_cfg = {
         .broker.address.uri = broker_url,
-#if defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
+#if !defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_MQTT)
         .broker.verification.crt_bundle_attach = esp_crt_bundle_attach,
 #endif
         .credentials.authentication.certificate = handle->client_crt.crt_pem,
