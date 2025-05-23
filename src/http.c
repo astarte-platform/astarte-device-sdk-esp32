@@ -11,7 +11,7 @@
 #include <esp_http_client.h>
 #if defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
 #include <esp_crt_bundle.h>
-#endif /* defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE) */
+#endif
 #include <esp_tls.h>
 
 #include "log.h"
@@ -22,9 +22,11 @@ ASTARTE_LOG_MODULE_REGISTER("astarte-http");
  *       Checks over configuration values       *
  ***********************************************/
 
-#if defined(CONFIG_ESP_TLS_INSECURE) && defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY)
+#if defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_HTTP)
 #warning "TLS has been disabled (unsafe)!"
-#endif /* defined(CONFIG_ESP_TLS_INSECURE) && defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
+#elif !defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
+#error "TLS selected, but certificate bundle disabled!"
+#endif
 
 /************************************************
  *       Callbacks declaration/definition       *
@@ -113,14 +115,12 @@ astarte_result_t http_post(const char *host, const char *path, const char *auth_
         .host = host,
         .path = path,
         .event_handler = http_event_handler,
-#if !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY)
+#if !defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_HTTP)
         .transport_type = HTTP_TRANSPORT_OVER_SSL,
-#if defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
         .crt_bundle_attach = esp_crt_bundle_attach,
-#endif /* defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE) */
-#else /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
+#else
         .transport_type = HTTP_TRANSPORT_OVER_TCP,
-#endif /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
+#endif
         .user_data = out,
     };
     client = esp_http_client_init(&config);
@@ -181,14 +181,12 @@ astarte_result_t http_get(const char *host, const char *path, const char *auth_b
         .host = host,
         .path = path,
         .event_handler = http_event_handler,
-#if !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY)
+#if !defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_HTTP)
         .transport_type = HTTP_TRANSPORT_OVER_SSL,
-#if defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
         .crt_bundle_attach = esp_crt_bundle_attach,
-#endif /* defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE) */
-#else /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
+#else
         .transport_type = HTTP_TRANSPORT_OVER_TCP,
-#endif /* !defined(CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY) */
+#endif
         .user_data = out,
     };
     client = esp_http_client_init(&config);

@@ -66,6 +66,34 @@ config ASTARTE_DEVICE_SDK_RECONNECTION_ASTARTE_BACKOFF_MAX_MS
 	  strategy to Astarte. This backoff strategy will be used when there is no MQTT error but the
 	  handshake with Astarte has failed.
 
+menu "Development options"
+
+config ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_HTTP
+	bool "Disable TLS for all HTTP requests"
+	default false
+	depends on CONFIG_ESP_TLS_INSECURE
+	depends on CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY
+	help
+	  Enable this option to connect to a local Astarte instance.
+	  With this option enabled all HTTP(s) operations will be performed over an unsecure channel,
+	  without TLS and using port 80 instead of 443.
+
+	  Should be used only for development purposes as it's highly unsafe.
+
+config ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_MQTT
+	bool "Disable TLS for all MQTT connections"
+	default false
+	depends on CONFIG_ESP_TLS_INSECURE
+	depends on CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY
+	help
+	  Enable this option to connect to a local Astarte instance.
+	  With this option enabled all MQTT(s) operations will still be perfomed using mutual TLS
+	  authentication. However, any error related the server certificate will be ignored.
+
+	  Should be used only for development purposes as it's highly unsafe.
+
+endmenu
+
 menu "Advanced options"
 
 config ASTARTE_DEVICE_SDK_ADVANCED_CLIENT_CRT_BUFFER_SIZE
