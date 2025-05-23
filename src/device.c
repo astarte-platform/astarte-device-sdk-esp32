@@ -27,7 +27,7 @@
 #if !defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_MQTT)                                   \
     && !defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
 #error "TLS selected, but certificate bundle disabled!"
-#endif /* defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_MQTT) */
+#endif
 
 /************************************************
  *        Defines, constants and typedef        *

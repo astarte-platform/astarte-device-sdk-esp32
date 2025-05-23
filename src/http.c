@@ -11,7 +11,7 @@
 #include <esp_http_client.h>
 #if defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
 #include <esp_crt_bundle.h>
-#endif /* defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE) */
+#endif
 #include <esp_tls.h>
 
 #include "log.h"
@@ -26,7 +26,7 @@ ASTARTE_LOG_MODULE_REGISTER("astarte-http");
 #warning "TLS has been disabled (unsafe)!"
 #elif !defined(CONFIG_MBEDTLS_CERTIFICATE_BUNDLE)
 #error "TLS selected, but certificate bundle disabled!"
-#endif /* defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_HTTP) */
+#endif
 
 /************************************************
  *       Callbacks declaration/definition       *
@@ -118,9 +118,9 @@ astarte_result_t http_post(const char *host, const char *path, const char *auth_
 #if !defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_HTTP)
         .transport_type = HTTP_TRANSPORT_OVER_SSL,
         .crt_bundle_attach = esp_crt_bundle_attach,
-#else /* !defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_HTTP) */
+#else
         .transport_type = HTTP_TRANSPORT_OVER_TCP,
-#endif /* !defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_HTTP) */
+#endif
         .user_data = out,
     };
     client = esp_http_client_init(&config);
@@ -184,9 +184,9 @@ astarte_result_t http_get(const char *host, const char *path, const char *auth_b
 #if !defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_HTTP)
         .transport_type = HTTP_TRANSPORT_OVER_SSL,
         .crt_bundle_attach = esp_crt_bundle_attach,
-#else /* !defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_HTTP) */
+#else
         .transport_type = HTTP_TRANSPORT_OVER_TCP,
-#endif /* !defined(CONFIG_ASTARTE_DEVICE_SDK_DEVELOP_USE_NON_TLS_HTTP) */
+#endif
         .user_data = out,
     };
     client = esp_http_client_init(&config);
