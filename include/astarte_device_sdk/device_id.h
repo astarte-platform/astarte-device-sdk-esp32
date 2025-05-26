@@ -30,7 +30,7 @@
  */
 #define ASTARTE_DEVICE_ID_LEN 22
 
-/** @brief Size in bytes for the namespace used to generate a deterministic device IDs. */
+/** @brief Size in bytes for the namespace used to generate a deterministic/unique device IDs. */
 #define ASTARTE_DEVICE_ID_NAMESPACE_SIZE 16
 
 #ifdef __cplusplus
@@ -62,6 +62,21 @@ astarte_result_t astarte_device_id_generate_random(char out[static ASTARTE_DEVIC
 astarte_result_t astarte_device_id_generate_deterministic(
     const uint8_t namespace[static ASTARTE_DEVICE_ID_NAMESPACE_SIZE], const uint8_t *name,
     size_t name_size, char out[static ASTARTE_DEVICE_ID_LEN + 1]);
+
+/**
+ * @brief Generate an unique Astarte device ID.
+ *
+ * @details The Astarte device ID will be generated starting from hardware information of the
+ * device.
+ *
+ * @param[in] namespace A namespace used to generate the unique ID. This field is intended to
+ * provide the user an additional level of uniqueness and security.
+ * @param[out] out A buffer where the result will be written.
+ * @return ASTARTE_RESULT_OK if successful, otherwise an error code.
+ */
+astarte_result_t astarte_device_id_generate_unique(
+    const uint8_t namespace[static ASTARTE_DEVICE_ID_NAMESPACE_SIZE],
+    char out[static ASTARTE_DEVICE_ID_LEN + 1]);
 
 #ifdef __cplusplus
 }
