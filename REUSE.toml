@@ -25,19 +25,19 @@ SPDX-FileCopyrightText = "SECO Mind Srl"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "samples/astarte_app/interfaces/generated_interfaces.c"
+path = "examples/astarte_app/interfaces/generated_interfaces.c"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "SECO Mind Srl"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "samples/astarte_app/interfaces/generated_interfaces.h"
+path = "examples/astarte_app/interfaces/generated_interfaces.h"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "SECO Mind Srl"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "samples/astarte_app/interfaces/*.json"
+path = "examples/astarte_app/interfaces/*.json"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "SECO Mind Srl"
 SPDX-License-Identifier = "Apache-2.0"

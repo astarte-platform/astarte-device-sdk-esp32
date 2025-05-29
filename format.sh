@@ -70,8 +70,8 @@ fi
 # Run clang-format
 format_files=("src/*.c" "include/astarte_device_sdk/*.h" "private/*.h"
               "end_to_end_tests/app/main/*.c" "end_to_end_tests/app/main/src/*.c"
-              "end_to_end_tests/app/main/include/*.h" "samples/**/main/*.c"
-              "samples/**/main/src/*.c" "samples/**/main/include/*.h" "tests/host/*.c"
+              "end_to_end_tests/app/main/include/*.h" "examples/**/main/*.c"
+              "examples/**/main/src/*.c" "examples/**/main/include/*.h" "tests/host/*.c"
               "tests/host/*.h" "tests/common/*.h" "tests/common/*.c" "tests/target/*.c"
               "tests/target/*.h" "tests/host_app/main/*.c" "tests/target_app/main/*.c")
 if [ "$check_only" = true ]; then

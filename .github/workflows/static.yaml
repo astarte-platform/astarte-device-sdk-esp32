@@ -48,7 +48,7 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r ./python_scripts/requirements.txt
       - name: Check if generated interfaces are up to date
-        run: python ./python_scripts/generate_interfaces.py -c ./samples/astarte_app/interfaces/
+        run: python ./python_scripts/generate_interfaces.py -c ./examples/astarte_app/interfaces/
   clang-tidy-check:
     runs-on: ubuntu-latest
     strategy:
