@@ -38,11 +38,11 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-if [ ! -d "./samples/$sample" ]; then
+if [ ! -d "./examples/$sample" ]; then
     echo "Incorrect sample name: '$sample'"
     exit 1
 fi
-cd ./samples/$sample
+cd ./examples/$sample
 
 if [ ! -f "$esp_path/esp-idf/export.sh" ]; then
     echo "Could not find the ESP IDF export script: '$esp_path/esp-idf/export.sh'"

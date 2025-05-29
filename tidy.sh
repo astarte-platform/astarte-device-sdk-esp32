@@ -36,11 +36,11 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Check if the sample exists
-if [ ! -d "./samples/$sample" ]; then
+if [ ! -d "./examples/$sample" ]; then
     echo "Incorrect sample name: '$sample'"
     exit 1
 fi
-cd ./samples/"$sample" || exit 1
+cd ./examples/"$sample" || exit 1
 
 export IDF_TOOLCHAIN="clang"
 

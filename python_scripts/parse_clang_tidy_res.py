@@ -240,7 +240,7 @@ if __name__ == "__main__":
         "-d",
         "--warnings-txt-dir",
         dest="warnings_txt_dir",
-        default=os.path.join(os.getcwd(), "samples", "astarte_app"),
+        default=os.path.join(os.getcwd(), "examples", "astarte_app"),
         help="Location for the warnings.txt file.",
     )
     parser.add_argument(

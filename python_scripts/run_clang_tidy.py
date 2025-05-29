@@ -109,7 +109,7 @@ if __name__ == "__main__":
         "-p",
         "--project-dir",
         dest="prj_dir",
-        default=os.path.join(os.getcwd(), "samples", "astarte_app"),
+        default=os.path.join(os.getcwd(), "examples", "astarte_app"),
         help=(
             "ESP IDF project directory in which to clang-run should be run. "
             "Defaults to the astarte_app example folder."
