@@ -21,9 +21,9 @@
 /** @brief Major version number */
 #define ASTARTE_DEVICE_SDK_MAJOR 1
 /** @brief Minor version number */
-#define ASTARTE_DEVICE_SDK_MINOR 9
+#define ASTARTE_DEVICE_SDK_MINOR 99
 /** @brief Patch version number */
-#define ASTARTE_DEVICE_SDK_PATCH 9
+#define ASTARTE_DEVICE_SDK_PATCH 99
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
