@@ -10,9 +10,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## - Unreleased
+## [2.0.0-alpha.1] - 2025-05-30
+### Changed
+- Complete renaming of almost all public header files. The new set of header files is the following:
+  - `astarte.h` macros for the SDK version and general purpose macros.
+  - `data.h` creation and parsing of basic Astarte data types.
+  - `device_id.h` generation of the Astarte device ID with various methods.
+  - `device.h` main header for the Astarte device. Device creation and data transmission.
+  - `interface.h` structures required by the Astarte interface structure.
+  - `mapping.h` structures required by mappings of the Astarte interface structure.
+  - `object.h` creation and parsing of payloads for datastreams object.
+  - `pairing.h` on-board device registration using the REST pairing APIs.
+  - `result.h` enum with result type for all functions in this library.
+  - `util.h` helper macros, not to be used directly.
+- Additonally the import path for all headers of the library now requires `astarte_device_sdk` as
+  a prefix. For example `#include "astarte_device_sdk/device.h"`.
+- Full refactoring of the APIs and KConfig options to be more in line with the
+  [`astarte-device-sdk-zephyr`](https://github.com/astarte-platform/astarte-device-sdk-zephyr).
+  This in order to provide users with a uniform and modern APIs though all C implementations.
+
 ### Removed
-- Support for ESP-IDF v4.4.
+- Support for ESP-IDF v4.4 and v5.0.
 
 ## [1.3.3] - 2024-09-04
 ### Fixed
