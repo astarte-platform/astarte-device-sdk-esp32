@@ -26,14 +26,17 @@
 #define ASTARTE_DEVICE_SDK_PATCH 99
 
 #ifndef ARRAY_SIZE
+/** @brief Macro to calculate the size of an array */
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 #endif
 
 #ifndef MAX
+/** @brief Macro to calculate maximum between two values */
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
 #ifndef MIN
+/** @brief Macro to calculate minimum between two values */
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
