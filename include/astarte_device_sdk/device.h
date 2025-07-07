@@ -173,6 +173,7 @@ astarte_result_t astarte_device_new(astarte_device_config_t *cfg, astarte_device
  * @note If the device is connected when calling this function it will be forcefully disconnected.
  *
  * @param[in] device Device instance to be destroyed.
+ * @param[in] timeout Timeout in milliseconds for the destroy function.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code. When a timeout error is
  * returned the connection may not be closed gracefully. This means that when a timeout occurrs
  * the MQTT service will be forcefully stopped and subsequently a user callback may not be
@@ -212,6 +213,7 @@ astarte_result_t astarte_device_connect(astarte_device_handle_t device);
  * @note It will be possible to re-connect the device after disconnection.
  *
  * @param[in] device Device instance to be disconnected.
+ * @param[in] timeout Timeout in milliseconds for the disconnection.
  * @return ASTARTE_RESULT_OK if successful, otherwise an error code. When a timeout error is
  * returned the connection may not be closed gracefully. This means that when a timeout occurrs
  * the MQTT service will be forcefully stopped and subsequently a user callback may not be
