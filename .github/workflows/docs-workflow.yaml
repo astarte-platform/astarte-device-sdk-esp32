@@ -42,11 +42,11 @@ jobs:
       cancel-in-progress: true
     steps:
     # Checkout the source
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         path: astarte-device-sdk-esp32
     # Checkout the docs repository
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         repository: astarte-platform/docs
         ssh-key: ${{ secrets.DOCS_DEPLOY_KEY }}
