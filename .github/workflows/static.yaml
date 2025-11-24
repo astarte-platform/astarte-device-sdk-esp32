@@ -31,7 +31,7 @@ jobs:
       group: clang-format-check-${{ github.ref }}
       cancel-in-progress: true
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install run-clang-format
       run: |
         sudo apt-get update
@@ -57,7 +57,7 @@ jobs:
       cancel-in-progress: true
     container: espressif/idf:release-v5.1
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Setup
       run: |
         . $IDF_PATH/export.sh
